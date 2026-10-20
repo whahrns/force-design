@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>힘 설계 교사용</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F7F5; --grid:#E0E8E3; --ink:#17232C; --muted:#56666F; --line:#C7D3CD; --card:#FFFFFF; --soft:#EAF0EC;
+  --g:#3346A8; --f:#B87D00; --b:#0A8683; --e:#C0306A;
+  --g-bg:#E7EAF8; --f-bg:#FBF1D9; --b-bg:#DDF2F1; --e-bg:#F9E3EC;
+  --display:"Do Hyeon","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#10181D; --grid:#18232A; --ink:#E6EDEF; --muted:#9AAAB2; --line:#2C3A42; --soft:#1B272E; --card:#162127;
+    --g:#8C9CFF; --f:#F0B53A; --b:#3FCFCB; --e:#FF7EAD;
+    --g-bg:#1E2447; --f-bg:#3A2D0C; --b-bg:#0E3533; --e-bg:#3E1628;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10181D; --grid:#18232A; --ink:#E6EDEF; --muted:#9AAAB2; --line:#2C3A42; --soft:#1B272E; --card:#162127;
+  --g:#8C9CFF; --f:#F0B53A; --b:#3FCFCB; --e:#FF7EAD;
+  --g-bg:#1E2447; --f-bg:#3A2D0C; --b-bg:#0E3533; --e-bg:#3E1628;
+}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none !important}
+body{
+  margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.65;
+  word-break:keep-all;overflow-wrap:break-word;line-break:strict;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.25;margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--g);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+
+.bar{position:sticky;top:0;z-index:10;background:var(--paper);border-bottom:2px solid var(--ink)}
+.bar-in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.bar h1{font-size:24px;margin-right:auto}
+#tools{display:contents}#tools[hidden]{display:none}
+.btn{border:2px solid var(--ink);background:var(--card);border-radius:999px;padding:4px 14px;cursor:pointer;font-size:15px;white-space:nowrap}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.in{border:2px solid var(--line);background:var(--card);border-radius:10px;padding:6px 10px;font-size:16px}
+.in:focus{border-color:var(--ink);outline:none}
+.note{font-size:14px;color:var(--muted)}
+.err{color:var(--e);font-weight:700}
+
+.login{max-width:420px;margin:60px auto;background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:22px}
+.login h2{font-size:26px;margin-bottom:6px}
+.login form{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.login input{flex:1;min-width:180px}
+
+.summary{margin:18px 0 6px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline}
+.cls{margin:26px 0 40px}
+.cls > h2{font-size:32px;border-bottom:2px dashed var(--line);padding-bottom:4px}
+.cls > h2 small{font-family:var(--body);font-size:15px;color:var(--muted);margin-left:8px}
+h3.sec{font-size:22px;margin:18px 0 8px}
+
+.panel{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:14px 16px}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:15px}
+th,td{border:2px solid var(--line);padding:5px 8px;text-align:center;white-space:nowrap}
+th{font-family:var(--display);font-weight:400;font-size:16px}
+td.l,th.l{text-align:left}
+td.avg{font-weight:700}
+.top1{background:var(--b-bg)}
+details{margin-top:10px}
+summary{cursor:pointer;font-weight:700}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:14px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.card header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.card header h4{font-family:var(--display);font-weight:400;font-size:24px;margin:0}
+.card header .t{margin-left:auto;font-size:13px;color:var(--muted)}
+.card .name{font-family:var(--display);font-size:21px;line-height:1.3;margin:4px 0}
+.card dl{margin:0}
+.card dt{font-weight:700;margin-top:8px;font-size:14px;color:var(--muted)}
+.card dd{margin:0}
+.card ul,.card ol{margin:2px 0;padding-left:20px}
+.card .pick{font-weight:700}
+.card .pick::after{content:" ← 선택";color:var(--b);font-size:13px}
+.use{border-left:5px solid var(--c);background:var(--cb);border-radius:0 8px 8px 0;padding:4px 10px;margin-top:4px}
+.use b{color:var(--c)}
+.F-g{--c:var(--g);--cb:var(--g-bg)}.F-f{--c:var(--f);--cb:var(--f-bg)}.F-b{--c:var(--b);--cb:var(--b-bg)}.F-e{--c:var(--e);--cb:var(--e-bg)}
+.chip{display:inline-block;font-size:12px;border-radius:6px;padding:0 6px;background:var(--cb);color:var(--c);font-weight:700;margin-left:2px}
+.meter{display:flex;align-items:center;gap:8px;font-size:14px}
+.meter span:first-child{min-width:64px}
+.meter i{flex:1;height:8px;background:var(--soft);border-radius:4px;overflow:hidden;display:block}
+.meter i b{display:block;height:100%;background:var(--ink)}
+.empty{color:var(--muted)}
+.pre{white-space:pre-wrap}
+footer{padding:20px 0 40px}
+@media (max-width:600px){.bar{position:static}}
+@media print{.bar .btn,.bar select{display:none}body{background:#fff}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <h1>힘 설계 활동 · 교사용</h1>
+    <span id="tools" hidden>
+      <select id="clsSel" class="in" aria-label="반 고르기"></select>
+      <button class="btn primary" id="refresh">새로고침</button>
+      <button class="btn" id="dlMd">md 내려받기</button>
+      <button class="btn" id="dlCsv">CSV 내려받기</button>
+      <button class="btn" id="logout">나가기</button>
+    </span>
+  </div>
+</div>
+
+<main class="wrap">
+  <section class="login" id="login">
+    <h2>교사 비밀번호</h2>
+    <p class="note">학생들이 저장한 모둠 기록을 반별로 모아 봅니다. 비밀번호는 이 탭을 닫으면 지워져요.</p>
+    <form id="loginForm">
+      <input class="in" type="password" id="pass" autocomplete="current-password" aria-label="교사 비밀번호" required>
+      <button class="btn primary" type="submit">보기</button>
+    </form>
+    <p id="loginMsg" role="status"></p>
+  </section>
+
+  <div id="view" hidden>
+    <div class="summary"><span id="sumText"></span><span class="note" id="loadMsg" role="status"></span></div>
+    <div id="out"></div>
+  </div>
+
+  <footer class="note">학생 이름은 서버에 저장되지 않아요. 무료 서버는 1주일 동안 접속이 없으면 잠시 멈추니, 수업 전에 Supabase 대시보드에서 Restore를 눌러 주세요.</footer>
+</main>
+
+<script>
+const API='https://scnbrusxjwhehpbjznye.supabase.co/rest/v1/rpc/';
+const APIKEY='sb_publishable_yPvmRWZqaGARrsrz2HL1Xw_JEzHDOcB';
+const PKEY='force-teacher-pass';
+const FORCES=[{id:'g',name:'중력'},{id:'f',name:'마찰력'},{id:'b',name:'부력'},{id:'e',name:'탄성력'}];
+const CHECKS=['기구나 장치의 전체 모습을 그렸다','힘이 작용하는 곳에 화살표와 힘의 이름을 표시했다','말풍선으로 힘의 특징을 어떻게 이용했는지 설명했다','이 설계가 처음의 불편한 점을 어떻게 해결하는지 적었다','설계도 제목과 모둠 이름을 적었다'];
+const EROWS=['힘의 특징 적절 이용','개선 목적 달성'];
+const MARKS=['','☆','○','△'], SCORE=[0,3,2,1];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const t=x=>String(x??'').trim();
+const FN=id=>(FORCES.find(f=>f.id===id)||{name:id}).name;
+const clsLabel=c=>{const [a,b]=c.split('-');return `${a}학년 ${b}반`;};
+const clsKey=c=>{const [a,b]=c.split('-');return (+a)*100+(+b);};
+const when=s=>new Date(s).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'});
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+
+let ROWS=[], pass='';
+try{ pass=sessionStorage.getItem(PKEY)||''; }catch(e){}
+
+async function rpc(name,body){
+  const r=await fetch(API+name,{method:'POST',headers:{apikey:APIKEY,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const txt=await r.text(); let j=null; try{ j=txt?JSON.parse(txt):null; }catch(e){}
+  if(!r.ok){ const err=new Error((j&&j.message)||('HTTP '+r.status)); err.status=r.status; throw err; }
+  return j;
+}
+function norm(d){
+  d=d||{};
+  const a=x=>Array.isArray(x)?x:[];
+  return {device:d.device||'',improve:a(d.improve),consider:a(d.consider),ideas:a(d.ideas).map(i=>({text:(i&&i.text)||'',forces:a(i&&i.forces)})),
+    pick:typeof d.pick==='number'?d.pick:-1,designName:d.designName||'',use:d.use||{},useOn:a(d.useOn),howto:d.howto||'',checks:a(d.checks),
+    groups:d.groups||8,evals:d.evals||{},self0:d.self0??50,self1:d.self1??50,reflect:d.reflect||'',groupName:d.groupName||''};
+}
+
+async function load(){
+  $('#loadMsg').textContent='불러오는 중…';
+  try{
+    const rows=await rpc('teacher_list',{p_pass:pass,p_class:null});
+    try{ sessionStorage.setItem(PKEY,pass); }catch(e){}
+    ROWS=(rows||[]).map(r=>({cls:r.class_code,grp:r.group_no,at:r.updated_at,d:norm(r.data)}))
+      .sort((x,y)=>clsKey(x.cls)-clsKey(y.cls)||x.grp-y.grp);
+    $('#login').hidden=true; $('#view').hidden=false; $('#tools').hidden=false;
+    fillClasses(); render();
+    $('#loadMsg').textContent='불러온 시각 '+new Date().toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
+  }catch(e){
+    if(/wrong password/.test(e.message)){ logout(); $('#loginMsg').textContent='비밀번호가 맞지 않아요.'; $('#loginMsg').className='err'; }
+    else{
+      const m=e instanceof TypeError?'서버에 연결하지 못했어요. 인터넷 연결을 확인하거나, Supabase 프로젝트가 일시 정지되었는지 확인해 주세요.':'불러오지 못했어요: '+e.message;
+      if($('#view').hidden){ $('#loginMsg').textContent=m; $('#loginMsg').className='err'; } else { $('#loadMsg').textContent=m; }
+    }
+  }
+}
+function logout(){
+  pass=''; try{ sessionStorage.removeItem(PKEY); }catch(e){}
+  ROWS=[]; $('#out').innerHTML=''; $('#view').hidden=true; $('#tools').hidden=true; $('#login').hidden=false; $('#pass').value=''; $('#loginMsg').textContent='';
+}
+function classes(){ return [...new Set(ROWS.map(r=>r.cls))].sort((a,b)=>clsKey(a)-clsKey(b)); }
+function fillClasses(){
+  const prev=$('#clsSel').value, cs=classes();
+  $('#clsSel').innerHTML='<option value="">전체 반</option>'+cs.map(c=>`<option value="${c}">${clsLabel(c)}</option>`).join('');
+  $('#clsSel').value=cs.includes(prev)?prev:(cs.length===1?cs[0]:'');
+}
+const shown=()=>{ const c=$('#clsSel').value; return c?[c]:classes(); };
+
+/* 동료 평가 집계: 받은 평가 (자기 모둠 평가는 제외) */
+function evalAgg(rows){
+  let maxG=0; rows.forEach(r=>{ maxG=Math.max(maxG,r.grp); Object.keys(r.d.evals).forEach(k=>{ const g=+k.split('-')[1]; if(r.d.evals[k]) maxG=Math.max(maxG,g); }); });
+  const agg={};
+  for(let g=1;g<=maxG;g++) agg[g]={raters:new Set(),rows:EROWS.map(()=>({c:[0,0,0,0],sum:0,n:0}))};
+  const matrix={};   // matrix[평가한 모둠][행-받은 모둠]
+  rows.forEach(r=>{
+    matrix[r.grp]=r.d.evals;
+    Object.entries(r.d.evals).forEach(([k,v])=>{
+      const [ri,g]=k.split('-').map(Number); v=+v;
+      if(!v||v>3||!agg[g]||!EROWS[ri]||g===r.grp) return;
+      const cell=agg[g].rows[ri]; cell.c[v]++; cell.sum+=SCORE[v]; cell.n++; agg[g].raters.add(r.grp);
+    });
+  });
+  return {maxG,agg,matrix};
+}
+const avg=c=>c.n?(c.sum/c.n).toFixed(1):'-';
+
+function evalTable(rows){
+  const {maxG,agg,matrix}=evalAgg(rows);
+  if(!maxG) return '<p class="note">아직 평가 기록이 없어요.</p>';
+  const tot=g=>{ const a=agg[g].rows; const n=a[0].n+a[1].n; return n?(a[0].sum+a[1].sum)/n:-1; };
+  const best=Math.max(...Object.keys(agg).map(g=>tot(g)));
+  let h=`<div class="tblwrap"><table><thead><tr><th rowspan="2" class="l">받은 모둠</th>${EROWS.map(r=>`<th colspan="4">${r}</th>`).join('')}<th rowspan="2">평가한<br>모둠 수</th></tr><tr>${EROWS.map(()=>'<th>☆</th><th>○</th><th>△</th><th>평균</th>').join('')}</tr></thead><tbody>`;
+  for(let g=1;g<=maxG;g++){
+    const a=agg[g], name=(rows.find(r=>r.grp===g)||{d:{}}).d.groupName;
+    h+=`<tr class="${best>0&&tot(g)===best?'top1':''}"><td class="l">${g}모둠${name?' · '+esc(name):''}</td>`+
+      a.rows.map(c=>`<td>${c.c[1]||''}</td><td>${c.c[2]||''}</td><td>${c.c[3]||''}</td><td class="avg">${avg(c)}</td>`).join('')+
+      `<td>${a.raters.size}</td></tr>`;
+  }
+  h+='</tbody></table></div><p class="note">평균: ☆ 3점, ○ 2점, △ 1점. 빈칸과 자기 모둠에 준 평가는 빼고 계산해요. 색칠한 줄이 전체 평균이 가장 높은 모둠이에요.</p>';
+  const raters=rows.map(r=>r.grp);
+  h+=`<details><summary>모둠별로 준 평가 자세히 보기</summary><div class="tblwrap" style="margin-top:8px"><table><thead><tr><th class="l">평가한 모둠 ↓ / 받은 모둠 →</th>${Array.from({length:maxG},(_,i)=>`<th>${i+1}</th>`).join('')}</tr></thead><tbody>`;
+  raters.forEach(rg=>{ EROWS.forEach((er,ri)=>{
+    h+=`<tr><td class="l">${rg}모둠 · ${er}</td>`;
+    for(let g=1;g<=maxG;g++) h+=`<td>${g===rg?'<span class="empty">—</span>':MARKS[+(matrix[rg][ri+'-'+g]||0)]||''}</td>`;
+    h+='</tr>'; }); });
+  h+='</tbody></table></div></details>';
+  return h;
+}
+
+function card(r){
+  const d=r.d, list=a=>{ const x=a.filter(t); return x.length?`<ul>${x.map(v=>`<li>${esc(v)}</li>`).join('')}</ul>`:'<span class="empty">-</span>'; };
+  const ideas=d.ideas.map((i,n)=>({i,n})).filter(o=>t(o.i.text));
+  const uses=FORCES.filter(f=>d.useOn.includes(f.id));
+  const chk=d.checks.filter(i=>CHECKS[i]).length;
+  return `<article class="card">
+    <header><h4>${r.grp}모둠</h4>${d.groupName?`<span>${esc(d.groupName)}</span>`:''}<span class="t">저장 ${when(r.at)}</span></header>
+    <div class="name">${t(d.designName)?esc(d.designName):'<span class="empty">설계 이름 없음</span>'}</div>
+    <dl>
+      <dt>고른 기구나 장치</dt><dd>${t(d.device)?esc(d.device):'<span class="empty">-</span>'}</dd>
+      <dt>불편한 점</dt><dd>${list(d.improve)}</dd>
+      <dt>고려할 점</dt><dd>${list(d.consider)}</dd>
+      <dt>아이디어</dt><dd>${ideas.length?`<ol>${ideas.map(({i,n})=>`<li value="${n+1}" class="${d.pick===n?'pick':''}">${esc(i.text)} ${i.forces.map(f=>`<span class="chip F-${esc(f)}">${esc(FN(f))}</span>`).join('')}</li>`).join('')}</ol>`:'<span class="empty">-</span>'}</dd>
+      <dt>이용한 힘</dt><dd>${uses.length?uses.map(f=>`<div class="use F-${f.id}"><b>${f.name}</b> ${t(d.use[f.id])?esc(d.use[f.id]):'<span class="empty">설명 없음</span>'}</div>`).join(''):'<span class="empty">-</span>'}</dd>
+      <dt>사용 방법</dt><dd class="pre">${t(d.howto)?esc(d.howto):'<span class="empty">-</span>'}</dd>
+      <dt>설계도 점검표 ${chk}/${CHECKS.length}</dt><dd>${chk<CHECKS.length?'<span class="note">빠진 항목: '+CHECKS.map((c,i)=>d.checks.includes(i)?'':esc(c)).filter(Boolean).join(' / ')+'</span>':'모두 확인'}</dd>
+      <dt>자기 평가</dt><dd>
+        <div class="meter"><span>과정·기능</span><i><b style="width:${+d.self0||0}%"></b></i><span>${+d.self0||0}%</span></div>
+        <div class="meter"><span>가치·태도</span><i><b style="width:${+d.self1||0}%"></b></i><span>${+d.self1||0}%</span></div></dd>
+      <dt>소감</dt><dd class="pre">${t(d.reflect)?esc(d.reflect):'<span class="empty">-</span>'}</dd>
+    </dl>
+  </article>`;
+}
+
+function render(){
+  const cs=shown();
+  const n=ROWS.filter(r=>cs.includes(r.cls)).length;
+  $('#sumText').textContent=ROWS.length?`${cs.length===1?clsLabel(cs[0]):'전체 '+cs.length+'개 반'} · 모둠 기록 ${n}개`:'아직 저장된 기록이 없어요.';
+  $('#out').innerHTML=cs.map(c=>{
+    const rows=ROWS.filter(r=>r.cls===c);
+    return `<section class="cls"><h2>${clsLabel(c)}<small>모둠 ${rows.length}개 · 마지막 저장 ${when(rows.reduce((m,r)=>r.at>m?r.at:m,rows[0].at))}</small></h2>
+      <h3 class="sec">동료 평가 집계 (받은 평가)</h3><div class="panel">${evalTable(rows)}</div>
+      <h3 class="sec">모둠별 기록</h3><div class="cards">${rows.map(card).join('')}</div></section>`;
+  }).join('');
+}
+
+/* 내려받기 */
+function download(name,text,type){
+  const u=URL.createObjectURL(new Blob([text],{type}));
+  const a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),2000);
+}
+const fileTag=()=>{ const c=$('#clsSel').value; return c?clsLabel(c).replace(/\s/g,''):'전체'; };
+function buildMd(){
+  const L=['# 힘의 특징을 이용한 기구나 장치 설계하기 — 모둠 기록 모음','',`- 내려받은 날: ${today()}`,''];
+  shown().forEach(c=>{
+    const rows=ROWS.filter(r=>r.cls===c), {maxG,agg}=evalAgg(rows);
+    L.push(`## ${clsLabel(c)}`,'');
+    if(maxG){
+      L.push('### 동료 평가 집계 (받은 평가, 자기 모둠 제외)','','| 모둠 | 힘 이용 ☆/○/△ | 평균 | 목적 달성 ☆/○/△ | 평균 | 평가한 모둠 수 |','|---|:-:|:-:|:-:|:-:|:-:|');
+      for(let g=1;g<=maxG;g++){ const a=agg[g].rows; L.push(`| ${g}모둠 | ${a[0].c.slice(1).join('/')} | ${avg(a[0])} | ${a[1].c.slice(1).join('/')} | ${avg(a[1])} | ${agg[g].raters.size} |`); }
+      L.push('');
+    }
+    rows.forEach(r=>{
+      const d=r.d;
+      L.push(`### ${r.grp}모둠${d.groupName?' · '+t(d.groupName):''}`,'',`- 저장: ${when(r.at)}`,`- 기구나 장치: ${t(d.device)||'-'}`,`- 설계 이름: **${t(d.designName)||'-'}**`,'');
+      L.push('**불편한 점**',''); d.improve.filter(t).forEach(x=>L.push('- '+t(x))); L.push('');
+      L.push('**고려할 점**',''); d.consider.filter(t).forEach(x=>L.push('- '+t(x))); L.push('');
+      L.push('**아이디어**',''); d.ideas.forEach((i,n)=>{ if(t(i.text)) L.push(`${n+1}. ${t(i.text)}${i.forces.length?` (${i.forces.map(FN).join(', ')})`:''}${d.pick===n?' ← 선택':''}`); }); L.push('');
+      L.push('**이용한 힘**',''); FORCES.filter(f=>d.useOn.includes(f.id)).forEach(f=>L.push(`- ${f.name}: ${t(d.use[f.id])||'-'}`)); L.push('');
+      L.push('**사용 방법**','',t(d.howto)||'-','');
+      L.push(`**설계도 점검표** ${d.checks.filter(i=>CHECKS[i]).length}/${CHECKS.length}`,''); CHECKS.forEach((c2,i)=>L.push(`- [${d.checks.includes(i)?'x':' '}] ${c2}`)); L.push('');
+      L.push(`**자기 평가** 과정·기능 ${d.self0}%, 가치·태도 ${d.self1}%`,'','**소감**','',t(d.reflect)||'-','');
+    });
+  });
+  return L.join('\n');
+}
+function buildCsv(){
+  const head=['반','모둠','모둠 이름','저장 시각','기구나 장치','불편한 점','고려할 점','아이디어','선택한 아이디어','설계 이름','이용한 힘','사용 방법','점검표','과정·기능(%)','가치·태도(%)','소감','받은 평가: 힘 이용 평균','받은 평가: 목적 달성 평균'];
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const out=[head.map(q).join(',')];
+  shown().forEach(c=>{
+    const rows=ROWS.filter(r=>r.cls===c), {agg}=evalAgg(rows);
+    rows.forEach(r=>{
+      const d=r.d, a=agg[r.grp];
+      out.push([clsLabel(c),r.grp,d.groupName,when(r.at),d.device,d.improve.filter(t).join('\n'),d.consider.filter(t).join('\n'),
+        d.ideas.filter(i=>t(i.text)).map(i=>t(i.text)+(i.forces.length?` (${i.forces.map(FN).join(', ')})`:'')).join('\n'),
+        d.pick>=0&&d.ideas[d.pick]?d.ideas[d.pick].text:'',d.designName,
+        FORCES.filter(f=>d.useOn.includes(f.id)).map(f=>`${f.name}: ${t(d.use[f.id])}`).join('\n'),d.howto,
+        `${d.checks.filter(i=>CHECKS[i]).length}/${CHECKS.length}`,d.self0,d.self1,d.reflect,
+        a?avg(a.rows[0]):'-',a?avg(a.rows[1]):'-'].map(q).join(','));
+    });
+  });
+  return '﻿'+out.join('\r\n');
+}
+
+$('#loginForm').addEventListener('submit',e=>{ e.preventDefault(); pass=$('#pass').value; $('#loginMsg').textContent=''; load(); });
+$('#refresh').addEventListener('click',load);
+$('#logout').addEventListener('click',logout);
+$('#clsSel').addEventListener('change',render);
+$('#dlMd').addEventListener('click',()=>download(`힘설계_${fileTag()}_${today()}.md`,buildMd(),'text/markdown;charset=utf-8'));
+$('#dlCsv').addEventListener('click',()=>download(`힘설계_${fileTag()}_${today()}.csv`,buildCsv(),'text/csv;charset=utf-8'));
+if(pass) load(); else $('#pass').focus();
+</script>
+</body>
+</html>

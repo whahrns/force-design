@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>힘 설계 활동</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F7F5; --grid:#E0E8E3; --ink:#17232C; --muted:#56666F; --line:#C7D3CD; --card:#FFFFFF; --soft:#EAF0EC;
+  --g:#3346A8; --f:#B87D00; --b:#0A8683; --e:#C0306A;
+  --g-bg:#E7EAF8; --f-bg:#FBF1D9; --b-bg:#DDF2F1; --e-bg:#F9E3EC;
+  --display:"Do Hyeon","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#10181D; --grid:#18232A; --ink:#E6EDEF; --muted:#9AAAB2; --line:#2C3A42; --soft:#1B272E;
+    --card:#162127;
+    --g:#8C9CFF; --f:#F0B53A; --b:#3FCFCB; --e:#FF7EAD;
+    --g-bg:#1E2447; --f-bg:#3A2D0C; --b-bg:#0E3533; --e-bg:#3E1628;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10181D; --grid:#18232A; --ink:#E6EDEF; --muted:#9AAAB2; --line:#2C3A42; --soft:#1B272E;
+  --card:#162127;
+  --g:#8C9CFF; --f:#F0B53A; --b:#3FCFCB; --e:#FF7EAD;
+  --g-bg:#1E2447; --f-bg:#3A2D0C; --b-bg:#0E3533; --e-bg:#3E1628;
+}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none !important}
+html{scroll-padding-top:calc(var(--barh,72px) + 16px);-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.7;
+  word-break:keep-all;overflow-wrap:break-word;line-break:strict;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+img,svg{max-width:100%}
+.wrap{max-width:880px;margin:0 auto;padding:0 20px}
+h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.25;margin:0}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--g);outline-offset:2px;border-radius:6px}
+
+/* ---------- 상단 진행바 ---------- */
+.bar{position:fixed;top:0;left:0;right:0;z-index:20;background:var(--paper);border-bottom:2px solid var(--ink);padding-top:env(safe-area-inset-top,0px)}
+.bar-space{height:calc(var(--barh,72px) - env(safe-area-inset-top,0px))}
+.bar-in{max-width:880px;margin:0 auto;padding:10px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.clock{display:flex;align-items:center;gap:8px}
+.time{font-family:var(--display);font-size:34px;line-height:1;min-width:92px;font-variant-numeric:tabular-nums}
+.time.over{color:var(--e)}
+.tbtn{border:2px solid var(--ink);background:var(--card);border-radius:999px;padding:4px 12px;cursor:pointer;font-size:15px}
+.tbtn.primary{background:var(--ink);color:var(--paper)}
+.stages{display:flex;gap:6px;overflow-x:auto;flex:1;min-width:0;padding-bottom:2px}
+.stage{flex:0 0 auto;border:2px solid var(--line);background:var(--card);border-radius:10px;padding:3px 10px;cursor:pointer;font-size:14px;white-space:nowrap}
+.stage b{font-family:var(--display);font-weight:400;margin-right:4px}
+.stage.on{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.stage.done{color:var(--muted);text-decoration:line-through}
+.progress{height:5px;background:var(--soft)}
+.progress i{display:block;height:100%;width:0;background:var(--ink);transition:width .5s linear}
+@keyframes flash{0%,100%{background:var(--paper)}50%{background:var(--e-bg)}}
+.bar.alarm{animation:flash 1s 4}
+
+/* ---------- 도입 ---------- */
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:center;padding:40px 0 20px}
+.hero h1{font-size:clamp(30px,6vw,54px);text-wrap:balance}
+.step-h h2,.sheet h3,.example h3,.poster h2{text-wrap:balance}
+.hero p{margin:14px 0 0;color:var(--muted);max-width:30em}
+.goal{margin-top:18px;border-left:5px solid var(--ink);padding:6px 14px;background:var(--card)}
+.fbd .arr{opacity:0;animation:pop .5s ease-out forwards}
+.fbd .arr:nth-of-type(2){animation-delay:.2s}.fbd .arr:nth-of-type(3){animation-delay:.4s}.fbd .arr:nth-of-type(4){animation-delay:.6s}
+@keyframes pop{to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.fbd .arr{animation:none;opacity:1}.bar.alarm{animation:none}.progress i{transition:none}}
+
+section.step{padding:34px 0;border-top:2px dashed var(--line)}
+.step-h{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.step-h .n{font-family:var(--display);font-size:44px;line-height:1;color:var(--muted)}
+.step-h h2{font-size:30px}
+.step-h .min{margin-left:auto;font-size:14px;border:2px solid var(--ink);border-radius:999px;padding:1px 10px}
+.lead{margin:10px 0 18px;max-width:40em}
+
+/* 힘 카드 */
+.forces{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.fc{border:2px solid var(--c);border-radius:14px;background:var(--card);padding:0;cursor:pointer;text-align:left;overflow:hidden;display:flex;flex-direction:column}
+.fc .top{background:var(--cb);padding:12px 14px;display:flex;align-items:center;gap:10px}
+.fc .top svg{flex:0 0 38px;height:38px}
+.fc h3{font-size:26px;color:var(--c)}
+.fc .body{padding:10px 14px 14px;font-size:15px;line-height:1.6}
+.fc .body dt{font-weight:700;color:var(--c);margin-top:6px}
+.fc .body dd{margin:0}
+.fc .more{display:none}
+.fc[aria-expanded="true"] .more{display:block}
+.fc .hint{font-size:13px;color:var(--muted);margin-top:8px}
+.fc[aria-expanded="true"] .hint{display:none}
+.F-g{--c:var(--g);--cb:var(--g-bg)}.F-f{--c:var(--f);--cb:var(--f-bg)}.F-b{--c:var(--b);--cb:var(--b-bg)}.F-e{--c:var(--e);--cb:var(--e-bg)}
+
+/* 역할 */
+.roles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.role{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
+.role strong{font-family:var(--display);font-weight:400;font-size:20px;display:block}
+.role small{display:block;color:var(--muted);font-size:13px;line-height:1.45;margin-bottom:6px}
+
+/* 입력 */
+.sheet{background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:18px 20px;margin-top:14px}
+.sheet h3{font-size:22px;margin-bottom:8px}
+label.fld{display:block;margin:12px 0 4px;font-weight:700}
+.in,textarea.in{width:100%;border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:8px 12px;font-size:16px;line-height:1.6}
+textarea.in{min-height:70px;resize:vertical}
+.in:focus{border-color:var(--ink);outline:none}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.list-row{display:flex;gap:8px;margin-bottom:6px}
+.list-row .in{flex:1}
+.x{border:none;background:none;cursor:pointer;color:var(--muted);font-size:20px;padding:0 6px}
+.add{border:2px dashed var(--line);background:none;border-radius:10px;padding:5px 12px;cursor:pointer;color:var(--muted);font-size:15px}
+.add:hover{border-color:var(--ink);color:var(--ink)}
+.ex{font-size:14px;color:var(--muted);margin:2px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:2px 12px;cursor:pointer;font-size:15px}
+.chip[aria-pressed="true"]{border-color:var(--c,var(--ink));background:var(--cb,var(--soft));color:var(--c,var(--ink));font-weight:700}
+.bank{background:var(--soft);border-radius:12px;padding:10px 14px;margin-top:14px}
+.bank summary{cursor:pointer;font-weight:700}
+.bank ul{margin:8px 0 0;padding-left:18px;font-size:15px}
+.bank button{border:none;background:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-size:15px}
+
+.idea{border:2px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:var(--paper)}
+.idea-top{display:flex;gap:8px;align-items:flex-start}
+.idea-top .who{font-family:var(--display);font-size:18px;min-width:26px;padding-top:6px}
+.idea-top textarea{min-height:52px}
+.pick{display:flex;align-items:center;gap:6px;font-size:14px;margin-top:6px;cursor:pointer}
+.idea.chosen{border-color:var(--ink);box-shadow:4px 4px 0 var(--ink)}
+
+/* 예시 */
+.example{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px;margin:10px 0 18px}
+.example h3{font-size:22px}
+.example p{margin:6px 0 0;font-size:15px}
+.tag{display:inline-block;font-weight:700;padding:0 8px;border-radius:6px;background:var(--cb);color:var(--c)}
+
+.checklist{list-style:none;padding:0;margin:10px 0 0}
+.checklist li{margin:6px 0}
+.checklist label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.checklist input{width:22px;height:22px;margin-top:3px;accent-color:var(--ink);flex:0 0 22px}
+
+.use-box{border-left:5px solid var(--c);background:var(--cb);border-radius:0 10px 10px 0;padding:8px 12px;margin-top:10px}
+.use-box label{font-weight:700;color:var(--c)}
+
+/* 평가표 */
+.tblwrap{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;min-width:520px;width:100%;background:var(--card)}
+th,td{border:2px solid var(--line);padding:8px;text-align:center}
+th:first-child,td:first-child{text-align:left;min-width:200px}
+th{font-family:var(--display);font-weight:400;font-size:18px}
+.cell{width:100%;min-height:40px;border:none;background:none;cursor:pointer;font-size:24px;line-height:1}
+.cell:empty::after{content:"·";color:var(--line)}
+.legend{font-size:14px;color:var(--muted)}
+.gcount{display:flex;align-items:center;gap:8px;font-size:15px}
+
+.self{margin:14px 0}
+.self p{margin:0 0 4px}
+.range{display:flex;align-items:center;gap:12px}
+.range input{flex:1;accent-color:var(--ink)}
+.range output{font-family:var(--display);font-size:22px;min-width:56px;text-align:right}
+
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.big{border:2px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:12px;padding:10px 18px;cursor:pointer;font-family:var(--display);font-size:20px}
+.ghost{border:2px solid var(--ink);background:var(--card);color:var(--ink)}
+.note{font-size:14px;color:var(--muted)}
+
+/* 발표 카드 */
+.overlay{position:fixed;inset:0;z-index:50;background:var(--paper);overflow:auto;display:none;padding:calc(env(safe-area-inset-top,0px) + 20px) 20px calc(env(safe-area-inset-bottom,0px) + 20px)}
+.overlay.open{display:block}
+.poster{max-width:880px;margin:0 auto;background:var(--card);border:3px solid var(--ink);border-radius:20px;padding:26px}
+.poster .grp{color:var(--muted)}
+.poster h2{font-size:clamp(32px,6vw,52px);margin:4px 0 6px}
+.poster .from{font-size:18px}
+.poster .fuse{margin-top:14px;font-size:19px}
+.poster .fuse .use-box label{font-family:var(--display);font-weight:400;font-size:22px}
+.poster h3{font-size:22px;margin-top:18px}
+.empty{color:var(--muted);font-style:normal}
+
+.tr{display:block;font-family:var(--body);font-weight:400;font-size:.9em;line-height:1.5;color:var(--b);margin-top:2px;text-align:left;word-break:normal;overflow-wrap:anywhere}
+h1 .tr{font-size:.42em;margin-top:8px}
+h2 .tr,.fc h3 .tr{font-size:.55em}
+.sheet h3 .tr,.example h3 .tr{font-size:.7em}
+.role strong .tr{font-size:.7em}
+.langsel{display:inline-flex;align-items:center;gap:6px;font-size:14px}
+
+/* 서버 저장 */
+.syncpill{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:2px 10px;cursor:pointer;font-size:13px;white-space:nowrap;color:var(--muted)}
+.syncpill.ok{border-color:var(--b);color:var(--b)}
+.syncpill.busy{border-color:var(--f);color:var(--f)}
+.syncpill.err{border-color:var(--e);color:var(--e);font-weight:700}
+.sync{margin:6px 0 10px}
+.sync > p{margin:4px 0 0}
+.sync-pick{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin-top:12px}
+.sync-pick label{display:flex;flex-direction:column;font-weight:700;font-size:15px}
+.sync-pick select{width:auto;min-width:92px;padding:6px 10px;margin-top:2px}
+.sync-on{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:12px}
+.sync-on strong{font-family:var(--display);font-weight:400;font-size:24px;margin-right:4px}
+.sync-status{font-weight:700;min-height:1.7em}
+.sync-status.err{color:var(--e)}
+.sync-status.ok{color:var(--b)}
+footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
+
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr;padding-top:24px}
+  .hero svg{max-width:300px;margin:0 auto;display:block}
+  .forces{grid-template-columns:1fr 1fr}
+  .roles{grid-template-columns:1fr 1fr}
+  .two{grid-template-columns:1fr}
+  .example{grid-template-columns:1fr}
+  .example svg{max-width:260px}
+  .time{font-size:28px;min-width:76px}
+}
+@media print{.bar,.btnrow,.add,.x{display:none}body{background:#fff}}
+</style>
+</head>
+<body>
+
+<div class="bar" id="bar">
+  <div class="bar-in">
+    <div class="clock">
+      <span class="time" id="time" aria-live="off">05:00</span>
+      <button class="tbtn primary" id="tStart">시작</button>
+      <button class="tbtn" id="tReset" aria-label="현재 단계 시간 다시 맞추기">↺</button>
+    </div>
+    <button class="syncpill" id="syncPill" type="button" aria-label="저장 상태 (눌러서 저장 설정 보기)">☁ 저장 안 됨</button>
+    <label class="langsel">🌐 번역 <select id="lang" class="tbtn" style="padding:2px 6px" aria-label="번역 언어 Language"></select></label>
+    <nav class="stages" id="stages" aria-label="활동 단계"></nav>
+  </div>
+  <div class="progress"><i id="prog"></i></div>
+</div>
+
+<div class="bar-space" aria-hidden="true"></div>
+<main class="wrap">
+
+  <!-- 도입 -->
+  <section class="hero" id="s0">
+    <div>
+      <h1>힘의 특징을 이용한<br>기구나 장치 설계하기</h1>
+      <p>매일 쓰는 물건 중에 조금 불편한 것이 있나요? 오늘은 모둠이 함께 중력, 마찰력, 부력, 탄성력의 특징을 이용해 그 물건을 더 편리하게 바꾸는 설계도를 만듭니다.</p>
+      <div class="goal">오늘의 목표: 일상생활에서 힘의 특징을 이용한 기구나 장치를 설계할 수 있다.</div>
+      <p class="note" style="margin-top:12px">준비물: 스마트 기기, 연필, 지우개, 색연필, 도화지</p>
+    </div>
+    <svg class="fbd" viewBox="0 0 360 360" role="img" aria-label="상자에 작용하는 네 가지 힘: 아래로 중력, 위로 부력, 왼쪽으로 마찰력, 오른쪽으로 탄성력">
+      <g font-family="Do Hyeon, sans-serif" font-size="24">
+        <g class="arr" fill="var(--b)"><rect x="175" y="58" width="10" height="82" rx="3"/><polygon points="164,62 196,62 180,28"/><text x="204" y="108">부력</text></g>
+        <g class="arr" fill="var(--g)"><rect x="175" y="220" width="10" height="82" rx="3"/><polygon points="164,298 196,298 180,332"/><text x="204" y="268">중력</text></g>
+        <g class="arr" fill="var(--f)"><rect x="58" y="175" width="82" height="10" rx="3"/><polygon points="62,164 62,196 28,180"/><text x="88" y="152" text-anchor="middle">마찰력</text></g>
+        <g class="arr" fill="var(--e)"><rect x="220" y="175" width="82" height="10" rx="3"/><polygon points="298,164 298,196 332,180"/><text x="272" y="152" text-anchor="middle">탄성력</text></g>
+      </g>
+      <rect x="140" y="140" width="80" height="80" rx="8" fill="var(--card)" stroke="var(--ink)" stroke-width="4"/>
+    </svg>
+  </section>
+
+  <section class="sheet sync" id="sync" aria-labelledby="syncH">
+    <h3 id="syncH">우리 모둠 기록 저장하기</h3>
+    <p>반과 모둠 번호를 고르면 입력한 내용이 자동으로 저장되어 다른 기기에서도 이어서 쓸 수 있고, 선생님도 볼 수 있어요. 학생 이름은 저장하지 않아요.</p>
+    <div class="sync-pick" id="syncPick">
+      <label>학년<select id="sGrade" class="in"></select></label>
+      <label>반<select id="sClass" class="in"></select></label>
+      <label>모둠 번호<select id="sGroup" class="in"></select></label>
+      <button class="big" id="sConnect" type="button">연결하기</button>
+      <button class="tbtn" id="sCancel" type="button" hidden>취소</button>
+    </div>
+    <div class="sync-on" id="syncOn" hidden>
+      <strong id="syncWho"></strong>
+      <button class="tbtn primary" id="sSave" type="button">지금 저장</button>
+      <button class="tbtn" id="sChange" type="button">반·모둠 바꾸기</button>
+    </div>
+    <p class="sync-status" id="syncStatus" role="status"></p>
+    <p class="note">같은 반·모둠 번호를 고른 기기는 한 기록을 함께 써요. 여러 기기에서 동시에 고치면 마지막에 저장한 내용만 남으니, 입력은 기록자 한 명이 해 주세요.</p>
+  </section>
+
+  <section class="step" id="s1">
+    <div class="step-h"><span class="n">0</span><h2>힘의 특징 떠올리기</h2><span class="min">5분</span></div>
+    <p class="lead">카드를 눌러 우리가 배운 네 가지 힘의 특징과 이용 예를 확인하세요. 설계할 때 이 카드를 다시 보면 아이디어가 떠오릅니다.</p>
+    <div class="forces" id="forces"></div>
+
+    <h3 style="font-size:22px;margin-top:26px">모둠 역할 정하기</h3>
+    <div class="roles" id="roles"></div>
+    <p class="note" id="rolesNote">역할 이름은 이 기기에만 남고 서버에는 저장되지 않아요.</p>
+  </section>
+
+  <section class="step" id="s2">
+    <div class="step-h"><span class="n">1</span><h2>불편한 기구나 장치 고르기</h2><span class="min">8분</span></div>
+    <p class="lead">생활에서 사용하는 기구나 장치 중 개선하고 싶은 것을 모둠별로 하나 정하고, 무엇이 불편한지와 개선할 때 무엇을 고려해야 하는지 토의해 정리합니다. 기존 물건을 고치는 대신 새로운 기구나 장치를 발명해도 좋아요.</p>
+    <div class="sheet">
+      <label class="fld" for="device">우리 모둠이 선택한 기구나 장치</label>
+      <input class="in" id="device" data-k="device" placeholder="예: 가위">
+      <details class="bank">
+        <summary>무엇을 고를지 모르겠다면</summary>
+        <ul id="bank"></ul>
+      </details>
+      <div class="two" style="margin-top:6px">
+        <div>
+          <label class="fld">개선할 점 (불편한 점)</label>
+          <p class="ex">예: 손가락이나 손의 힘이 약하면 가위를 쓰기 어렵고, 오래 쓰면 손이 아프다.</p>
+          <div id="improve"></div>
+          <button class="add" data-add="improve">+ 한 줄 더</button>
+        </div>
+        <div>
+          <label class="fld">개선할 때 고려할 점</label>
+          <p class="ex">예: 손의 힘이 약한 사람도 쉽게 쓸 수 있어야 한다.</p>
+          <div id="consider"></div>
+          <button class="add" data-add="consider">+ 한 줄 더</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step" id="s3">
+    <div class="step-h"><span class="n">2</span><h2>힘으로 해결할 방법 제안하기</h2><span class="min">10분</span></div>
+    <p class="lead">한 사람이 하나 이상씩 아이디어를 내고, 그 아이디어에 어떤 힘이 쓰였는지 표시하세요. 이 단계에서는 친구 아이디어를 비판하지 말고 최대한 많이 모읍니다.</p>
+    <div class="sheet">
+      <p class="ex" style="margin-top:0">대화 예시: “손에 붕대를 감았을 때 손잡이에 손가락을 끼울 수 없어 불편했어.” → “손바닥으로 누를 수 있게 만들면 어때?” → “누른 뒤에 손잡이가 저절로 벌어지도록 탄성력을 이용하자.”</p>
+      <div id="ideas"></div>
+      <button class="add" id="addIdea">+ 아이디어 추가</button>
+    </div>
+  </section>
+
+  <section class="step" id="s4">
+    <div class="step-h"><span class="n">3</span><h2>가장 알맞은 방법 골라 설계도 그리기</h2><span class="min">12분</span></div>
+    <p class="lead">제안한 방법 중 가장 알맞은 것을 골라(위에서 ‘이걸로 설계’ 선택) 도화지에 설계도를 그립니다. 설계도에는 힘의 특징을 어디에, 어떻게 이용했는지 꼭 설명해야 합니다.</p>
+
+    <div class="example">
+      <svg viewBox="0 0 260 200" role="img" aria-label="용수철 가위 설계도 예시: 둥근 손잡이 사이에 용수철, 윗면에 고무 패드">
+        <path d="M150 110 L250 70" stroke="var(--muted)" stroke-width="8" stroke-linecap="round"/>
+        <path d="M150 120 L250 150" stroke="var(--muted)" stroke-width="8" stroke-linecap="round"/>
+        <circle cx="150" cy="115" r="6" fill="var(--ink)"/>
+        <ellipse cx="80" cy="70" rx="66" ry="30" fill="var(--f-bg)" stroke="var(--ink)" stroke-width="3"/>
+        <ellipse cx="80" cy="58" rx="46" ry="14" fill="var(--f)" opacity=".85"/>
+        <ellipse cx="80" cy="160" rx="66" ry="28" fill="var(--card)" stroke="var(--ink)" stroke-width="3"/>
+        <path d="M80 100 q12 5 0 10 q-12 5 0 10 q12 5 0 10" stroke="var(--e)" stroke-width="4" fill="none"/>
+        <text x="96" y="122" font-size="14" fill="var(--e)" font-family="Gowun Dodum, sans-serif">용수철</text>
+        <text x="20" y="22" font-size="14" fill="var(--f)" font-family="Gowun Dodum, sans-serif">고무 패드</text>
+      </svg>
+      <div>
+        <h3>설계도 예시: 손의 힘이 약해도 쓸 수 있는 용수철 가위</h3>
+        <p><span class="tag F-e">탄성력</span> 손잡이 사이에 용수철을 넣어, 손으로 벌리지 않아도 누른 뒤 저절로 원래 모양으로 돌아옵니다.</p>
+        <p><span class="tag F-f">마찰력</span> 손바닥으로 누르는 손잡이에 마찰력이 큰 고무 패드를 붙여 미끄러지지 않습니다.</p>
+      </div>
+    </div>
+
+    <div class="sheet">
+      <label class="fld" for="designName">설계한 기구나 장치의 이름</label>
+      <input class="in" id="designName" data-k="designName" placeholder="예: 손의 힘이 약해도 쓸 수 있는 용수철 가위">
+      <div id="chosenIdea" class="note" style="margin-top:6px"></div>
+
+      <label class="fld">우리 설계에 이용한 힘 (눌러서 고르기)</label>
+      <div class="chips" id="useChips"></div>
+      <div id="useBoxes"></div>
+
+      <label class="fld" for="howto">사용 방법</label>
+      <textarea class="in" id="howto" data-k="howto" placeholder="어떻게 쓰는지 순서대로 적어 보세요."></textarea>
+
+      <h3 style="margin-top:20px">도화지 설계도 점검표</h3>
+      <ul class="checklist" id="checklist"></ul>
+    </div>
+  </section>
+
+  <section class="step" id="s5">
+    <div class="step-h"><span class="n">4</span><h2>발표하고 다른 모둠 평가하기</h2><span class="min">8분</span></div>
+    <p class="lead">모둠별로 1분씩 설계도를 들고 발표합니다. 발표자는 아래 ‘발표 카드’를 화면에 띄워도 좋아요. 다른 모둠 발표를 듣고 칸을 눌러 평가하세요.</p>
+    <div class="btnrow" style="margin-top:0">
+      <button class="big" id="openPoster">발표 카드 크게 보기</button>
+    </div>
+    <div class="sheet">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="legend">칸을 누를 때마다 바뀝니다: ☆ 매우 잘함 → ○ 잘함 → △ 보통 → 빈칸</span>
+        <label class="gcount">모둠 수
+          <select id="gcount" class="in" style="width:auto;padding:4px 8px"></select>
+        </label>
+      </div>
+      <div class="tblwrap"><table id="evalTbl"></table></div>
+    </div>
+  </section>
+
+  <section class="step" id="s6">
+    <div class="step-h"><span class="n">5</span><h2>나의 활동 확인하기</h2><span class="min">2분</span></div>
+    <div class="sheet">
+      <div class="self">
+        <p><b>과정·기능</b> 힘의 특징을 알맞게 이용하여 일상생활에 적용할 수 있는 기구나 장치를 설계했는가?</p>
+        <div class="range"><input type="range" min="0" max="100" step="10" id="self0" data-k="self0" aria-label="과정·기능 자기 평가"><output id="o0"></output></div>
+      </div>
+      <div class="self">
+        <p><b>가치·태도</b> 힘의 특징을 이용한 기구나 장치를 설계하며 과학적 원리로 문제를 해결하는 것에 열린 태도를 지니게 되었는가?</p>
+        <div class="range"><input type="range" min="0" max="100" step="10" id="self1" data-k="self1" aria-label="가치·태도 자기 평가"><output id="o1"></output></div>
+      </div>
+      <label class="fld" for="reflect">오늘 활동에서 새롭게 알게 된 점이나 더 해 보고 싶은 것</label>
+      <textarea class="in" id="reflect" data-k="reflect"></textarea>
+      <div class="btnrow" id="dlRow">
+        <button class="big" id="dlMd">우리 모둠 기록 내려받기 (.md)</button>
+        <span class="note" id="dlMsg" role="status" style="align-self:center"></span>
+      </div>
+      <p class="note">더 해 보기: 우리 모둠 기구의 모습, 특징, 사용 방법을 간단히 정리해 홍보물로 만들어 공유해 보세요. 부력 조절 장치는 부력의 어떤 특징을 이용한 것일지도 생각해 보세요.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>입력한 내용은 이 기기의 브라우저에 저장되고, 반·모둠을 고르면 학교 수업용 서버에도 저장됩니다(학생 이름 제외). 다른 모둠이 같은 기기를 쓸 때는 아래 버튼으로 지워 주세요. 이 기기에서만 지워지고 서버에 저장된 모둠 기록은 남아 있어요.</p>
+    <button class="tbtn" id="wipe">입력 내용 모두 지우기</button>
+  </footer>
+</main>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="발표 카드">
+  <div class="poster" id="poster"></div>
+  <div class="btnrow" style="max-width:880px;margin:14px auto 0">
+    <button class="big ghost" id="closePoster">닫기</button>
+  </div>
+</div>
+
+<script>
+const FORCES = [
+  {id:'g', name:'중력', what:'지구가 물체를 끌어당기는 힘', dir:'지구 중심 방향(아래쪽)', size:'질량이 클수록 크다. 중력의 크기가 곧 무게', use:'링거 주사, 물레방아, 스키 점프, 수직 추',
+   icon:'<svg viewBox="0 0 40 40"><rect x="12" y="4" width="16" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M20 18v16M13 28l7 7 7-7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'},
+  {id:'f', name:'마찰력', what:'접촉면에서 물체의 운동을 방해하는 힘', dir:'물체가 움직이거나 움직이려는 방향의 반대', size:'면이 거칠수록, 물체의 무게가 클수록 크다', use:'크게: 등산화 바닥, 미끄럼 방지 패드, 장갑 / 작게: 윤활유, 볼베어링, 눈썰매',
+   icon:'<svg viewBox="0 0 40 40"><rect x="10" y="10" width="20" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M3 28l4 4 4-4 4 4 4-4 4 4 4-4 4 4 4-4" stroke="currentColor" stroke-width="2.5" fill="none"/></svg>'},
+  {id:'b', name:'부력', what:'액체나 기체가 그 속의 물체를 위로 밀어 올리는 힘', dir:'중력과 반대 방향(위쪽)', size:'물체가 잠긴 부피가 클수록 크다', use:'구명조끼, 튜브, 부표, 열기구, 잠수함',
+   icon:'<svg viewBox="0 0 40 40"><path d="M2 26q5-4 9 0t9 0 9 0 9 0" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M20 22V6M13 13l7-7 7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="10" cy="34" r="2.5" fill="currentColor"/><circle cx="29" cy="33" r="2" fill="currentColor"/></svg>'},
+  {id:'e', name:'탄성력', what:'변형된 물체가 원래 모양으로 돌아가려는 힘', dir:'물체가 변형된 방향의 반대', size:'많이 변형될수록 크다(탄성 한계 안에서)', use:'용수철저울, 트램펄린, 볼펜 용수철, 머리끈, 장대높이뛰기',
+   icon:'<svg viewBox="0 0 40 40"><path d="M6 20h4l3-8 4 16 4-16 4 16 4-16 3 8h4" stroke="currentColor" stroke-width="3" fill="none" stroke-linejoin="round"/></svg>'}
+];
+const ROLES = [
+  ['사회자','토의를 이끌고 모두가 말할 기회를 준다'],
+  ['기록자','이 화면에 모둠 의견을 입력한다'],
+  ['설계자','도화지에 설계도를 그린다'],
+  ['발표자','설계도를 들고 1분 동안 발표한다']
+];
+const STAGES = [
+  {sec:'s1', label:'힘 떠올리기', min:5},
+  {sec:'s2', label:'기구 고르기', min:8},
+  {sec:'s3', label:'방법 제안', min:10},
+  {sec:'s4', label:'설계도', min:12},
+  {sec:'s5', label:'발표·평가', min:8},
+  {sec:'s6', label:'정리', min:2}
+];
+const BANK = [
+  ['물건을 넣으면 한쪽으로 쏠리는 책가방','마찰력, 중력'],
+  ['비 오는 날 미끄러운 학교 복도나 신발장 앞','마찰력'],
+  ['세게 닫혀 손이 끼일 것 같은 교실 문','탄성력, 마찰력'],
+  ['자꾸 굴러 떨어지는 연필','마찰력, 중력'],
+  ['손 힘이 약하면 누르기 힘든 스테이플러','탄성력'],
+  ['화분에 물 주는 걸 자꾸 잊는 문제','중력'],
+  ['물놀이할 때 물에 빠진 소지품 찾기','부력'],
+  ['잘 벌어지지 않는 빨래집게, 병뚜껑 따기','탄성력, 마찰력'],
+  ['몸이 불편한 사람이 쓰기 어려운 숟가락이나 컵','마찰력, 중력']
+];
+const CHECKS = [
+  '기구나 장치의 전체 모습을 그렸다',
+  '힘이 작용하는 곳에 화살표와 힘의 이름을 표시했다',
+  '말풍선으로 힘의 특징을 어떻게 이용했는지 설명했다',
+  '이 설계가 처음의 불편한 점을 어떻게 해결하는지 적었다',
+  '설계도 제목과 모둠 이름을 적었다'
+];
+const KEY = 'force-design-activity-v1';
+const def = () => ({device:'',improve:['',''],consider:['',''],ideas:[{text:'',forces:[]},{text:'',forces:[]}],pick:-1,designName:'',use:{g:'',f:'',b:'',e:''},useOn:[],howto:'',checks:[],groups:8,groupsSet:false,evals:{},self0:50,self1:50,reflect:'',roles:{},groupName:''});
+let S = def();
+try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(def(), JSON.parse(raw)); }catch(e){}
+let saveT;
+function save(){ clearTimeout(saveT); saveT = setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} },250); markDirty(); }
+const $ = s => document.querySelector(s);
+const esc = s => String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const F = id => FORCES.find(f=>f.id===id);
+
+/* 힘 카드 */
+$('#forces').innerHTML = FORCES.map(f=>`
+  <button class="fc F-${f.id}" aria-expanded="false">
+    <span class="top" style="color:var(--c)">${f.icon}<h3>${f.name}</h3></span>
+    <span class="body">
+      <span style="display:block">${f.what}</span>
+      <span class="hint">눌러서 자세히 보기</span>
+      <dl class="more">
+        <dt>방향</dt><dd>${f.dir}</dd>
+        <dt>크기</dt><dd>${f.size}</dd>
+        <dt>이용 예</dt><dd>${f.use}</dd>
+      </dl>
+    </span>
+  </button>`).join('');
+document.querySelectorAll('.fc').forEach(b=>b.addEventListener('click',()=>b.setAttribute('aria-expanded', b.getAttribute('aria-expanded')!=='true')));
+
+/* 역할 */
+$('#roles').innerHTML = `<div class="role" style="grid-column:1/-1"><strong>모둠 이름</strong><input class="in" id="groupName" placeholder="예: 3모둠 스프링즈" value="${esc(S.groupName)}"></div>` +
+  ROLES.map(([r,d])=>`<div class="role"><strong>${r}</strong><small>${d}</small><input class="in" data-role="${r}" placeholder="이름" value="${esc(S.roles[r])}"></div>`).join('');
+$('#groupName').addEventListener('input',e=>{S.groupName=e.target.value;save()});
+document.querySelectorAll('[data-role]').forEach(i=>i.addEventListener('input',e=>{S.roles[e.target.dataset.role]=e.target.value;save()}));
+
+/* 아이디어 뱅크 */
+$('#bank').innerHTML = BANK.map(([d,h])=>`<li><button type="button" data-d="${esc(d)}">${d}</button> <span class="note">힌트: ${h}</span></li>`).join('');
+$('#bank').addEventListener('click',e=>{const bb=e.target.closest('[data-d]'); const d=bb&&bb.dataset.d; if(d){S.device=d;$('#device').value=d;save();}});
+
+/* 단순 입력 바인딩 */
+document.querySelectorAll('[data-k]').forEach(el=>{
+  el.value = S[el.dataset.k];
+  el.addEventListener('input',()=>{ S[el.dataset.k] = el.type==='range' ? +el.value : el.value; save(); if(el.type==='range') outs(); });
+});
+function outs(){ $('#o0').textContent=S.self0+'%'; $('#o1').textContent=S.self1+'%'; }
+outs();
+
+/* 줄 목록 */
+function renderList(key){
+  const box = $('#'+key);
+  box.innerHTML = S[key].map((v,i)=>`<div class="list-row"><input class="in" data-list="${key}" data-i="${i}" value="${esc(v)}" aria-label="${key==='improve'?'개선할 점':'고려할 점'} ${i+1}"><button class="x" data-rm="${key}" data-i="${i}" aria-label="지우기">×</button></div>`).join('');
+}
+['improve','consider'].forEach(renderList);
+document.addEventListener('input',e=>{ const t=e.target; if(t.dataset.list){ S[t.dataset.list][+t.dataset.i]=t.value; save(); }});
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button'); if(!t) return;
+  if(t.dataset.add){ S[t.dataset.add].push(''); renderList(t.dataset.add); save(); document.querySelector(`#${t.dataset.add} .list-row:last-child input`).focus(); }
+  if(t.dataset.rm){ S[t.dataset.rm].splice(+t.dataset.i,1); if(!S[t.dataset.rm].length) S[t.dataset.rm].push(''); renderList(t.dataset.rm); save(); }
+});
+
+/* 아이디어 */
+function renderIdeas(){
+  $('#ideas').innerHTML = S.ideas.map((idea,i)=>`
+    <div class="idea ${S.pick===i?'chosen':''}">
+      <div class="idea-top">
+        <span class="who">${i+1}</span>
+        <textarea class="in" data-idea="${i}" placeholder="어떻게 바꾸면 좋을까요? 어느 부분에 어떤 힘을 이용할까요?" aria-label="아이디어 ${i+1}">${esc(idea.text)}</textarea>
+        <button class="x" data-rmidea="${i}" aria-label="아이디어 ${i+1} 지우기">×</button>
+      </div>
+      <div class="chips">${FORCES.map(f=>`<button type="button" class="chip F-${f.id}" data-ideaforce="${i}" data-f="${f.id}" aria-pressed="${idea.forces.includes(f.id)}">${f.name}</button>`).join('')}</div>
+      <label class="pick"><input type="radio" name="pick" data-pick="${i}" ${S.pick===i?'checked':''}> 이걸로 설계</label>
+    </div>`).join('');
+}
+renderIdeas();
+$('#ideas').addEventListener('input',e=>{ if(e.target.dataset.idea!==undefined){ S.ideas[+e.target.dataset.idea].text=e.target.value; save(); renderChosen(); }});
+$('#ideas').addEventListener('change',e=>{ if(e.target.dataset.pick!==undefined){ S.pick=+e.target.dataset.pick; const fs=S.ideas[S.pick].forces; fs.forEach(f=>{if(!S.useOn.includes(f))S.useOn.push(f)}); save(); renderIdeas(); renderChosen(); renderUse(); }});
+$('#ideas').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.ideaforce!==undefined){ const idea=S.ideas[+b.dataset.ideaforce]; const f=b.dataset.f; idea.forces = idea.forces.includes(f)? idea.forces.filter(x=>x!==f) : [...idea.forces,f]; b.setAttribute('aria-pressed',idea.forces.includes(f)); save(); }
+  if(b.dataset.rmidea!==undefined){ const i=+b.dataset.rmidea; S.ideas.splice(i,1); if(S.pick===i) S.pick=-1; else if(S.pick>i) S.pick--; if(!S.ideas.length) S.ideas.push({text:'',forces:[]}); save(); renderIdeas(); renderChosen(); }
+});
+$('#addIdea').addEventListener('click',()=>{ S.ideas.push({text:'',forces:[]}); save(); renderIdeas(); document.querySelector('#ideas .idea:last-child textarea').focus(); });
+
+function renderChosen(){
+  const el=$('#chosenIdea');
+  if(S.pick>=0 && S.ideas[S.pick] && S.ideas[S.pick].text.trim()) el.innerHTML='고른 아이디어: '+esc(S.ideas[S.pick].text);
+  else el.textContent='아직 고른 아이디어가 없어요. 2단계에서 ‘이걸로 설계’를 눌러 주세요.';
+}
+renderChosen();
+
+/* 이용한 힘 */
+function renderUse(){
+  $('#useChips').innerHTML = FORCES.map(f=>`<button type="button" class="chip F-${f.id}" data-use="${f.id}" aria-pressed="${S.useOn.includes(f.id)}">${f.name}</button>`).join('');
+  $('#useBoxes').innerHTML = FORCES.filter(f=>S.useOn.includes(f.id)).map(f=>`
+    <div class="use-box F-${f.id}">
+      <label for="u-${f.id}">${f.name}: 어느 부분에, ${f.name}의 어떤 특징을 이용했나요?</label>
+      <textarea class="in" id="u-${f.id}" data-usetext="${f.id}" style="margin-top:4px">${esc(S.use[f.id])}</textarea>
+    </div>`).join('') || '<p class="note">위에서 힘을 하나 이상 골라 주세요.</p>';
+}
+renderUse();
+$('#useChips').addEventListener('click',e=>{ const b=e.target.closest('[data-use]'); if(!b) return; const f=b.dataset.use; S.useOn = S.useOn.includes(f)? S.useOn.filter(x=>x!==f):[...S.useOn,f]; save(); renderUse(); });
+$('#useBoxes').addEventListener('input',e=>{ if(e.target.dataset.usetext){ S.use[e.target.dataset.usetext]=e.target.value; save(); }});
+
+/* 점검표 */
+$('#checklist').innerHTML = CHECKS.map((c,i)=>`<li><label><input type="checkbox" data-chk="${i}" ${S.checks.includes(i)?'checked':''}><span>${c}</span></label></li>`).join('');
+$('#checklist').addEventListener('change',e=>{ const i=+e.target.dataset.chk; S.checks = e.target.checked? [...S.checks,i] : S.checks.filter(x=>x!==i); save(); });
+
+/* 평가표 */
+const MARKS=['','☆','○','△'];
+if(!S.groupsSet) S.groups=8;
+$('#gcount').innerHTML = [3,4,5,6,7,8].map(n=>`<option ${n===S.groups?'selected':''}>${n}</option>`).join('');
+$('#gcount').addEventListener('change',e=>{ S.groups=+e.target.value; S.groupsSet=true; save(); renderEval(); });
+function renderEval(){
+  const rows=['힘의 특징을 적절하게 이용했는가?','기구나 장치를 개선하려는 목적을 달성했는가?'];
+  let h='<thead><tr><th scope="col">평가 항목</th>'; for(let g=1;g<=S.groups;g++) h+=`<th scope="col">${g}모둠</th>`; h+='</tr></thead><tbody>';
+  rows.forEach((r,ri)=>{ h+=`<tr><th scope="row" style="font-family:var(--body);font-size:15px;font-weight:400">${r}</th>`; for(let g=1;g<=S.groups;g++){ const k=ri+'-'+g; h+=`<td><button class="cell" data-cell="${k}" aria-label="${g}모둠 ${r} 평가">${MARKS[S.evals[k]||0]}</button></td>`;} h+='</tr>'; });
+  $('#evalTbl').innerHTML=h+'</tbody>';
+}
+renderEval();
+$('#evalTbl').addEventListener('click',e=>{ const b=e.target.closest('[data-cell]'); if(!b) return; const k=b.dataset.cell; S.evals[k]=((S.evals[k]||0)+1)%4; b.textContent=MARKS[S.evals[k]]; save(); });
+
+/* 발표 카드 */
+function poster(){
+  const fs = FORCES.filter(f=>S.useOn.includes(f.id));
+  const imp = S.improve.filter(x=>x.trim());
+  $('#poster').innerHTML = `
+    <div class="grp">${esc(S.groupName)||'우리 모둠'}</div>
+    <h2>${esc(S.designName)||'<span class="empty">설계 이름을 3단계에서 적어 주세요</span>'}</h2>
+    <div class="from">${S.device?'개선한 기구: '+esc(S.device):''}</div>
+    ${imp.length?`<h3>이런 점이 불편했어요</h3><ul>${imp.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
+    <h3>힘의 특징을 이렇게 이용했어요</h3>
+    <div class="fuse">${fs.length? fs.map(f=>`<div class="use-box F-${f.id}"><label>${f.name}</label><div>${esc(S.use[f.id])||'<span class="empty">설명을 적어 주세요</span>'}</div></div>`).join('') : '<p class="empty">3단계에서 이용한 힘을 골라 주세요.</p>'}</div>
+    ${S.howto.trim()?`<h3>사용 방법</h3><p style="white-space:pre-wrap">${esc(S.howto)}</p>`:''}`;
+}
+$('#openPoster').addEventListener('click',()=>{ poster(); $('#overlay').classList.add('open'); $('#closePoster').focus(); });
+$('#closePoster').addEventListener('click',()=>{ $('#overlay').classList.remove('open'); $('#openPoster').focus(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#overlay').classList.remove('open'); });
+
+/* md 내려받기 */
+function buildMd(){
+  const L=[]; const t=x=>(x||'').trim();
+  const d=new Date(); const day=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  L.push('# 힘의 특징을 이용한 기구나 장치 설계하기','');
+  L.push(`- 모둠: ${t(S.groupName)||'(미입력)'}`);
+  if(Y.cls) L.push(`- 반·모둠 번호: ${whoLabel(Y.cls,Y.grp)}`);
+  L.push(`- 날짜: ${day}`);
+  const r=ROLES.map(([k])=>`${k} ${t(S.roles[k])||'-'}`).join(', '); L.push(`- 역할: ${r}`,'');
+  L.push('## 1. 선택한 기구나 장치','',t(S.device)||'(미입력)','');
+  L.push('### 개선할 점',''); S.improve.filter(t).forEach(x=>L.push('- '+t(x))); L.push('');
+  L.push('### 개선할 때 고려할 점',''); S.consider.filter(t).forEach(x=>L.push('- '+t(x))); L.push('');
+  L.push('## 2. 힘으로 해결할 방법 제안','');
+  S.ideas.forEach((i,n)=>{ if(!t(i.text)) return; const fs=i.forces.map(f=>F(f).name).join(', '); L.push(`${n+1}. ${t(i.text)}${fs?` (이용한 힘: ${fs})`:''}${S.pick===n?' ← 선택':''}`); });
+  L.push('','## 3. 설계','',`**${t(S.designName)||'(이름 미입력)'}**`,'');
+  FORCES.filter(f=>S.useOn.includes(f.id)).forEach(f=>L.push(`- ${f.name}: ${t(S.use[f.id])||'(설명 미입력)'}`));
+  L.push('','### 사용 방법','',t(S.howto)||'(미입력)','');
+  L.push('### 설계도 점검표',''); CHECKS.forEach((c,i)=>L.push(`- [${S.checks.includes(i)?'x':' '}] ${c}`)); L.push('');
+  L.push('## 4. 다른 모둠 평가 (☆ 매우 잘함, ○ 잘함, △ 보통)','');
+  const rows=['힘의 특징을 적절하게 이용했는가?','기구나 장치를 개선하려는 목적을 달성했는가?'];
+  let head='| 평가 항목 |', sep='|---|'; for(let g=1;g<=S.groups;g++){head+=` ${g}모둠 |`;sep+=':-:|';}
+  L.push(head,sep); rows.forEach((rw,ri)=>{ let line=`| ${rw} |`; for(let g=1;g<=S.groups;g++) line+=` ${MARKS[S.evals[ri+'-'+g]||0]} |`; L.push(line); });
+  L.push('','## 5. 나의 활동 확인','',`- 과정·기능: ${S.self0}%`,`- 가치·태도: ${S.self1}%`,'','### 새롭게 알게 된 점',''); L.push(t(S.reflect)||'(미입력)','');
+  return {text:L.join('\n'), name:`힘설계_${(t(S.groupName)||'모둠').replace(/[\\/:*?"<>|]/g,'')}_${day}.md`};
+}
+$('#dlMd').addEventListener('click',()=>{
+  const {text,name}=buildMd(); const msg=$('#dlMsg');
+  try{
+    const u=URL.createObjectURL(new Blob([text],{type:'text/markdown;charset=utf-8'}));
+    const a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),2000);
+    msg.textContent='내려받았어요.';
+  }catch(e){ msg.textContent='이 브라우저에서는 내려받기를 할 수 없어요.'; }
+});
+
+/* 지우기 (이 기기만) */
+$('#wipe').addEventListener('click',()=>{ if(confirm('이 기기에 입력한 모둠 활동 내용을 모두 지울까요?\n서버에 저장된 모둠 기록은 지워지지 않아요.')){ try{localStorage.removeItem(KEY);localStorage.removeItem(SYNC_KEY)}catch(e){} location.reload(); }});
+
+/* ---------- 서버 저장 (Supabase) ---------- */
+const API='https://scnbrusxjwhehpbjznye.supabase.co/rest/v1/rpc/';
+const APIKEY='sb_publishable_yPvmRWZqaGARrsrz2HL1Xw_JEzHDOcB';
+const SYNC_KEY=KEY+'-sync';
+let Y={cls:'',grp:0,dirty:false,last:null};   // 연결한 반·모둠, 아직 안 보낸 변경, 마지막 서버 저장 시각
+try{ const r=localStorage.getItem(SYNC_KEY); if(r) Y=Object.assign(Y,JSON.parse(r)); }catch(e){}
+let ver=0, pushT=null, retryT=null, busy=false;
+const storeY=()=>{ try{ localStorage.setItem(SYNC_KEY,JSON.stringify(Y)); }catch(e){} };
+const storeS=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} };
+const whoLabel=(c,g)=>{ const [a,b]=c.split('-'); return `${a}학년 ${b}반 ${g}모둠`; };
+const sameT=(a,b)=>!!a && !!b && Date.parse(a)===Date.parse(b);
+const hhmm=t=>new Date(t).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
+
+async function rpc(name,body){
+  const r=await fetch(API+name,{method:'POST',headers:{apikey:APIKEY,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const txt=await r.text(); let j=null; try{ j=txt?JSON.parse(txt):null; }catch(e){}
+  if(!r.ok){ const err=new Error((j&&j.message)||('HTTP '+r.status)); err.status=r.status; throw err; }
+  return j;
+}
+function errText(e){
+  if(e instanceof TypeError || !navigator.onLine) return '인터넷에 연결되지 않아 이 기기에만 저장해 두었어요. 연결되면 자동으로 다시 보내요.';
+  if(/too large/.test(e.message)) return '내용이 너무 길어 저장하지 못했어요. 긴 글을 조금 줄여 주세요.';
+  return '저장하지 못했어요. 잠시 뒤 자동으로 다시 시도하고, ‘지금 저장’을 눌러도 돼요. (서버 응답: '+e.message+')';
+}
+
+function setStatus(kind,extra){
+  const st=$('#syncStatus'), pill=$('#syncPill'); let msg='', p='☁ 저장 안 됨', pc='';
+  if(kind==='none'){ msg='아직 반과 모둠을 고르지 않아 이 기기에만 저장돼요.'; }
+  else if(kind==='loading'){ msg='저장된 기록을 확인하는 중이에요…'; p='☁ 확인 중'; pc='busy'; }
+  else if(kind==='wait'){ msg='고친 내용을 곧 저장해요…'; p='☁ 저장 대기'; pc='busy'; }
+  else if(kind==='saving'){ msg='저장하는 중이에요…'; p='☁ 저장 중'; pc='busy'; }
+  else if(kind==='saved'){ msg=Y.last?`저장됨 · ${hhmm(Y.last)}`:'저장할 내용이 아직 없어요. 입력하면 자동으로 저장돼요.'; p=Y.last?`☁ 저장됨 ${hhmm(Y.last)}`:'☁ 연결됨'; pc='ok'; }
+  else if(kind==='pulled'){ msg=`다른 기기에서 저장한 최신 기록을 불러왔어요 · ${hhmm(Y.last)}`; p=`☁ 저장됨 ${hhmm(Y.last)}`; pc='ok'; }
+  else if(kind==='fail'){ msg=errText(extra); p='⚠ 저장 실패'; pc='err'; }
+  else if(kind==='connfail'){ msg='서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.'+(extra&&!(extra instanceof TypeError)?' (서버 응답: '+extra.message+')':''); p='⚠ 연결 실패'; pc='err'; }
+  st.textContent=msg; st.className='sync-status'+(pc==='err'?' err':pc==='ok'?' ok':'');
+  pill.textContent=p; pill.className='syncpill'+(pc?' '+pc:'');
+}
+
+function markDirty(){
+  ver++;
+  if(!Y.cls) return;
+  Y.dirty=true; storeY(); setStatus('wait');
+  clearTimeout(pushT); pushT=setTimeout(push,2500);
+}
+async function push(){
+  clearTimeout(pushT); clearTimeout(retryT);
+  if(!Y.cls) return;
+  if(busy){ pushT=setTimeout(push,800); return; }
+  busy=true; const v=ver, cls=Y.cls, grp=Y.grp; setStatus('saving'); storeS();
+  const data=Object.assign({},S); delete data.roles;   // 학생 이름은 보내지 않음
+  try{
+    const t=await rpc('save_submission',{p_class:cls,p_group:grp,p_data:data});
+    busy=false;
+    if(cls!==Y.cls||grp!==Y.grp) return;
+    Y.last=t; if(ver===v) Y.dirty=false; storeY();
+    if(Y.dirty){ setStatus('wait'); pushT=setTimeout(push,2500); } else setStatus('saved');
+  }catch(e){
+    busy=false; setStatus('fail',e);
+    if(!/too large/.test(e.message)) retryT=setTimeout(push,20000);
+  }
+}
+function hasContent(o){
+  const t=x=>String(x||'').trim();
+  return !!(t(o.device)||t(o.designName)||t(o.howto)||t(o.reflect)||t(o.groupName)||o.improve.some(t)||o.consider.some(t)||
+    o.ideas.some(i=>t(i.text)||i.forces.length)||Object.values(o.use).some(t)||o.useOn.length||o.checks.length||
+    Object.values(o.evals).some(v=>v)||o.pick>=0||o.self0!==50||o.self1!==50);
+}
+function renderAll(){
+  $('#groupName').value=S.groupName||'';
+  document.querySelectorAll('[data-role]').forEach(i=>i.value=S.roles[i.dataset.role]||'');
+  document.querySelectorAll('[data-k]').forEach(el=>el.value=S[el.dataset.k]);
+  outs(); ['improve','consider'].forEach(renderList); renderIdeas(); renderChosen(); renderUse();
+  document.querySelectorAll('[data-chk]').forEach(c=>c.checked=S.checks.includes(+c.dataset.chk));
+  if(!S.groupsSet) S.groups=8;
+  $('#gcount').value=String(S.groups); renderEval();
+}
+function applyRec(rec,keepRoles){
+  S=Object.assign(def(),rec.data||{},{roles:keepRoles?S.roles:{}});
+  Y.last=rec.updated_at; Y.dirty=false; storeY(); storeS(); renderAll();
+}
+async function connect(cls,grp,quiet){
+  setStatus('loading'); $('#sConnect').disabled=true;
+  let rec;
+  try{ rec=await rpc('load_submission',{p_class:cls,p_group:grp}); }
+  catch(e){
+    $('#sConnect').disabled=false;
+    if(quiet){ showOn(); if(Y.dirty){ setStatus('fail',e); retryT=setTimeout(push,20000); } else setStatus('connfail',e); }
+    else setStatus('connfail',e);
+    return;
+  }
+  $('#sConnect').disabled=false;
+  const same=Y.cls===cls&&Y.grp===grp, local=hasContent(S), who=whoLabel(cls,grp);
+  Y.cls=cls; Y.grp=grp;
+  if(rec){
+    if(!local || (same&&!Y.dirty)) applyRec(rec,same);
+    else if(same&&Y.dirty&&sameT(rec.updated_at,Y.last)) Y.dirty=true;   // 내 변경이 최신 → 보내기
+    else if(confirm(`${who}에 ${new Date(rec.updated_at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'})}에 저장된 기록이 있어요.\n\n[확인] 저장된 기록 불러오기 (이 기기에 입력한 내용은 바뀌어요)\n[취소] 이 기기 내용 유지 (저장된 기록을 덮어써요)`)) applyRec(rec,same);
+    else Y.dirty=true;
+  }else{
+    Y.last=null;
+    if(local && !same && !confirm(`${who}에는 아직 저장된 기록이 없어요.\n\n[확인] 이 기기에 입력된 내용을 이 모둠 기록으로 저장\n[취소] 빈 활동지로 새로 시작`)){ S=def(); storeS(); renderAll(); Y.dirty=false; }
+    else Y.dirty=local;
+  }
+  storeY(); showOn();
+  if(Y.dirty) push(); else setStatus('saved');
+}
+async function pullIfNewer(){
+  if(!Y.cls||Y.dirty||busy) return;
+  try{
+    const rec=await rpc('load_submission',{p_class:Y.cls,p_group:Y.grp});
+    if(rec && !Y.dirty && !busy && !sameT(rec.updated_at,Y.last)){ applyRec(rec,true); setStatus('pulled'); }
+  }catch(e){}
+}
+function showOn(){
+  $('#syncPick').hidden=true; $('#syncOn').hidden=false; $('#sCancel').hidden=true;
+  $('#syncWho').textContent=whoLabel(Y.cls,Y.grp);
+}
+function showPick(){
+  if(Y.cls){ const [a,b]=Y.cls.split('-'); $('#sGrade').value=a; $('#sClass').value=b; $('#sGroup').value=String(Y.grp); }
+  $('#syncPick').hidden=false; $('#syncOn').hidden=true; $('#sCancel').hidden=!Y.cls;
+}
+const opts=(arr,fmt)=>'<option value="">고르기</option>'+arr.map(n=>`<option value="${n}">${fmt(n)}</option>`).join('');
+const range=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
+$('#sGrade').innerHTML=opts(range(1,3),n=>n+'학년');
+$('#sClass').innerHTML=opts(range(1,15),n=>n+'반');
+$('#sGroup').innerHTML=opts(range(1,12),n=>n+'모둠');
+$('#sConnect').addEventListener('click',async()=>{
+  const a=$('#sGrade').value, b=$('#sClass').value, g=+$('#sGroup').value;
+  if(!a||!b||!g){ $('#syncStatus').textContent='학년, 반, 모둠 번호를 모두 골라 주세요.'; $('#syncStatus').className='sync-status err'; return; }
+  const cls=a+'-'+b;
+  if(Y.cls && Y.dirty && !(Y.cls===cls&&Y.grp===g)) await push();   // 바꾸기 전에 이전 모둠 기록부터 보내기
+  connect(cls,g,false);
+});
+$('#sCancel').addEventListener('click',()=>{ showOn(); setStatus(Y.dirty?'wait':'saved'); });
+$('#sChange').addEventListener('click',showPick);
+$('#sSave').addEventListener('click',push);
+$('#syncPill').addEventListener('click',()=>$('#sync').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}));
+addEventListener('online',()=>{ if(Y.cls&&Y.dirty) push(); });
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){ if(Y.cls&&Y.dirty) push(); }
+  else pullIfNewer();
+});
+if(Y.cls){ showOn(); connect(Y.cls,Y.grp,true); } else { showPick(); setStatus('none'); }
+
+/* 상단 바 높이 맞추기 */
+(function(){ const bar=$('#bar'); const set=()=>document.documentElement.style.setProperty('--barh', bar.offsetHeight+'px'); set(); try{ new ResizeObserver(set).observe(bar); }catch(e){ addEventListener('resize',set); } })();
+
+const LANGS={ko:{name:'한국어',tts:'ko-KR'},en:{name:'English',tts:'en-US'},zh:{name:'中文',tts:'zh-CN'},vi:{name:'Tiếng Việt',tts:'vi-VN'},ru:{name:'Русский',tts:'ru-RU'}};
+const TR_RAW={
+'힘의 특징을 이용한 기구나 장치 설계하기':{en:'Designing a Tool or Device Using the Properties of Forces',zh:'利用力的特点设计器具或装置',vi:'Thiết kế dụng cụ hoặc thiết bị dựa trên đặc điểm của lực',ru:'Проектируем инструмент или устройство, используя свойства сил'},
+'매일 쓰는 물건 중에 조금 불편한 것이 있나요? 오늘은 모둠이 함께 중력, 마찰력, 부력, 탄성력의 특징을 이용해 그 물건을 더 편리하게 바꾸는 설계도를 만듭니다.':{en:'Is there something you use every day that is a little inconvenient? Today your group will use the properties of gravity, friction, buoyancy and elastic force to draw a design that makes it easier to use.',zh:'你每天用的东西中，有没有不太方便的？今天小组一起利用重力、摩擦力、浮力和弹力的特点，画出让这件东西更方便的设计图。',vi:'Có đồ vật nào em dùng hằng ngày mà hơi bất tiện không? Hôm nay cả nhóm sẽ dùng đặc điểm của trọng lực, lực ma sát, lực đẩy và lực đàn hồi để vẽ bản thiết kế giúp đồ vật đó tiện lợi hơn.',ru:'Есть ли вещь, которой ты пользуешься каждый день, но она немного неудобная? Сегодня группа, используя свойства силы тяжести, силы трения, выталкивающей силы и силы упругости, нарисует проект, который сделает её удобнее.'},
+'오늘의 목표: 일상생활에서 힘의 특징을 이용한 기구나 장치를 설계할 수 있다.':{en:'Today’s goal: I can design a tool or device for daily life that uses the properties of forces.',zh:'今天的目标：能够利用力的特点设计日常生活中的器具或装置。',vi:'Mục tiêu hôm nay: Em có thể thiết kế dụng cụ hoặc thiết bị dùng trong đời sống dựa trên đặc điểm của lực.',ru:'Цель урока: я могу спроектировать инструмент или устройство для повседневной жизни, используя свойства сил.'},
+'준비물: 스마트 기기, 연필, 지우개, 색연필, 도화지':{en:'Materials: smart device, pencil, eraser, colored pencils, drawing paper',zh:'准备物品：智能设备、铅笔、橡皮、彩色铅笔、图画纸',vi:'Chuẩn bị: thiết bị thông minh, bút chì, tẩy, bút chì màu, giấy vẽ',ru:'Понадобится: планшет или телефон, карандаш, ластик, цветные карандаши, бумага для рисования'},
+'힘의 특징 떠올리기':{en:'Recall the properties of forces',zh:'回想力的特点',vi:'Nhớ lại đặc điểm của các lực',ru:'Вспоминаем свойства сил'},
+'카드를 눌러 우리가 배운 네 가지 힘의 특징과 이용 예를 확인하세요. 설계할 때 이 카드를 다시 보면 아이디어가 떠오릅니다.':{en:'Tap each card to review the four forces we learned and examples of how they are used. Look at these cards again while designing to get ideas.',zh:'点击卡片，确认我们学过的四种力的特点和应用实例。设计时再看看这些卡片，会想到好主意。',vi:'Bấm vào thẻ để xem đặc điểm và ví dụ ứng dụng của bốn lực đã học. Khi thiết kế, xem lại các thẻ này sẽ giúp em có ý tưởng.',ru:'Нажми на карточку, чтобы посмотреть свойства четырёх изученных сил и примеры их применения. Во время проектирования снова загляни в карточки — они подскажут идеи.'},
+'모둠 역할 정하기':{en:'Choose group roles',zh:'分配小组角色',vi:'Phân vai trong nhóm',ru:'Распределяем роли в группе'},
+'불편한 기구나 장치 고르기':{en:'Choose an inconvenient tool or device',zh:'选择一个不方便的器具或装置',vi:'Chọn dụng cụ hoặc thiết bị bất tiện',ru:'Выбираем неудобный инструмент или устройство'},
+'생활에서 사용하는 기구나 장치 중 개선하고 싶은 것을 모둠별로 하나 정하고, 무엇이 불편한지와 개선할 때 무엇을 고려해야 하는지 토의해 정리합니다. 기존 물건을 고치는 대신 새로운 기구나 장치를 발명해도 좋아요.':{en:'As a group, choose one everyday tool or device you want to improve. Discuss and write down what is inconvenient and what to consider when improving it. You may also invent a completely new tool or device.',zh:'每个小组选出一个想改进的生活用品或装置，讨论并整理它哪里不方便、改进时需要考虑什么。也可以不改旧东西，而是发明新的器具或装置。',vi:'Mỗi nhóm chọn một dụng cụ hoặc thiết bị trong đời sống muốn cải tiến, thảo luận và ghi lại điểm bất tiện và những điều cần lưu ý khi cải tiến. Các em cũng có thể phát minh dụng cụ hoặc thiết bị mới.',ru:'Группа выбирает один предмет или устройство из жизни, который хочется улучшить. Обсудите и запишите, что в нём неудобно и что нужно учесть при улучшении. Можно также изобрести совершенно новый предмет.'},
+'우리 모둠이 선택한 기구나 장치':{en:'The tool or device our group chose',zh:'我们小组选择的器具或装置',vi:'Dụng cụ hoặc thiết bị nhóm em chọn',ru:'Предмет или устройство, которое выбрала наша группа'},
+'무엇을 고를지 모르겠다면':{en:'Not sure what to choose?',zh:'不知道选什么的话',vi:'Nếu chưa biết chọn gì',ru:'Если не знаете, что выбрать'},
+'개선할 점 (불편한 점)':{en:'What to improve (what is inconvenient)',zh:'需要改进的地方（不方便之处）',vi:'Điểm cần cải tiến (điểm bất tiện)',ru:'Что улучшить (что неудобно)'},
+'예: 손가락이나 손의 힘이 약하면 가위를 쓰기 어렵고, 오래 쓰면 손이 아프다.':{en:'e.g. People with weak fingers or hands find scissors hard to use, and their hands hurt after a long time.',zh:'例：手指或手的力气小的人很难用剪刀，用久了手会痛。',vi:'Ví dụ: Người có ngón tay hoặc tay yếu khó dùng kéo, dùng lâu sẽ bị đau tay.',ru:'Пример: людям со слабыми пальцами трудно пользоваться ножницами, и от долгой работы болит рука.'},
+'개선할 때 고려할 점':{en:'What to consider when improving it',zh:'改进时需要考虑的地方',vi:'Điều cần lưu ý khi cải tiến',ru:'Что учесть при улучшении'},
+'예: 손의 힘이 약한 사람도 쉽게 쓸 수 있어야 한다.':{en:'e.g. People with weak hands should also be able to use it easily.',zh:'例：手的力气小的人也要能轻松使用。',vi:'Ví dụ: Người tay yếu cũng phải dùng được dễ dàng.',ru:'Пример: им должны легко пользоваться и люди со слабыми руками.'},
+'힘으로 해결할 방법 제안하기':{en:'Suggest ways to solve it with forces',zh:'提出用力来解决的方法',vi:'Đề xuất cách giải quyết bằng lực',ru:'Предлагаем решения с помощью сил'},
+'한 사람이 하나 이상씩 아이디어를 내고, 그 아이디어에 어떤 힘이 쓰였는지 표시하세요. 이 단계에서는 친구 아이디어를 비판하지 말고 최대한 많이 모읍니다.':{en:'Everyone gives at least one idea and marks which force it uses. At this step, do not criticize friends’ ideas — collect as many as you can.',zh:'每人至少提出一个想法，并标出用到了哪种力。这一步不要批评同学的想法，尽量多收集。',vi:'Mỗi người đưa ra ít nhất một ý tưởng và đánh dấu ý tưởng đó dùng lực nào. Ở bước này, đừng chê ý tưởng của bạn, hãy thu thập càng nhiều càng tốt.',ru:'Каждый предлагает хотя бы одну идею и отмечает, какая сила в ней используется. На этом шаге не критикуйте идеи друзей — соберите как можно больше.'},
+'대화 예시: “손에 붕대를 감았을 때 손잡이에 손가락을 끼울 수 없어 불편했어.” → “손바닥으로 누를 수 있게 만들면 어때?” → “누른 뒤에 손잡이가 저절로 벌어지도록 탄성력을 이용하자.”':{en:'Example talk: “When my hand was bandaged, I couldn’t put my fingers in the handle.” → “What if we make it work by pressing with the palm?” → “Let’s use elastic force so the handles open again by themselves.”',zh:'对话示例：“手缠着绷带时，手指伸不进剪刀把手，很不方便。”→“做成用手掌按压的怎么样？”→“利用弹力，让把手按下后自己张开吧。”',vi:'Ví dụ trò chuyện: “Khi tay quấn băng, mình không xỏ ngón tay vào tay cầm được.” → “Làm cho bấm được bằng lòng bàn tay thì sao?” → “Dùng lực đàn hồi để tay cầm tự mở ra sau khi bấm nhé.”',ru:'Пример разговора: «Когда рука была забинтована, я не мог просунуть пальцы в ручки». → «А если сделать так, чтобы нажимать ладонью?» → «Используем силу упругости, чтобы ручки сами раскрывались после нажатия».'},
+'가장 알맞은 방법 골라 설계도 그리기':{en:'Pick the best idea and draw the design',zh:'选出最合适的方法，画设计图',vi:'Chọn cách phù hợp nhất và vẽ bản thiết kế',ru:'Выбираем лучшую идею и рисуем проект'},
+'제안한 방법 중 가장 알맞은 것을 골라(위에서 ‘이걸로 설계’ 선택) 도화지에 설계도를 그립니다. 설계도에는 힘의 특징을 어디에, 어떻게 이용했는지 꼭 설명해야 합니다.':{en:'Choose the best idea (select “Design this one” above) and draw the design on paper. Your design must explain where and how you used the properties of forces.',zh:'从提出的方法中选出最合适的（在上面选择“用这个设计”），在图画纸上画设计图。设计图上一定要说明在哪里、怎样利用了力的特点。',vi:'Chọn cách phù hợp nhất (chọn “Thiết kế cái này” ở trên) và vẽ bản thiết kế lên giấy. Bản thiết kế phải giải thích đã dùng đặc điểm của lực ở đâu và như thế nào.',ru:'Выберите лучшую идею (отметьте «Проектируем это» выше) и нарисуйте проект на бумаге. В проекте обязательно объясните, где и как использованы свойства сил.'},
+'설계도 예시: 손의 힘이 약해도 쓸 수 있는 용수철 가위':{en:'Example design: spring scissors for people with weak hands',zh:'设计图示例：手力小也能用的弹簧剪刀',vi:'Ví dụ thiết kế: kéo lò xo cho người tay yếu',ru:'Пример проекта: ножницы с пружиной для людей со слабыми руками'},
+'탄성력 손잡이 사이에 용수철을 넣어, 손으로 벌리지 않아도 누른 뒤 저절로 원래 모양으로 돌아옵니다.':{en:'Elastic force: a spring between the handles makes them return to their original shape after pressing, without opening them by hand.',zh:'弹力：在把手之间装弹簧，按下后不用手掰开也会自动恢复原状。',vi:'Lực đàn hồi: đặt lò xo giữa hai tay cầm, sau khi bấm chúng tự trở về hình dạng ban đầu mà không cần dùng tay mở.',ru:'Сила упругости: пружина между ручками возвращает их в исходное положение после нажатия, раскрывать руками не нужно.'},
+'마찰력 손바닥으로 누르는 손잡이에 마찰력이 큰 고무 패드를 붙여 미끄러지지 않습니다.':{en:'Friction: a rubber pad with high friction on the handle keeps the palm from slipping.',zh:'摩擦力：在用手掌按压的把手上贴摩擦力大的橡胶垫，不会打滑。',vi:'Lực ma sát: dán miếng cao su có ma sát lớn lên tay cầm để lòng bàn tay không bị trượt.',ru:'Сила трения: резиновая накладка с большим трением на ручке не даёт ладони скользить.'},
+'설계한 기구나 장치의 이름':{en:'Name of your tool or device',zh:'设计的器具或装置的名称',vi:'Tên dụng cụ hoặc thiết bị đã thiết kế',ru:'Название вашего предмета или устройства'},
+'우리 설계에 이용한 힘 (눌러서 고르기)':{en:'Forces used in our design (tap to choose)',zh:'我们设计中用到的力（点击选择）',vi:'Các lực dùng trong thiết kế (bấm để chọn)',ru:'Силы в нашем проекте (нажмите, чтобы выбрать)'},
+'사용 방법':{en:'How to use it',zh:'使用方法',vi:'Cách sử dụng',ru:'Как пользоваться'},
+'도화지 설계도 점검표':{en:'Design checklist',zh:'设计图检查表',vi:'Bảng kiểm tra bản thiết kế',ru:'Проверка проекта'},
+'발표하고 다른 모둠 평가하기':{en:'Present and evaluate other groups',zh:'发表并评价其他小组',vi:'Trình bày và đánh giá nhóm khác',ru:'Выступаем и оцениваем другие группы'},
+'모둠별로 1분씩 설계도를 들고 발표합니다. 발표자는 아래 ‘발표 카드’를 화면에 띄워도 좋아요. 다른 모둠 발표를 듣고 칸을 눌러 평가하세요.':{en:'Each group presents its design for 1 minute. The presenter may show the “presentation card” below on screen. Listen to other groups and tap the boxes to evaluate them.',zh:'每组拿着设计图发表1分钟。发表人也可以把下面的“发表卡片”显示在屏幕上。听其他小组发表后，点击格子进行评价。',vi:'Mỗi nhóm cầm bản thiết kế trình bày 1 phút. Người trình bày có thể chiếu “thẻ trình bày” bên dưới lên màn hình. Nghe nhóm khác trình bày rồi bấm vào ô để đánh giá.',ru:'Каждая группа 1 минуту представляет свой проект. Выступающий может показать «карточку выступления» ниже на экране. Слушайте другие группы и нажимайте на клетки, чтобы оценить.'},
+'칸을 누를 때마다 바뀝니다: ☆ 매우 잘함 → ○ 잘함 → △ 보통 → 빈칸':{en:'Each tap changes the mark: ☆ excellent → ○ good → △ fair → blank',zh:'每点一次会变化：☆ 非常好 → ○ 好 → △ 一般 → 空白',vi:'Mỗi lần bấm sẽ đổi: ☆ rất tốt → ○ tốt → △ bình thường → trống',ru:'Каждое нажатие меняет отметку: ☆ отлично → ○ хорошо → △ нормально → пусто'},
+'나의 활동 확인하기':{en:'Check my activity',zh:'检查我的活动',vi:'Tự đánh giá hoạt động',ru:'Оцениваю свою работу'},
+'과정·기능 힘의 특징을 알맞게 이용하여 일상생활에 적용할 수 있는 기구나 장치를 설계했는가?':{en:'Skills: Did I design a tool or device for daily life that uses the properties of forces correctly?',zh:'过程·技能：是否恰当地利用力的特点，设计出了能用于日常生活的器具或装置？',vi:'Kỹ năng: Em đã thiết kế được dụng cụ hoặc thiết bị dùng trong đời sống, vận dụng đúng đặc điểm của lực chưa?',ru:'Умения: спроектировал(а) ли я предмет или устройство для жизни, правильно используя свойства сил?'},
+'가치·태도 힘의 특징을 이용한 기구나 장치를 설계하며 과학적 원리로 문제를 해결하는 것에 열린 태도를 지니게 되었는가?':{en:'Attitude: While designing, did I become open to solving problems with scientific principles?',zh:'价值·态度：在设计过程中，是否对用科学原理解决问题持开放的态度？',vi:'Thái độ: Khi thiết kế, em có cởi mở với việc giải quyết vấn đề bằng nguyên lý khoa học không?',ru:'Отношение: стал(а) ли я открыт(а) к решению задач с помощью научных принципов?'},
+'오늘 활동에서 새롭게 알게 된 점이나 더 해 보고 싶은 것':{en:'Something new I learned today, or something I want to try next',zh:'今天活动中新学到的东西或还想尝试的事',vi:'Điều mới em học được hôm nay hoặc điều muốn thử thêm',ru:'Что нового я узнал(а) сегодня или что хочу попробовать'},
+'더 해 보기: 우리 모둠 기구의 모습, 특징, 사용 방법을 간단히 정리해 홍보물로 만들어 공유해 보세요. 부력 조절 장치는 부력의 어떤 특징을 이용한 것일지도 생각해 보세요.':{en:'Try more: make a short poster about your group’s device — its look, features and how to use it — and share it. Also think about which property of buoyancy a buoyancy control device uses.',zh:'拓展：简单整理小组器具的外观、特点和使用方法，做成宣传海报分享。也想一想浮力调节装置利用了浮力的什么特点。',vi:'Làm thêm: tóm tắt hình dáng, đặc điểm, cách dùng dụng cụ của nhóm thành tờ quảng cáo và chia sẻ. Hãy nghĩ xem thiết bị điều chỉnh lực đẩy dùng đặc điểm nào của lực đẩy.',ru:'Дополнительно: сделайте небольшой плакат о вашем устройстве — внешний вид, особенности, способ использования — и поделитесь им. Подумайте, какое свойство выталкивающей силы использует устройство регулировки плавучести.'},
+// 힘 카드
+'중력':{en:'Gravity',zh:'重力',vi:'Trọng lực',ru:'Сила тяжести'},
+'마찰력':{en:'Friction',zh:'摩擦力',vi:'Lực ma sát',ru:'Сила трения'},
+'부력':{en:'Buoyancy',zh:'浮力',vi:'Lực đẩy (của chất lỏng, khí)',ru:'Выталкивающая сила'},
+'탄성력':{en:'Elastic force',zh:'弹力',vi:'Lực đàn hồi',ru:'Сила упругости'},
+'방향':{en:'Direction',zh:'方向',vi:'Hướng',ru:'Направление'},
+'크기':{en:'Size',zh:'大小',vi:'Độ lớn',ru:'Величина'},
+'이용 예':{en:'Examples',zh:'应用实例',vi:'Ví dụ ứng dụng',ru:'Примеры'},
+'지구가 물체를 끌어당기는 힘':{en:'The force with which the Earth pulls objects',zh:'地球吸引物体的力',vi:'Lực Trái Đất hút các vật',ru:'Сила, с которой Земля притягивает тела'},
+'지구 중심 방향(아래쪽)':{en:'Toward the center of the Earth (downward)',zh:'朝向地心（向下）',vi:'Hướng về tâm Trái Đất (xuống dưới)',ru:'К центру Земли (вниз)'},
+'질량이 클수록 크다. 중력의 크기가 곧 무게':{en:'Larger for greater mass. The size of gravity is the weight.',zh:'质量越大，重力越大。重力的大小就是重量。',vi:'Khối lượng càng lớn thì càng lớn. Độ lớn của trọng lực chính là trọng lượng.',ru:'Чем больше масса, тем больше сила. Величина силы тяжести — это вес.'},
+'링거 주사, 물레방아, 스키 점프, 수직 추':{en:'IV drip, water wheel, ski jump, plumb line',zh:'输液、水车、跳台滑雪、铅垂线',vi:'Truyền dịch, guồng nước, nhảy cầu trượt tuyết, dây dọi',ru:'Капельница, водяное колесо, прыжки с трамплина, отвес'},
+'접촉면에서 물체의 운동을 방해하는 힘':{en:'A force at the contact surface that resists an object’s motion',zh:'在接触面上阻碍物体运动的力',vi:'Lực cản trở chuyển động của vật ở mặt tiếp xúc',ru:'Сила на поверхности соприкосновения, мешающая движению тела'},
+'물체가 움직이거나 움직이려는 방향의 반대':{en:'Opposite to the direction the object moves or tries to move',zh:'与物体运动或将要运动的方向相反',vi:'Ngược với hướng vật chuyển động hoặc sắp chuyển động',ru:'Противоположно направлению движения (или попытки движения) тела'},
+'면이 거칠수록, 물체의 무게가 클수록 크다':{en:'Larger for rougher surfaces and heavier objects',zh:'接触面越粗糙、物体越重，摩擦力越大',vi:'Mặt càng nhám, vật càng nặng thì càng lớn',ru:'Больше, чем шероховатее поверхность и тяжелее тело'},
+'크게: 등산화 바닥, 미끄럼 방지 패드, 장갑 / 작게: 윤활유, 볼베어링, 눈썰매':{en:'Increase: hiking boot soles, anti-slip pads, gloves / Decrease: lubricating oil, ball bearings, snow sleds',zh:'增大：登山鞋底、防滑垫、手套 / 减小：润滑油、滚珠轴承、雪橇',vi:'Tăng: đế giày leo núi, miếng chống trượt, găng tay / Giảm: dầu bôi trơn, ổ bi, xe trượt tuyết',ru:'Увеличивают: подошва ботинок, противоскользящие коврики, перчатки / Уменьшают: смазка, шарикоподшипники, санки'},
+'액체나 기체가 그 속의 물체를 위로 밀어 올리는 힘':{en:'The force with which a liquid or gas pushes an object inside it upward',zh:'液体或气体把其中的物体向上托起的力',vi:'Lực chất lỏng hoặc chất khí đẩy vật bên trong nó lên trên',ru:'Сила, с которой жидкость или газ выталкивает находящееся в нём тело вверх'},
+'중력과 반대 방향(위쪽)':{en:'Opposite to gravity (upward)',zh:'与重力方向相反（向上）',vi:'Ngược hướng trọng lực (lên trên)',ru:'Против силы тяжести (вверх)'},
+'물체가 잠긴 부피가 클수록 크다':{en:'Larger when more of the object’s volume is submerged',zh:'物体浸入的体积越大，浮力越大',vi:'Thể tích phần vật chìm càng lớn thì càng lớn',ru:'Больше, чем больше погружённый объём тела'},
+'구명조끼, 튜브, 부표, 열기구, 잠수함':{en:'Life jacket, swim ring, buoy, hot-air balloon, submarine',zh:'救生衣、游泳圈、浮标、热气球、潜水艇',vi:'Áo phao, phao bơi, phao tiêu, khinh khí cầu, tàu ngầm',ru:'Спасательный жилет, надувной круг, буй, воздушный шар, подводная лодка'},
+'변형된 물체가 원래 모양으로 돌아가려는 힘':{en:'The force with which a deformed object tries to return to its original shape',zh:'发生形变的物体想要恢复原状的力',vi:'Lực làm vật bị biến dạng muốn trở lại hình dạng ban đầu',ru:'Сила, с которой деформированное тело стремится вернуть прежнюю форму'},
+'물체가 변형된 방향의 반대':{en:'Opposite to the direction of deformation',zh:'与物体形变的方向相反',vi:'Ngược với hướng vật bị biến dạng',ru:'Противоположно направлению деформации'},
+'많이 변형될수록 크다(탄성 한계 안에서)':{en:'Larger the more it is deformed (within the elastic limit)',zh:'形变越大，弹力越大（在弹性限度内）',vi:'Biến dạng càng nhiều thì càng lớn (trong giới hạn đàn hồi)',ru:'Больше при большей деформации (в пределах упругости)'},
+'용수철저울, 트램펄린, 볼펜 용수철, 머리끈, 장대높이뛰기':{en:'Spring scale, trampoline, ballpoint pen spring, hair tie, pole vault',zh:'弹簧秤、蹦床、圆珠笔弹簧、发圈、撑竿跳高',vi:'Lực kế lò xo, bạt nhún, lò xo bút bi, dây buộc tóc, nhảy sào',ru:'Пружинный динамометр, батут, пружина в ручке, резинка для волос, прыжок с шестом'},
+// 역할
+'모둠 이름':{en:'Group name',zh:'小组名称',vi:'Tên nhóm',ru:'Название группы'},
+'사회자':{en:'Leader',zh:'主持人',vi:'Người điều phối',ru:'Ведущий'},
+'기록자':{en:'Recorder',zh:'记录员',vi:'Thư ký',ru:'Секретарь'},
+'설계자':{en:'Designer',zh:'设计员',vi:'Người vẽ thiết kế',ru:'Конструктор'},
+'발표자':{en:'Presenter',zh:'发表人',vi:'Người trình bày',ru:'Докладчик'},
+'토의를 이끌고 모두가 말할 기회를 준다':{en:'Leads the discussion and gives everyone a turn to speak',zh:'主持讨论，让每个人都有发言机会',vi:'Dẫn dắt thảo luận, cho mọi người cơ hội phát biểu',ru:'Ведёт обсуждение и даёт слово каждому'},
+'이 화면에 모둠 의견을 입력한다':{en:'Types the group’s ideas on this screen',zh:'把小组意见输入到这个页面',vi:'Nhập ý kiến của nhóm vào màn hình này',ru:'Записывает идеи группы на этом экране'},
+'도화지에 설계도를 그린다':{en:'Draws the design on paper',zh:'在图画纸上画设计图',vi:'Vẽ bản thiết kế lên giấy',ru:'Рисует проект на бумаге'},
+'설계도를 들고 1분 동안 발표한다':{en:'Holds up the design and presents for 1 minute',zh:'拿着设计图发表1分钟',vi:'Cầm bản thiết kế và trình bày trong 1 phút',ru:'Представляет проект в течение 1 минуты'},
+// 점검표
+'기구나 장치의 전체 모습을 그렸다':{en:'We drew the whole tool or device',zh:'画出了器具或装置的整体样子',vi:'Đã vẽ toàn bộ hình dạng dụng cụ hoặc thiết bị',ru:'Нарисовали предмет или устройство целиком'},
+'힘이 작용하는 곳에 화살표와 힘의 이름을 표시했다':{en:'We marked arrows and force names where forces act',zh:'在力的作用处标出了箭头和力的名称',vi:'Đã vẽ mũi tên và ghi tên lực ở chỗ lực tác dụng',ru:'Отметили стрелками и названиями места действия сил'},
+'말풍선으로 힘의 특징을 어떻게 이용했는지 설명했다':{en:'We explained in speech bubbles how we used each force',zh:'用对话框说明了怎样利用力的特点',vi:'Đã giải thích bằng bong bóng lời cách dùng đặc điểm của lực',ru:'В облачках объяснили, как использовали свойства сил'},
+'이 설계가 처음의 불편한 점을 어떻게 해결하는지 적었다':{en:'We wrote how the design solves the original problem',zh:'写出了这个设计怎样解决最初的不便',vi:'Đã ghi thiết kế này giải quyết điểm bất tiện ban đầu như thế nào',ru:'Написали, как проект решает исходную проблему'},
+'설계도 제목과 모둠 이름을 적었다':{en:'We wrote the design title and group name',zh:'写了设计图标题和小组名称',vi:'Đã ghi tên bản thiết kế và tên nhóm',ru:'Написали название проекта и группы'},
+// 고르기 예시
+'물건을 넣으면 한쪽으로 쏠리는 책가방':{en:'A school bag that leans to one side when packed',zh:'装东西后会偏向一边的书包',vi:'Cặp sách bị lệch sang một bên khi bỏ đồ vào',ru:'Рюкзак, который перекашивается набок'},
+'비 오는 날 미끄러운 학교 복도나 신발장 앞':{en:'Slippery school hallways or shoe racks on rainy days',zh:'下雨天湿滑的学校走廊或鞋柜前',vi:'Hành lang hoặc chỗ tủ giày trơn trượt ngày mưa',ru:'Скользкий коридор или место у обувницы в дождь'},
+'세게 닫혀 손이 끼일 것 같은 교실 문':{en:'A classroom door that slams and could catch fingers',zh:'关得太猛、可能夹到手的教室门',vi:'Cửa lớp đóng mạnh, dễ kẹp tay',ru:'Дверь класса, которая резко захлопывается и может прищемить пальцы'},
+'자꾸 굴러 떨어지는 연필':{en:'Pencils that keep rolling off the desk',zh:'总是滚落的铅笔',vi:'Bút chì cứ lăn rơi xuống',ru:'Карандаши, которые всё время скатываются'},
+'손 힘이 약하면 누르기 힘든 스테이플러':{en:'A stapler that is hard to press with weak hands',zh:'手力小时很难按的订书机',vi:'Dập ghim khó bấm khi tay yếu',ru:'Степлер, который трудно нажать слабой рукой'},
+'화분에 물 주는 걸 자꾸 잊는 문제':{en:'Forgetting to water plants',zh:'总忘记给花盆浇水',vi:'Hay quên tưới nước cho chậu cây',ru:'Забываем поливать цветы'},
+'물놀이할 때 물에 빠진 소지품 찾기':{en:'Finding belongings dropped in the water while swimming',zh:'玩水时寻找掉进水里的物品',vi:'Tìm đồ bị rơi xuống nước khi đi bơi',ru:'Найти вещи, упавшие в воду во время купания'},
+'잘 벌어지지 않는 빨래집게, 병뚜껑 따기':{en:'Clothespins that are hard to open, opening bottle caps',zh:'不好捏开的晾衣夹、拧瓶盖',vi:'Kẹp phơi đồ khó mở, mở nắp chai',ru:'Тугие прищепки, открывание крышек бутылок'},
+'몸이 불편한 사람이 쓰기 어려운 숟가락이나 컵':{en:'Spoons or cups that are hard to use for people with disabilities',zh:'行动不便的人难以使用的勺子或杯子',vi:'Thìa hoặc cốc khó dùng với người khuyết tật',ru:'Ложки или чашки, неудобные для людей с ограниченными возможностями'},
+'단계':{en:'Step',zh:'第',vi:'Bước',ru:'Шаг'},
+// 서버 저장
+'우리 모둠 기록 저장하기':{en:'Save our group’s work',zh:'保存我们小组的记录',vi:'Lưu bài làm của nhóm',ru:'Сохраняем работу группы'},
+'반과 모둠 번호를 고르면 입력한 내용이 자동으로 저장되어 다른 기기에서도 이어서 쓸 수 있고, 선생님도 볼 수 있어요. 학생 이름은 저장하지 않아요.':{en:'Choose your class and group number. Your work is saved automatically, so you can continue on another device and your teacher can see it. Student names are not saved.',zh:'选择班级和小组号后，输入的内容会自动保存，可以在其他设备上继续写，老师也能看到。不会保存学生姓名。',vi:'Chọn lớp và số nhóm, nội dung sẽ được lưu tự động để có thể viết tiếp trên thiết bị khác và giáo viên cũng xem được. Tên học sinh không được lưu.',ru:'Выберите класс и номер группы — записи сохраняются автоматически, их можно продолжить на другом устройстве, и учитель их увидит. Имена учеников не сохраняются.'},
+'같은 반·모둠 번호를 고른 기기는 한 기록을 함께 써요. 여러 기기에서 동시에 고치면 마지막에 저장한 내용만 남으니, 입력은 기록자 한 명이 해 주세요.':{en:'Devices that choose the same class and group share one record. If several devices edit at once, only the last save remains, so let one recorder type.',zh:'选择相同班级和小组号的设备共用一份记录。多台设备同时修改时只保留最后保存的内容，请由记录员一个人输入。',vi:'Các thiết bị chọn cùng lớp và số nhóm dùng chung một bản ghi. Nếu nhiều thiết bị sửa cùng lúc, chỉ lần lưu cuối được giữ lại, nên hãy để một thư ký nhập.',ru:'Устройства с одинаковым классом и номером группы пишут в одну запись. Если исправлять с нескольких устройств одновременно, останется только последнее сохранение, поэтому пусть печатает один секретарь.'},
+'역할 이름은 이 기기에만 남고 서버에는 저장되지 않아요.':{en:'Names for roles stay only on this device and are not saved to the server.',zh:'角色姓名只保留在这台设备上，不会保存到服务器。',vi:'Tên trong phần vai trò chỉ lưu trên thiết bị này, không lưu lên máy chủ.',ru:'Имена в ролях остаются только на этом устройстве и не сохраняются на сервере.'}
+};
+const TR={}; for(const k in TR_RAW) TR[k.replace(/\s+/g,'')]=TR_RAW[k];
+
+/* 번역 */
+let LANG='ko'; try{ LANG=localStorage.getItem(KEY+'-lang')||'ko'; }catch(e){} if(!LANGS[LANG]) LANG='ko';
+const TSEL='#s0 h1, #s0 p, #s0 .goal, .step-h h2, .lead, #s1 > h3, .fc h3, .fc .body > span[style], .fc dt, .fc dd, .role strong, .role small, label.fld, .bank summary, #bank button, .ex, .example h3, .example p, .sheet > h3, .checklist span, .legend, .self p, #s6 p.note, #sync h3, #sync > p:not(.sync-status), #rolesNote';
+function applyLang(){
+  document.querySelectorAll('.tr').forEach(e=>e.remove());
+  document.documentElement.dataset.lang=LANG;
+  if(LANG==='ko') return;
+  document.querySelectorAll(TSEL).forEach(el=>{ const t=TR[el.textContent.replace(/\s+/g,'')]; if(t&&t[LANG]){ const sp=document.createElement('span'); sp.className='tr'; sp.lang=LANG; sp.textContent=t[LANG]; el.appendChild(sp); } });
+}
+$('#lang').innerHTML=Object.entries(LANGS).map(([k,v])=>`<option value="${k}" ${k===LANG?'selected':''}>${k==='ko'?'끄기 (한국어만)':v.name}</option>`).join('');
+$('#lang').addEventListener('change',e=>{ LANG=e.target.value; try{localStorage.setItem(KEY+'-lang',LANG)}catch(_){} applyLang(); });
+applyLang();
+
+
+/* 타이머 */
+let cur=0, left=STAGES[0].min*60, run=false, tick=null, done=new Set();
+function fmt(s){ const neg=s<0; s=Math.abs(s); return (neg?'-':'')+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+function drawStages(){
+  $('#stages').innerHTML = STAGES.map((s,i)=>`<button class="stage ${i===cur?'on':''} ${done.has(i)&&i!==cur?'done':''}" data-st="${i}"><b>${i}</b>${s.label} ${s.min}분</button>`).join('');
+}
+function drawTime(){
+  $('#time').textContent=fmt(left); $('#time').classList.toggle('over',left<0);
+  const tot=STAGES[cur].min*60; $('#prog').style.width=Math.min(100,(tot-left)/tot*100)+'%';
+  $('#tStart').textContent = run?'멈춤':'시작';
+}
+function setStage(i,scroll){
+  if(i!==cur) done.add(cur);
+  cur=i; left=STAGES[i].min*60; stop(); drawStages(); drawTime();
+  if(scroll) document.getElementById(STAGES[i].sec).scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+function beep(){ try{ const a=new (window.AudioContext||window.webkitAudioContext)(); [0,.35,.7].forEach(t=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=880;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.15,a.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+t+.25);o.start(a.currentTime+t);o.stop(a.currentTime+t+.3);}); }catch(e){} }
+function stop(){ run=false; clearInterval(tick); }
+$('#tStart').addEventListener('click',()=>{
+  if(run){ stop(); drawTime(); return; }
+  run=true; drawTime();
+  tick=setInterval(()=>{ left--; if(left===0){ beep(); const b=$('#bar'); b.classList.remove('alarm'); void b.offsetWidth; b.classList.add('alarm'); } drawTime(); },1000);
+});
+$('#tReset').addEventListener('click',()=>{ left=STAGES[cur].min*60; stop(); drawTime(); });
+$('#stages').addEventListener('click',e=>{ const b=e.target.closest('[data-st]'); if(b) setStage(+b.dataset.st,true); });
+drawStages(); drawTime();
+</script>
+</body>
+</html>
