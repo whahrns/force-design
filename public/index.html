@@ -194,6 +194,7 @@ h2 .tr,.fc h3 .tr{font-size:.55em}
 .syncpill.ok{border-color:var(--b);color:var(--b)}
 .syncpill.busy{border-color:var(--f);color:var(--f)}
 .syncpill.err{border-color:var(--e);color:var(--e);font-weight:700}
+.syncpill:not(.err){display:none}   /* 평소에는 숨기고 저장 실패 때만 보임 */
 .sync{margin:6px 0 10px}
 .sync > p{margin:4px 0 0}
 .sync-pick{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin-top:12px}
