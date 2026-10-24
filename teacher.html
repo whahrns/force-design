@@ -161,12 +161,19 @@ async function rpc(name,body){
   if(!r.ok){ const err=new Error((j&&j.message)||('HTTP '+r.status)); err.status=r.status; throw err; }
   return j;
 }
+/* 형식이 어긋난 기록이 화면을 망가뜨리지 않도록 정리 */
 function norm(d){
-  d=d||{};
-  const a=x=>Array.isArray(x)?x:[];
-  return {device:d.device||'',improve:a(d.improve),consider:a(d.consider),ideas:a(d.ideas).map(i=>({text:(i&&i.text)||'',forces:a(i&&i.forces)})),
-    pick:typeof d.pick==='number'?d.pick:-1,designName:d.designName||'',use:d.use||{},useOn:a(d.useOn),howto:d.howto||'',checks:a(d.checks),
-    groups:d.groups||8,evals:d.evals||{},self0:d.self0??50,self1:d.self1??50,reflect:d.reflect||'',groupName:d.groupName||''};
+  d=(d&&typeof d==='object')?d:{};
+  const a=x=>Array.isArray(x)?x:[], s=x=>typeof x==='string'?x.slice(0,5000):'';
+  const n=(x,lo,hi,dv)=>Number.isFinite(+x)&&x!==null&&x!==''?Math.min(hi,Math.max(lo,Math.round(+x))):dv;
+  const isF=f=>FORCES.some(x=>x.id===f);
+  const ideas=a(d.ideas).slice(0,30).map(i=>({text:s(i&&i.text),forces:[...new Set(a(i&&i.forces).filter(isF))]}));
+  const use={}; FORCES.forEach(f=>use[f.id]=s(d.use&&d.use[f.id]));
+  const evals={}; if(d.evals&&typeof d.evals==='object') for(const k in d.evals){ const v=n(d.evals[k],0,3,0); if(/^[01]-([1-9]|1[0-2])$/.test(k)&&v) evals[k]=v; }
+  return {device:s(d.device),improve:a(d.improve).slice(0,30).map(s),consider:a(d.consider).slice(0,30).map(s),ideas,
+    pick:n(d.pick,-1,ideas.length-1,-1),designName:s(d.designName),use,useOn:[...new Set(a(d.useOn).filter(isF))],howto:s(d.howto),
+    checks:[...new Set(a(d.checks).map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<CHECKS.length))],
+    groups:n(d.groups,3,8,8),evals,self0:n(d.self0,0,100,50),self1:n(d.self1,0,100,50),reflect:s(d.reflect),groupName:s(d.groupName)};
 }
 
 async function load(){

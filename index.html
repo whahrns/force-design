@@ -459,8 +459,28 @@ const CHECKS = [
 ];
 const KEY = 'force-design-activity-v1';
 const def = () => ({device:'',improve:['',''],consider:['',''],ideas:[{text:'',forces:[]},{text:'',forces:[]}],pick:-1,designName:'',use:{g:'',f:'',b:'',e:''},useOn:[],howto:'',checks:[],groups:8,groupsSet:false,evals:{},self0:50,self1:50,reflect:'',roles:{},groupName:''});
+/* 저장된 기록 정리: 형식이 어긋난 값(서버·기기)이 화면을 망가뜨리지 않도록 */
+function clean(d){
+  const o=def(); d=(d&&typeof d==='object')?d:{};
+  const A=x=>Array.isArray(x)?x:[], Sx=x=>typeof x==='string'?x.slice(0,5000):'';
+  const N=(x,a,b,dv)=>Number.isFinite(+x)&&x!==null&&x!==''?Math.min(b,Math.max(a,Math.round(+x))):dv;
+  const isF=f=>FORCES.some(x=>x.id===f);
+  ['device','designName','howto','reflect','groupName'].forEach(k=>o[k]=Sx(d[k]));
+  ['improve','consider'].forEach(k=>{ const a=A(d[k]).slice(0,30).map(Sx); if(a.length) o[k]=a; });
+  const ideas=A(d.ideas).slice(0,30).map(i=>({text:Sx(i&&i.text),forces:[...new Set(A(i&&i.forces).filter(isF))]}));
+  if(ideas.length) o.ideas=ideas;
+  o.pick=N(d.pick,-1,o.ideas.length-1,-1);
+  FORCES.forEach(f=>o.use[f.id]=Sx(d.use&&d.use[f.id]));
+  o.useOn=[...new Set(A(d.useOn).filter(isF))];
+  o.checks=[...new Set(A(d.checks).map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<CHECKS.length))];
+  o.groups=N(d.groups,3,8,8); o.groupsSet=d.groupsSet===true;
+  if(d.evals&&typeof d.evals==='object') for(const k in d.evals){ const v=N(d.evals[k],0,3,0); if(/^[01]-([1-9]|1[0-2])$/.test(k)&&v) o.evals[k]=v; }
+  o.self0=N(d.self0,0,100,50); o.self1=N(d.self1,0,100,50);
+  if(d.roles&&typeof d.roles==='object') ROLES.forEach(([r])=>{ if(typeof d.roles[r]==='string') o.roles[r]=d.roles[r].slice(0,50); });
+  return o;
+}
 let S = def();
-try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(def(), JSON.parse(raw)); }catch(e){}
+try{ const raw = localStorage.getItem(KEY); if(raw) S = clean(JSON.parse(raw)); }catch(e){}
 let saveT;
 function save(){ clearTimeout(saveT); saveT = setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} },250); markDirty(); }
 const $ = s => document.querySelector(s);
@@ -708,7 +728,8 @@ function renderAll(){
   $('#gcount').value=String(S.groups); renderEval();
 }
 function applyRec(rec,keepRoles){
-  S=Object.assign(def(),rec.data||{},{roles:keepRoles?S.roles:{}});
+  const roles=keepRoles?S.roles:{};
+  S=clean(rec.data); S.roles=roles;
   Y.last=rec.updated_at; Y.dirty=false; storeY(); storeS(); renderAll();
 }
 async function connect(cls,grp,quiet){
