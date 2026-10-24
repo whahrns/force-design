@@ -262,8 +262,7 @@ footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
     <h3 id="syncH">우리 모둠 기록 저장하기</h3>
     <p>반과 모둠 번호를 고르면 입력한 내용이 자동으로 저장되어 다른 기기에서도 이어서 쓸 수 있고, 선생님도 볼 수 있어요. 학생 이름은 저장하지 않아요.</p>
     <div class="sync-pick" id="syncPick">
-      <label>학년<select id="sGrade" class="in"></select></label>
-      <label>반<select id="sClass" class="in"></select></label>
+      <label>1학년 반<select id="sClass" class="in"></select></label>
       <label>모둠 번호<select id="sGroup" class="in"></select></label>
       <label>모둠 암호<input id="sPin" class="in pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="숫자 4자리" aria-describedby="pinHelp"></label>
       <button class="big" id="sConnect" type="button">연결하기</button>
@@ -477,7 +476,7 @@ function clean(d){
   o.useOn=[...new Set(A(d.useOn).filter(isF))];
   o.checks=[...new Set(A(d.checks).map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<CHECKS.length))];
   o.groups=N(d.groups,3,8,8); o.groupsSet=d.groupsSet===true;
-  if(d.evals&&typeof d.evals==='object') for(const k in d.evals){ const v=N(d.evals[k],0,3,0); if(/^[01]-([1-9]|1[0-2])$/.test(k)&&v) o.evals[k]=v; }
+  if(d.evals&&typeof d.evals==='object') for(const k in d.evals){ const v=N(d.evals[k],0,3,0); if(/^[01]-[1-8]$/.test(k)&&v) o.evals[k]=v; }
   o.self0=N(d.self0,0,100,50); o.self1=N(d.self1,0,100,50);
   if(d.roles&&typeof d.roles==='object') ROLES.forEach(([r])=>{ if(typeof d.roles[r]==='string') o.roles[r]=d.roles[r].slice(0,50); });
   return o;
@@ -659,7 +658,7 @@ const APIKEY='sb_publishable_yPvmRWZqaGARrsrz2HL1Xw_JEzHDOcB';
 const SYNC_KEY=KEY+'-sync';
 let Y={cls:'',grp:0,pin:'',dirty:false,last:null};   // 연결한 반·모둠·암호, 아직 안 보낸 변경, 마지막 서버 저장 시각
 try{ const r=localStorage.getItem(SYNC_KEY); if(r) Y=Object.assign(Y,JSON.parse(r)); }catch(e){}
-if(Y.cls && !/^[0-9]{4}$/.test(Y.pin||'')) Y.cls='';   // 암호 없이 저장된 옛 연결은 다시 고르게
+if(Y.cls && (!/^[0-9]{4}$/.test(Y.pin||'') || !/^1-([1-9]|10)$/.test(Y.cls) || !(Y.grp>=1&&Y.grp<=8))) Y.cls='';   // 암호가 없거나 범위를 벗어난 옛 연결은 다시 고르게
 let ver=0, pushT=null, retryT=null, busy=false;
 const storeY=()=>{ try{ localStorage.setItem(SYNC_KEY,JSON.stringify(Y)); }catch(e){} };
 const storeS=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} };
@@ -790,20 +789,19 @@ function showOn(){
   $('#syncWho').textContent=whoLabel(Y.cls,Y.grp);
 }
 function showPick(){
-  if(Y.cls){ const [a,b]=Y.cls.split('-'); $('#sGrade').value=a; $('#sClass').value=b; $('#sGroup').value=String(Y.grp); }
+  if(Y.cls){ $('#sClass').value=Y.cls.split('-')[1]; $('#sGroup').value=String(Y.grp); }
   $('#sPin').value='';
   $('#syncPick').hidden=false; $('#syncOn').hidden=true; $('#sCancel').hidden=!(Y.cls&&Y.pin);
 }
 const opts=(arr,fmt)=>'<option value="">고르기</option>'+arr.map(n=>`<option value="${n}">${fmt(n)}</option>`).join('');
 const range=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
-$('#sGrade').innerHTML=opts(range(1,3),n=>n+'학년');
-$('#sClass').innerHTML=opts(range(1,15),n=>n+'반');
-$('#sGroup').innerHTML=opts(range(1,12),n=>n+'모둠');
+$('#sClass').innerHTML=opts(range(1,10),n=>n+'반');
+$('#sGroup').innerHTML=opts(range(1,8),n=>n+'모둠');
 $('#sPin').addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,'').slice(0,4); });
 $('#sPin').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#sConnect').click(); });
 $('#sConnect').addEventListener('click',async()=>{
-  const a=$('#sGrade').value, b=$('#sClass').value, g=+$('#sGroup').value, pin=$('#sPin').value;
-  if(!a||!b||!g){ setStatus('msg','학년, 반, 모둠 번호를 모두 골라 주세요.'); return; }
+  const a='1', b=$('#sClass').value, g=+$('#sGroup').value, pin=$('#sPin').value;
+  if(!a||!b||!g){ setStatus('msg','반과 모둠 번호를 골라 주세요.'); return; }
   if(!/^[0-9]{4}$/.test(pin)){ setStatus('msg','모둠 암호를 숫자 4자리로 넣어 주세요.'); $('#sPin').focus(); return; }
   const cls=a+'-'+b;
   if(Y.cls && Y.pin && Y.dirty && !(Y.cls===cls&&Y.grp===g)) await push();   // 바꾸기 전에 이전 모둠 기록부터 보내기

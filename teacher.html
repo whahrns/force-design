@@ -173,7 +173,7 @@ function norm(d){
   const isF=f=>FORCES.some(x=>x.id===f);
   const ideas=a(d.ideas).slice(0,30).map(i=>({text:s(i&&i.text),forces:[...new Set(a(i&&i.forces).filter(isF))]}));
   const use={}; FORCES.forEach(f=>use[f.id]=s(d.use&&d.use[f.id]));
-  const evals={}; if(d.evals&&typeof d.evals==='object') for(const k in d.evals){ const v=n(d.evals[k],0,3,0); if(/^[01]-([1-9]|1[0-2])$/.test(k)&&v) evals[k]=v; }
+  const evals={}; if(d.evals&&typeof d.evals==='object') for(const k in d.evals){ const v=n(d.evals[k],0,3,0); if(/^[01]-[1-8]$/.test(k)&&v) evals[k]=v; }
   return {device:s(d.device),improve:a(d.improve).slice(0,30).map(s),consider:a(d.consider).slice(0,30).map(s),ideas,
     pick:n(d.pick,-1,ideas.length-1,-1),designName:s(d.designName),use,useOn:[...new Set(a(d.useOn).filter(isF))],howto:s(d.howto),
     checks:[...new Set(a(d.checks).map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<CHECKS.length))],
