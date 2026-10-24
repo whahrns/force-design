@@ -198,7 +198,8 @@ h2 .tr,.fc h3 .tr{font-size:.55em}
 .sync > p{margin:4px 0 0}
 .sync-pick{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin-top:12px}
 .sync-pick label{display:flex;flex-direction:column;font-weight:700;font-size:15px}
-.sync-pick select{width:auto;min-width:92px;padding:6px 10px;margin-top:2px}
+.sync-pick select,.sync-pick .pin{width:auto;min-width:92px;padding:6px 10px;margin-top:2px}
+.sync-pick .pin{width:7.5em;letter-spacing:.2em}
 .sync-on{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:12px}
 .sync-on strong{font-family:var(--display);font-weight:400;font-size:24px;margin-right:4px}
 .sync-status{font-weight:700;min-height:1.7em}
@@ -264,6 +265,7 @@ footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
       <label>학년<select id="sGrade" class="in"></select></label>
       <label>반<select id="sClass" class="in"></select></label>
       <label>모둠 번호<select id="sGroup" class="in"></select></label>
+      <label>모둠 암호<input id="sPin" class="in pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="숫자 4자리" aria-describedby="pinHelp"></label>
       <button class="big" id="sConnect" type="button">연결하기</button>
       <button class="tbtn" id="sCancel" type="button" hidden>취소</button>
     </div>
@@ -272,6 +274,7 @@ footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
       <button class="tbtn primary" id="sSave" type="button">지금 저장</button>
       <button class="tbtn" id="sChange" type="button">반·모둠 바꾸기</button>
     </div>
+    <p class="note" id="pinHelp">처음 연결하는 모둠은 기록자가 정한 숫자 4자리가 모둠 암호가 돼요. 모둠원에게 알려 주고, 다른 기기에서는 같은 암호를 넣으세요. 잊었으면 선생님께 말씀드리세요.</p>
     <p class="sync-status" id="syncStatus" role="status"></p>
     <p class="note">같은 반·모둠 번호를 고른 기기는 한 기록을 함께 써요. 여러 기기에서 동시에 고치면 마지막에 저장한 내용만 남으니, 입력은 기록자 한 명이 해 주세요.</p>
   </section>
@@ -654,8 +657,9 @@ $('#wipe').addEventListener('click',()=>{ if(confirm('이 기기에 입력한 �
 const API='https://scnbrusxjwhehpbjznye.supabase.co/rest/v1/rpc/';
 const APIKEY='sb_publishable_yPvmRWZqaGARrsrz2HL1Xw_JEzHDOcB';
 const SYNC_KEY=KEY+'-sync';
-let Y={cls:'',grp:0,dirty:false,last:null};   // 연결한 반·모둠, 아직 안 보낸 변경, 마지막 서버 저장 시각
+let Y={cls:'',grp:0,pin:'',dirty:false,last:null};   // 연결한 반·모둠·암호, 아직 안 보낸 변경, 마지막 서버 저장 시각
 try{ const r=localStorage.getItem(SYNC_KEY); if(r) Y=Object.assign(Y,JSON.parse(r)); }catch(e){}
+if(Y.cls && !/^[0-9]{4}$/.test(Y.pin||'')) Y.cls='';   // 암호 없이 저장된 옛 연결은 다시 고르게
 let ver=0, pushT=null, retryT=null, busy=false;
 const storeY=()=>{ try{ localStorage.setItem(SYNC_KEY,JSON.stringify(Y)); }catch(e){} };
 const storeS=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} };
@@ -663,15 +667,21 @@ const whoLabel=(c,g)=>{ const [a,b]=c.split('-'); return `${a}학년 ${b}반 ${g
 const sameT=(a,b)=>!!a && !!b && Date.parse(a)===Date.parse(b);
 const hhmm=t=>new Date(t).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
 
+/* 서버 함수 호출. 서버가 {error:…}를 돌려주면 err.code로 던짐 */
 async function rpc(name,body){
   const r=await fetch(API+name,{method:'POST',headers:{apikey:APIKEY,'Content-Type':'application/json'},body:JSON.stringify(body)});
   const txt=await r.text(); let j=null; try{ j=txt?JSON.parse(txt):null; }catch(e){}
   if(!r.ok){ const err=new Error((j&&j.message)||('HTTP '+r.status)); err.status=r.status; throw err; }
+  if(j && j.error){ const err=new Error(j.error); err.code=j.error; err.until=j.until; throw err; }
   return j;
 }
+const lockMin=e=>e.until?Math.max(1,Math.ceil((Date.parse(e.until)-Date.now())/60000)):10;
 function errText(e){
+  if(e.code==='wrong_pin') return '모둠 암호가 맞지 않아요. 모둠원에게 확인하거나, 잊었으면 선생님께 새 암호를 부탁하세요.';
+  if(e.code==='locked') return `암호를 여러 번 틀려 잠시 잠겼어요. 약 ${lockMin(e)}분 뒤에 다시 해 주세요. 입력한 내용은 이 기기에 남아 있어요.`;
+  if(e.code==='bad_pin_format') return '모둠 암호는 숫자 4자리로 넣어 주세요.';
+  if(e.code==='too_large') return '내용이 너무 길어 저장하지 못했어요. 긴 글을 조금 줄여 주세요.';
   if(e instanceof TypeError || !navigator.onLine) return '인터넷에 연결되지 않아 이 기기에만 저장해 두었어요. 연결되면 자동으로 다시 보내요.';
-  if(/too large/.test(e.message)) return '내용이 너무 길어 저장하지 못했어요. 긴 글을 조금 줄여 주세요.';
   return '저장하지 못했어요. 잠시 뒤 자동으로 다시 시도하고, ‘지금 저장’을 눌러도 돼요. (서버 응답: '+e.message+')';
 }
 
@@ -681,35 +691,43 @@ function setStatus(kind,extra){
   else if(kind==='loading'){ msg='저장된 기록을 확인하는 중이에요…'; p='☁ 확인 중'; pc='busy'; }
   else if(kind==='wait'){ msg='고친 내용을 곧 저장해요…'; p='☁ 저장 대기'; pc='busy'; }
   else if(kind==='saving'){ msg='저장하는 중이에요…'; p='☁ 저장 중'; pc='busy'; }
-  else if(kind==='saved'){ msg=Y.last?`저장됨 · ${hhmm(Y.last)}`:'저장할 내용이 아직 없어요. 입력하면 자동으로 저장돼요.'; p=Y.last?`☁ 저장됨 ${hhmm(Y.last)}`:'☁ 연결됨'; pc='ok'; }
+  else if(kind==='saved'){ msg=Y.last?`저장됨 · ${hhmm(Y.last)}`:'연결됐어요. 입력하면 자동으로 저장돼요.'; p=Y.last?`☁ 저장됨 ${hhmm(Y.last)}`:'☁ 연결됨'; pc='ok'; }
   else if(kind==='pulled'){ msg=`다른 기기에서 저장한 최신 기록을 불러왔어요 · ${hhmm(Y.last)}`; p=`☁ 저장됨 ${hhmm(Y.last)}`; pc='ok'; }
   else if(kind==='fail'){ msg=errText(extra); p='⚠ 저장 실패'; pc='err'; }
-  else if(kind==='connfail'){ msg='서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.'+(extra&&!(extra instanceof TypeError)?' (서버 응답: '+extra.message+')':''); p='⚠ 연결 실패'; pc='err'; }
+  else if(kind==='connfail'){ msg=extra&&extra.code?errText(extra):'서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.'+(extra&&!(extra instanceof TypeError)?' (서버 응답: '+extra.message+')':''); p='⚠ 연결 실패'; pc='err'; }
+  else if(kind==='msg'){ msg=extra; pc='err'; p=Y.cls?'⚠ 다시 연결':'☁ 저장 안 됨'; }
   st.textContent=msg; st.className='sync-status'+(pc==='err'?' err':pc==='ok'?' ok':'');
   pill.textContent=p; pill.className='syncpill'+(pc?' '+pc:'');
 }
 
 function markDirty(){
   ver++;
-  if(!Y.cls) return;
+  if(!Y.cls||!Y.pin) return;
   Y.dirty=true; storeY(); setStatus('wait');
   clearTimeout(pushT); pushT=setTimeout(push,2500);
 }
+/* 암호가 바뀌었을 때(선생님이 새로 정함): 연결을 풀고 다시 고르게. 입력 내용은 기기에 남김 */
+function needRepick(e){
+  Y.pin=''; storeY(); showPick(); setStatus('connfail',e);
+}
 async function push(){
   clearTimeout(pushT); clearTimeout(retryT);
-  if(!Y.cls) return;
+  if(!Y.cls||!Y.pin) return;
   if(busy){ pushT=setTimeout(push,800); return; }
-  busy=true; const v=ver, cls=Y.cls, grp=Y.grp; setStatus('saving'); storeS();
+  busy=true; const v=ver, cls=Y.cls, grp=Y.grp, pin=Y.pin; setStatus('saving'); storeS();
   const data=Object.assign({},S); delete data.roles;   // 학생 이름은 보내지 않음
   try{
-    const t=await rpc('save_submission',{p_class:cls,p_group:grp,p_data:data});
+    const r=await rpc('save_submission',{p_class:cls,p_group:grp,p_pin:pin,p_data:data});
     busy=false;
     if(cls!==Y.cls||grp!==Y.grp) return;
-    Y.last=t; if(ver===v) Y.dirty=false; storeY();
+    Y.last=r.updated_at; if(ver===v) Y.dirty=false; storeY();
     if(Y.dirty){ setStatus('wait'); pushT=setTimeout(push,2500); } else setStatus('saved');
   }catch(e){
-    busy=false; setStatus('fail',e);
-    if(!/too large/.test(e.message)) retryT=setTimeout(push,20000);
+    busy=false;
+    if(e.code==='wrong_pin'){ needRepick(e); return; }
+    setStatus('fail',e);
+    if(e.code==='locked') retryT=setTimeout(push,lockMin(e)*60000+5000);
+    else if(e.code!=='too_large') retryT=setTimeout(push,20000);
   }
 }
 function hasContent(o){
@@ -732,38 +750,40 @@ function applyRec(rec,keepRoles){
   S=clean(rec.data); S.roles=roles;
   Y.last=rec.updated_at; Y.dirty=false; storeY(); storeS(); renderAll();
 }
-async function connect(cls,grp,quiet){
+async function connect(cls,grp,pin,quiet){
   setStatus('loading'); $('#sConnect').disabled=true;
   let rec;
-  try{ rec=await rpc('load_submission',{p_class:cls,p_group:grp}); }
+  try{ rec=await rpc('load_submission',{p_class:cls,p_group:grp,p_pin:pin}); }
   catch(e){
     $('#sConnect').disabled=false;
+    if(e.code==='wrong_pin'){ if(quiet) needRepick(e); else setStatus('connfail',e); return; }
     if(quiet){ showOn(); if(Y.dirty){ setStatus('fail',e); retryT=setTimeout(push,20000); } else setStatus('connfail',e); }
     else setStatus('connfail',e);
     return;
   }
   $('#sConnect').disabled=false;
   const same=Y.cls===cls&&Y.grp===grp, local=hasContent(S), who=whoLabel(cls,grp);
-  Y.cls=cls; Y.grp=grp;
-  if(rec){
+  if(rec.exists){
+    Y.cls=cls; Y.grp=grp; Y.pin=pin;
     if(!local || (same&&!Y.dirty)) applyRec(rec,same);
     else if(same&&Y.dirty&&sameT(rec.updated_at,Y.last)) Y.dirty=true;   // 내 변경이 최신 → 보내기
     else if(confirm(`${who}에 ${new Date(rec.updated_at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'})}에 저장된 기록이 있어요.\n\n[확인] 저장된 기록 불러오기 (이 기기에 입력한 내용은 바뀌어요)\n[취소] 이 기기 내용 유지 (저장된 기록을 덮어써요)`)) applyRec(rec,same);
     else Y.dirty=true;
   }else{
-    Y.last=null;
-    if(local && !same && !confirm(`${who}에는 아직 저장된 기록이 없어요.\n\n[확인] 이 기기에 입력된 내용을 이 모둠 기록으로 저장\n[취소] 빈 활동지로 새로 시작`)){ S=def(); storeS(); renderAll(); Y.dirty=false; }
-    else Y.dirty=local;
+    // 처음 연결하는 모둠: 지금 바로 저장해서 이 암호를 모둠 암호로 정함
+    if(!quiet && !confirm(`${who}은(는) 처음 연결하는 모둠이에요.\n\n방금 넣은 숫자 4자리가 이 모둠의 암호가 돼요. 모둠원에게 꼭 알려 주세요.\n계속할까요?`)){ setStatus('none'); return; }
+    if(local && !same && !confirm(`이 기기에 입력된 내용이 있어요.\n\n[확인] 이 내용을 ${who} 기록으로 저장\n[취소] 빈 활동지로 새로 시작`)){ S=def(); storeS(); renderAll(); }
+    Y.cls=cls; Y.grp=grp; Y.pin=pin; Y.last=null; Y.dirty=true;
   }
   storeY(); showOn();
   if(Y.dirty) push(); else setStatus('saved');
 }
 async function pullIfNewer(){
-  if(!Y.cls||Y.dirty||busy) return;
+  if(!Y.cls||!Y.pin||Y.dirty||busy) return;
   try{
-    const rec=await rpc('load_submission',{p_class:Y.cls,p_group:Y.grp});
-    if(rec && !Y.dirty && !busy && !sameT(rec.updated_at,Y.last)){ applyRec(rec,true); setStatus('pulled'); }
-  }catch(e){}
+    const rec=await rpc('load_submission',{p_class:Y.cls,p_group:Y.grp,p_pin:Y.pin});
+    if(rec.exists && !Y.dirty && !busy && !sameT(rec.updated_at,Y.last)){ applyRec(rec,true); setStatus('pulled'); }
+  }catch(e){ if(e.code==='wrong_pin') needRepick(e); }
 }
 function showOn(){
   $('#syncPick').hidden=true; $('#syncOn').hidden=false; $('#sCancel').hidden=true;
@@ -771,30 +791,34 @@ function showOn(){
 }
 function showPick(){
   if(Y.cls){ const [a,b]=Y.cls.split('-'); $('#sGrade').value=a; $('#sClass').value=b; $('#sGroup').value=String(Y.grp); }
-  $('#syncPick').hidden=false; $('#syncOn').hidden=true; $('#sCancel').hidden=!Y.cls;
+  $('#sPin').value='';
+  $('#syncPick').hidden=false; $('#syncOn').hidden=true; $('#sCancel').hidden=!(Y.cls&&Y.pin);
 }
 const opts=(arr,fmt)=>'<option value="">고르기</option>'+arr.map(n=>`<option value="${n}">${fmt(n)}</option>`).join('');
 const range=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
 $('#sGrade').innerHTML=opts(range(1,3),n=>n+'학년');
 $('#sClass').innerHTML=opts(range(1,15),n=>n+'반');
 $('#sGroup').innerHTML=opts(range(1,12),n=>n+'모둠');
+$('#sPin').addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,'').slice(0,4); });
+$('#sPin').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#sConnect').click(); });
 $('#sConnect').addEventListener('click',async()=>{
-  const a=$('#sGrade').value, b=$('#sClass').value, g=+$('#sGroup').value;
-  if(!a||!b||!g){ $('#syncStatus').textContent='학년, 반, 모둠 번호를 모두 골라 주세요.'; $('#syncStatus').className='sync-status err'; return; }
+  const a=$('#sGrade').value, b=$('#sClass').value, g=+$('#sGroup').value, pin=$('#sPin').value;
+  if(!a||!b||!g){ setStatus('msg','학년, 반, 모둠 번호를 모두 골라 주세요.'); return; }
+  if(!/^[0-9]{4}$/.test(pin)){ setStatus('msg','모둠 암호를 숫자 4자리로 넣어 주세요.'); $('#sPin').focus(); return; }
   const cls=a+'-'+b;
-  if(Y.cls && Y.dirty && !(Y.cls===cls&&Y.grp===g)) await push();   // 바꾸기 전에 이전 모둠 기록부터 보내기
-  connect(cls,g,false);
+  if(Y.cls && Y.pin && Y.dirty && !(Y.cls===cls&&Y.grp===g)) await push();   // 바꾸기 전에 이전 모둠 기록부터 보내기
+  connect(cls,g,pin,false);
 });
 $('#sCancel').addEventListener('click',()=>{ showOn(); setStatus(Y.dirty?'wait':'saved'); });
 $('#sChange').addEventListener('click',showPick);
 $('#sSave').addEventListener('click',push);
 $('#syncPill').addEventListener('click',()=>$('#sync').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}));
-addEventListener('online',()=>{ if(Y.cls&&Y.dirty) push(); });
+addEventListener('online',()=>{ if(Y.cls&&Y.pin&&Y.dirty) push(); });
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden'){ if(Y.cls&&Y.dirty) push(); }
+  if(document.visibilityState==='hidden'){ if(Y.cls&&Y.pin&&Y.dirty) push(); }
   else pullIfNewer();
 });
-if(Y.cls){ showOn(); connect(Y.cls,Y.grp,true); } else { showPick(); setStatus('none'); }
+if(Y.cls){ showOn(); connect(Y.cls,Y.grp,Y.pin,true); } else { showPick(); setStatus('none'); }
 
 /* 상단 바 높이 맞추기 */
 (function(){ const bar=$('#bar'); const set=()=>document.documentElement.style.setProperty('--barh', bar.offsetHeight+'px'); set(); try{ new ResizeObserver(set).observe(bar); }catch(e){ addEventListener('resize',set); } })();
@@ -891,6 +915,7 @@ const TR_RAW={
 '우리 모둠 기록 저장하기':{en:'Save our group’s work',zh:'保存我们小组的记录',vi:'Lưu bài làm của nhóm',ru:'Сохраняем работу группы'},
 '반과 모둠 번호를 고르면 입력한 내용이 자동으로 저장되어 다른 기기에서도 이어서 쓸 수 있고, 선생님도 볼 수 있어요. 학생 이름은 저장하지 않아요.':{en:'Choose your class and group number. Your work is saved automatically, so you can continue on another device and your teacher can see it. Student names are not saved.',zh:'选择班级和小组号后，输入的内容会自动保存，可以在其他设备上继续写，老师也能看到。不会保存学生姓名。',vi:'Chọn lớp và số nhóm, nội dung sẽ được lưu tự động để có thể viết tiếp trên thiết bị khác và giáo viên cũng xem được. Tên học sinh không được lưu.',ru:'Выберите класс и номер группы — записи сохраняются автоматически, их можно продолжить на другом устройстве, и учитель их увидит. Имена учеников не сохраняются.'},
 '같은 반·모둠 번호를 고른 기기는 한 기록을 함께 써요. 여러 기기에서 동시에 고치면 마지막에 저장한 내용만 남으니, 입력은 기록자 한 명이 해 주세요.':{en:'Devices that choose the same class and group share one record. If several devices edit at once, only the last save remains, so let one recorder type.',zh:'选择相同班级和小组号的设备共用一份记录。多台设备同时修改时只保留最后保存的内容，请由记录员一个人输入。',vi:'Các thiết bị chọn cùng lớp và số nhóm dùng chung một bản ghi. Nếu nhiều thiết bị sửa cùng lúc, chỉ lần lưu cuối được giữ lại, nên hãy để một thư ký nhập.',ru:'Устройства с одинаковым классом и номером группы пишут в одну запись. Если исправлять с нескольких устройств одновременно, останется только последнее сохранение, поэтому пусть печатает один секретарь.'},
+'처음 연결하는 모둠은 기록자가 정한 숫자 4자리가 모둠 암호가 돼요. 모둠원에게 알려 주고, 다른 기기에서는 같은 암호를 넣으세요. 잊었으면 선생님께 말씀드리세요.':{en:'For a group connecting for the first time, the 4-digit number the recorder chooses becomes the group password. Tell your group members and enter the same password on other devices. If you forget it, ask your teacher.',zh:'第一次连接的小组，记录员设定的4位数字就是小组密码。请告诉组员，在其他设备上输入相同的密码。忘记了请告诉老师。',vi:'Với nhóm kết nối lần đầu, 4 chữ số do thư ký đặt sẽ là mật khẩu của nhóm. Hãy báo cho các bạn trong nhóm và nhập cùng mật khẩu trên thiết bị khác. Nếu quên, hãy báo giáo viên.',ru:'Для группы, которая подключается впервые, 4 цифры, выбранные секретарём, станут паролем группы. Сообщите его участникам и вводите тот же пароль на других устройствах. Если забыли — обратитесь к учителю.'},
 '역할 이름은 이 기기에만 남고 서버에는 저장되지 않아요.':{en:'Names for roles stay only on this device and are not saved to the server.',zh:'角色姓名只保留在这台设备上，不会保存到服务器。',vi:'Tên trong phần vai trò chỉ lưu trên thiết bị này, không lưu lên máy chủ.',ru:'Имена в ролях остаются только на этом устройстве и не сохраняются на сервере.'}
 };
 const TR={}; for(const k in TR_RAW) TR[k.replace(/\s+/g,'')]=TR_RAW[k];

@@ -80,6 +80,8 @@ summary{cursor:pointer;font-weight:700}
 .card header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
 .card header h4{font-family:var(--display);font-weight:400;font-size:24px;margin:0}
 .card header .t{margin-left:auto;font-size:13px;color:var(--muted)}
+.admin{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.btn.sm{font-size:13px;padding:1px 10px;border-width:1.5px}
 .card .name{font-family:var(--display);font-size:21px;line-height:1.3;margin:4px 0}
 .card dl{margin:0}
 .card dt{font-weight:700;margin-top:8px;font-size:14px;color:var(--muted)}
@@ -99,7 +101,7 @@ summary{cursor:pointer;font-weight:700}
 .pre{white-space:pre-wrap}
 footer{padding:20px 0 40px}
 @media (max-width:600px){.bar{position:static}}
-@media print{.bar .btn,.bar select{display:none}body{background:#fff}.card{break-inside:avoid}}
+@media print{.bar .btn,.bar select,.admin{display:none}body{background:#fff}.card{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -159,8 +161,10 @@ async function rpc(name,body){
   const r=await fetch(API+name,{method:'POST',headers:{apikey:APIKEY,'Content-Type':'application/json'},body:JSON.stringify(body)});
   const txt=await r.text(); let j=null; try{ j=txt?JSON.parse(txt):null; }catch(e){}
   if(!r.ok){ const err=new Error((j&&j.message)||('HTTP '+r.status)); err.status=r.status; throw err; }
+  if(j && j.error){ const err=new Error(j.error); err.code=j.error; throw err; }
   return j;
 }
+const authMsg=e=>e.code==='locked'?'비밀번호를 여러 번 틀려 15분 동안 잠겼어요. 잠시 뒤 다시 해 주세요.':e.code==='wrong_password'?'비밀번호가 맞지 않아요.':'';
 /* 형식이 어긋난 기록이 화면을 망가뜨리지 않도록 정리 */
 function norm(d){
   d=(d&&typeof d==='object')?d:{};
@@ -179,7 +183,7 @@ function norm(d){
 async function load(){
   $('#loadMsg').textContent='불러오는 중…';
   try{
-    const rows=await rpc('teacher_list',{p_pass:pass,p_class:null});
+    const rows=(await rpc('teacher_list',{p_pass:pass,p_class:null})).rows;
     try{ sessionStorage.setItem(PKEY,pass); }catch(e){}
     ROWS=(rows||[]).map(r=>({cls:r.class_code,grp:r.group_no,at:r.updated_at,d:norm(r.data)}))
       .sort((x,y)=>clsKey(x.cls)-clsKey(y.cls)||x.grp-y.grp);
@@ -187,7 +191,7 @@ async function load(){
     fillClasses(); render();
     $('#loadMsg').textContent='불러온 시각 '+new Date().toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
   }catch(e){
-    if(/wrong password/.test(e.message)){ logout(); $('#loginMsg').textContent='비밀번호가 맞지 않아요.'; $('#loginMsg').className='err'; }
+    if(authMsg(e)){ logout(); $('#loginMsg').textContent=authMsg(e); $('#loginMsg').className='err'; }
     else{
       const m=e instanceof TypeError?'서버에 연결하지 못했어요. 인터넷 연결을 확인하거나, Supabase 프로젝트가 일시 정지되었는지 확인해 주세요.':'불러오지 못했어요: '+e.message;
       if($('#view').hidden){ $('#loginMsg').textContent=m; $('#loginMsg').className='err'; } else { $('#loadMsg').textContent=m; }
@@ -254,6 +258,7 @@ function card(r){
   const chk=d.checks.filter(i=>CHECKS[i]).length;
   return `<article class="card">
     <header><h4>${r.grp}모둠</h4>${d.groupName?`<span>${esc(d.groupName)}</span>`:''}<span class="t">저장 ${when(r.at)}</span></header>
+    <div class="admin"><button class="btn sm" data-pin="${r.cls}|${r.grp}">암호 새로 정하기</button><button class="btn sm" data-del="${r.cls}|${r.grp}">기록 지우기</button></div>
     <div class="name">${t(d.designName)?esc(d.designName):'<span class="empty">설계 이름 없음</span>'}</div>
     <dl>
       <dt>고른 기구나 장치</dt><dd>${t(d.device)?esc(d.device):'<span class="empty">-</span>'}</dd>
@@ -337,6 +342,30 @@ $('#loginForm').addEventListener('submit',e=>{ e.preventDefault(); pass=$('#pass
 $('#refresh').addEventListener('click',load);
 $('#logout').addEventListener('click',logout);
 $('#clsSel').addEventListener('change',render);
+/* 모둠 관리: 암호 새로 정하기, 기록 지우기 */
+$('#out').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-pin],[data-del]'); if(!b) return;
+  const [cls,g]=(b.dataset.pin||b.dataset.del).split('|'), who=`${clsLabel(cls)} ${g}모둠`;
+  try{
+    if(b.dataset.pin){
+      const pin=prompt(`${who}의 새 모둠 암호(숫자 4자리)를 넣어 주세요.
+학생들에게 새 암호를 알려 주면, 다음 연결부터 새 암호를 써요.`,'');
+      if(pin===null) return;
+      if(!/^[0-9]{4}$/.test(pin)){ alert('숫자 4자리로 넣어 주세요.'); return; }
+      const r=await rpc('teacher_set_pin',{p_pass:pass,p_class:cls,p_group:+g,p_pin:pin});
+      $('#loadMsg').textContent=r.ok?`${who} 암호를 바꿨어요.`:`${who} 기록을 찾지 못했어요.`;
+    }else{
+      if(!confirm(`${who}의 서버 기록을 지울까요?
+지우면 되살릴 수 없어요. 필요하면 먼저 md나 CSV로 내려받아 두세요.`)) return;
+      const r=await rpc('teacher_delete',{p_pass:pass,p_class:cls,p_group:+g});
+      $('#loadMsg').textContent=r.ok?`${who} 기록을 지웠어요.`:`${who} 기록을 찾지 못했어요.`;
+      load();
+    }
+  }catch(err){
+    if(authMsg(err)){ logout(); $('#loginMsg').textContent=authMsg(err); $('#loginMsg').className='err'; }
+    else $('#loadMsg').textContent='처리하지 못했어요: '+err.message;
+  }
+});
 $('#dlMd').addEventListener('click',()=>download(`힘설계_${fileTag()}_${today()}.md`,buildMd(),'text/markdown;charset=utf-8'));
 $('#dlCsv').addEventListener('click',()=>download(`힘설계_${fileTag()}_${today()}.csv`,buildCsv(),'text/csv;charset=utf-8'));
 if(pass) load(); else $('#pass').focus();
