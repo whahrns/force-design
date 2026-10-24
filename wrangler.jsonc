@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "force-design",
+  "compatibility_date": "2026-10-19",
+  "observability": { "enabled": true },
+  // 공개할 파일은 public 폴더만 (저장소의 .git 등은 올리지 않음)
+  "assets": { "directory": "./public" }
+}
