@@ -56,7 +56,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 .time.over{color:var(--e)}
 .tbtn{border:2px solid var(--ink);background:var(--card);border-radius:999px;padding:4px 12px;cursor:pointer;font-size:15px}
 .tbtn.primary{background:var(--ink);color:var(--paper)}
-.stages{display:flex;gap:6px;overflow-x:auto;flex:1;min-width:0;padding-bottom:2px}
+.stages{display:flex;gap:6px;overflow-x:auto;flex:1 0 100%;min-width:0;padding-bottom:4px;scrollbar-width:thin}   /* 단계 버튼은 항상 아래 줄에 따로 */
 .stage{flex:0 0 auto;border:2px solid var(--line);background:var(--card);border-radius:10px;padding:3px 10px;cursor:pointer;font-size:14px;white-space:nowrap}
 .stage b{font-family:var(--display);font-weight:400;margin-right:4px}
 .stage.on{border-color:var(--ink);background:var(--ink);color:var(--paper)}
@@ -286,7 +286,8 @@ footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
 
     <h3 style="font-size:22px;margin-top:26px">모둠 역할 정하기</h3>
     <div class="roles" id="roles"></div>
-    <p class="note" id="rolesNote">역할 이름은 이 기기에만 남고 서버에는 저장되지 않아요.</p>
+    <p class="note" id="rolesNote">역할 칸에는 이름 대신 학번 5자리를 적어요(예: 1학년 3반 12번 → 10312). 학번은 모둠 기록과 함께 저장되어 선생님이 확인해요.</p>
+    <p class="note sync-status err" id="rolesMsg" role="status"></p>
   </section>
 
   <section class="step" id="s2">
@@ -479,7 +480,7 @@ function clean(d){
   o.groups=N(d.groups,3,8,8); o.groupsSet=d.groupsSet===true;
   if(d.evals&&typeof d.evals==='object') for(const k in d.evals){ const v=N(d.evals[k],0,3,0); if(/^[01]-[1-8]$/.test(k)&&v) o.evals[k]=v; }
   o.self0=N(d.self0,0,100,50); o.self1=N(d.self1,0,100,50);
-  if(d.roles&&typeof d.roles==='object') ROLES.forEach(([r])=>{ if(typeof d.roles[r]==='string') o.roles[r]=d.roles[r].slice(0,50); });
+  if(d.roles&&typeof d.roles==='object') ROLES.forEach(([r])=>{ if(typeof d.roles[r]==='string') o.roles[r]=d.roles[r].replace(/\D/g,'').slice(0,5); });
   return o;
 }
 let S = def();
@@ -508,9 +509,25 @@ document.querySelectorAll('.fc').forEach(b=>b.addEventListener('click',()=>b.set
 
 /* 역할 */
 $('#roles').innerHTML = `<div class="role" style="grid-column:1/-1"><strong>모둠 이름</strong><input class="in" id="groupName" placeholder="예: 3모둠 스프링즈" value="${esc(S.groupName)}"></div>` +
-  ROLES.map(([r,d])=>`<div class="role"><strong>${r}</strong><small>${d}</small><input class="in" data-role="${r}" placeholder="이름" value="${esc(S.roles[r])}"></div>`).join('');
+  ROLES.map(([r,d])=>`<div class="role"><strong>${r}</strong><small>${d}</small><input class="in" data-role="${r}" placeholder="학번 (예: 10312)" inputmode="numeric" maxlength="5" autocomplete="off" value="${esc(S.roles[r])}"></div>`).join('');
 $('#groupName').addEventListener('input',e=>{S.groupName=e.target.value;save()});
-document.querySelectorAll('[data-role]').forEach(i=>i.addEventListener('input',e=>{S.roles[e.target.dataset.role]=e.target.value;save()}));
+document.querySelectorAll('[data-role]').forEach(i=>i.addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,'').slice(0,5); S.roles[e.target.dataset.role]=e.target.value; save(); checkRoles(); }));
+/* 학번 확인: 1 + 반 2자리 + 번호 2자리, 연결한 반의 학생만 */
+const SID=/^1(0[1-9]|10)(0[1-9]|[1-3][0-9]|40)$/;
+const sidOk=(v,cls)=>SID.test(v) && (!cls || +v.slice(1,3)===+cls.split('-')[1]);
+function validRoles(){ const o={}; ROLES.forEach(([r])=>{ const v=S.roles[r]||''; if(sidOk(v,Y.cls)) o[r]=v; }); return o; }
+function checkRoles(){
+  const bad=[]; const cls=typeof Y!=='undefined'?Y.cls:'';
+  document.querySelectorAll('[data-role]').forEach(i=>{
+    const v=i.value, r=i.dataset.role; let m='';
+    if(v.length===5 && !SID.test(v)) m=`${r}: 학번 형식이 맞지 않아요`;
+    else if(v.length===5 && cls && !sidOk(v,cls)) m=`${r}: 우리 반(${+cls.split('-')[1]}반) 학번이 아니에요`;
+    else if(v.length>0 && v.length<5 && document.activeElement!==i) m=`${r}: 학번 5자리를 모두 적어 주세요`;
+    i.setAttribute('aria-invalid', m?'true':'false'); if(m) bad.push(m);
+  });
+  $('#rolesMsg').textContent = bad.length ? bad.join(' / ')+' (맞는 학번만 저장돼요)' : '';
+}
+document.querySelectorAll('[data-role]').forEach(i=>i.addEventListener('blur',checkRoles));
 
 /* 아이디어 뱅크 */
 $('#bank').innerHTML = BANK.map(([d,h])=>`<li><button type="button" data-d="${esc(d)}">${d}</button> <span class="note">힌트: ${h}</span></li>`).join('');
@@ -715,7 +732,7 @@ async function push(){
   if(!Y.cls||!Y.pin) return;
   if(busy){ pushT=setTimeout(push,800); return; }
   busy=true; const v=ver, cls=Y.cls, grp=Y.grp, pin=Y.pin; setStatus('saving'); storeS();
-  const data=Object.assign({},S); delete data.roles;   // 학생 이름은 보내지 않음
+  const data=Object.assign({},S,{roles:validRoles()});   // 역할 칸은 맞는 학번만 보냄
   try{
     const r=await rpc('save_submission',{p_class:cls,p_group:grp,p_pin:pin,p_data:data});
     busy=false;
@@ -732,13 +749,14 @@ async function push(){
 }
 function hasContent(o){
   const t=x=>String(x||'').trim();
-  return !!(t(o.device)||t(o.designName)||t(o.howto)||t(o.reflect)||t(o.groupName)||o.improve.some(t)||o.consider.some(t)||
+  return !!(Object.values(o.roles||{}).some(t)||t(o.device)||t(o.designName)||t(o.howto)||t(o.reflect)||t(o.groupName)||o.improve.some(t)||o.consider.some(t)||
     o.ideas.some(i=>t(i.text)||i.forces.length)||Object.values(o.use).some(t)||o.useOn.length||o.checks.length||
     Object.values(o.evals).some(v=>v)||o.pick>=0||o.self0!==50||o.self1!==50);
 }
 function renderAll(){
   $('#groupName').value=S.groupName||'';
   document.querySelectorAll('[data-role]').forEach(i=>i.value=S.roles[i.dataset.role]||'');
+  checkRoles();
   document.querySelectorAll('[data-k]').forEach(el=>el.value=S[el.dataset.k]);
   outs(); ['improve','consider'].forEach(renderList); renderIdeas(); renderChosen(); renderUse();
   document.querySelectorAll('[data-chk]').forEach(c=>c.checked=S.checks.includes(+c.dataset.chk));
@@ -746,8 +764,7 @@ function renderAll(){
   $('#gcount').value=String(S.groups); renderEval();
 }
 function applyRec(rec,keepRoles){
-  const roles=keepRoles?S.roles:{};
-  S=clean(rec.data); S.roles=roles;
+  S=clean(rec.data);
   Y.last=rec.updated_at; Y.dirty=false; storeY(); storeS(); renderAll();
 }
 async function connect(cls,grp,pin,quiet){
@@ -786,6 +803,7 @@ async function pullIfNewer(){
   }catch(e){ if(e.code==='wrong_pin') needRepick(e); }
 }
 function showOn(){
+  checkRoles();
   $('#syncPick').hidden=true; $('#syncOn').hidden=false; $('#sCancel').hidden=true;
   $('#syncWho').textContent=whoLabel(Y.cls,Y.grp);
 }
@@ -915,7 +933,7 @@ const TR_RAW={
 '반과 모둠 번호를 고르면 입력한 내용이 자동으로 저장되어 다른 기기에서도 이어서 쓸 수 있고, 선생님도 볼 수 있어요. 학생 이름은 저장하지 않아요.':{en:'Choose your class and group number. Your work is saved automatically, so you can continue on another device and your teacher can see it. Student names are not saved.',zh:'选择班级和小组号后，输入的内容会自动保存，可以在其他设备上继续写，老师也能看到。不会保存学生姓名。',vi:'Chọn lớp và số nhóm, nội dung sẽ được lưu tự động để có thể viết tiếp trên thiết bị khác và giáo viên cũng xem được. Tên học sinh không được lưu.',ru:'Выберите класс и номер группы — записи сохраняются автоматически, их можно продолжить на другом устройстве, и учитель их увидит. Имена учеников не сохраняются.'},
 '같은 반·모둠 번호를 고른 기기는 한 기록을 함께 써요. 여러 기기에서 동시에 고치면 마지막에 저장한 내용만 남으니, 입력은 기록자 한 명이 해 주세요.':{en:'Devices that choose the same class and group share one record. If several devices edit at once, only the last save remains, so let one recorder type.',zh:'选择相同班级和小组号的设备共用一份记录。多台设备同时修改时只保留最后保存的内容，请由记录员一个人输入。',vi:'Các thiết bị chọn cùng lớp và số nhóm dùng chung một bản ghi. Nếu nhiều thiết bị sửa cùng lúc, chỉ lần lưu cuối được giữ lại, nên hãy để một thư ký nhập.',ru:'Устройства с одинаковым классом и номером группы пишут в одну запись. Если исправлять с нескольких устройств одновременно, останется только последнее сохранение, поэтому пусть печатает один секретарь.'},
 '처음 연결하는 모둠은 기록자가 정한 숫자 4자리가 모둠 암호가 돼요. 모둠원에게 알려 주고, 다른 기기에서는 같은 암호를 넣으세요. 잊었으면 선생님께 말씀드리세요.':{en:'For a group connecting for the first time, the 4-digit number the recorder chooses becomes the group password. Tell your group members and enter the same password on other devices. If you forget it, ask your teacher.',zh:'第一次连接的小组，记录员设定的4位数字就是小组密码。请告诉组员，在其他设备上输入相同的密码。忘记了请告诉老师。',vi:'Với nhóm kết nối lần đầu, 4 chữ số do thư ký đặt sẽ là mật khẩu của nhóm. Hãy báo cho các bạn trong nhóm và nhập cùng mật khẩu trên thiết bị khác. Nếu quên, hãy báo giáo viên.',ru:'Для группы, которая подключается впервые, 4 цифры, выбранные секретарём, станут паролем группы. Сообщите его участникам и вводите тот же пароль на других устройствах. Если забыли — обратитесь к учителю.'},
-'역할 이름은 이 기기에만 남고 서버에는 저장되지 않아요.':{en:'Names for roles stay only on this device and are not saved to the server.',zh:'角色姓名只保留在这台设备上，不会保存到服务器。',vi:'Tên trong phần vai trò chỉ lưu trên thiết bị này, không lưu lên máy chủ.',ru:'Имена в ролях остаются только на этом устройстве и не сохраняются на сервере.'}
+'역할 칸에는 이름 대신 학번 5자리를 적어요(예: 1학년 3반 12번 → 10312). 학번은 모둠 기록과 함께 저장되어 선생님이 확인해요.':{en:'Write your 5-digit student number instead of your name in the role boxes (e.g. Grade 1, Class 3, No. 12 → 10312). Student numbers are saved with the group record for your teacher.',zh:'角色栏里不写姓名，写5位学号（例：1年级3班12号 → 10312）。学号会和小组记录一起保存，供老师查看。',vi:'Trong ô vai trò, hãy ghi mã học sinh 5 chữ số thay cho tên (ví dụ: lớp 1-3, số 12 → 10312). Mã học sinh được lưu cùng bản ghi của nhóm để giáo viên xem.',ru:'В полях ролей пишите не имя, а 5-значный номер ученика (например, 1 класс, 3 группа, № 12 → 10312). Номера сохраняются вместе с записью группы для учителя.'}
 };
 const TR={}; for(const k in TR_RAW) TR[k.replace(/\s+/g,'')]=TR_RAW[k];
 

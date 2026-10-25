@@ -143,6 +143,8 @@ const APIKEY='sb_publishable_yPvmRWZqaGARrsrz2HL1Xw_JEzHDOcB';
 const PKEY='force-teacher-pass';
 const FORCES=[{id:'g',name:'중력'},{id:'f',name:'마찰력'},{id:'b',name:'부력'},{id:'e',name:'탄성력'}];
 const CHECKS=['기구나 장치의 전체 모습을 그렸다','힘이 작용하는 곳에 화살표와 힘의 이름을 표시했다','말풍선으로 힘의 특징을 어떻게 이용했는지 설명했다','이 설계가 처음의 불편한 점을 어떻게 해결하는지 적었다','설계도 제목과 모둠 이름을 적었다'];
+const ROLES=['사회자','기록자','설계자','발표자'];
+const SID=/^1(0[1-9]|10)(0[1-9]|[1-3][0-9]|40)$/;
 const EROWS=['힘의 특징 적절 이용','개선 목적 달성'];
 const MARKS=['','☆','○','△'], SCORE=[0,3,2,1];
 const $=s=>document.querySelector(s);
@@ -177,7 +179,8 @@ function norm(d){
   return {device:s(d.device),improve:a(d.improve).slice(0,30).map(s),consider:a(d.consider).slice(0,30).map(s),ideas,
     pick:n(d.pick,-1,ideas.length-1,-1),designName:s(d.designName),use,useOn:[...new Set(a(d.useOn).filter(isF))],howto:s(d.howto),
     checks:[...new Set(a(d.checks).map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<CHECKS.length))],
-    groups:n(d.groups,3,8,8),evals,self0:n(d.self0,0,100,50),self1:n(d.self1,0,100,50),reflect:s(d.reflect),groupName:s(d.groupName)};
+    groups:n(d.groups,3,8,8),evals,self0:n(d.self0,0,100,50),self1:n(d.self1,0,100,50),reflect:s(d.reflect),groupName:s(d.groupName),
+    roles:Object.fromEntries(ROLES.map(r=>[r,d.roles&&typeof d.roles[r]==='string'&&SID.test(d.roles[r])?d.roles[r]:''])) };
 }
 
 async function load(){
@@ -226,6 +229,7 @@ function evalAgg(rows){
   });
   return {maxG,agg,matrix};
 }
+const roleText=d=>ROLES.filter(r=>d.roles[r]).map(r=>`${r} ${d.roles[r]}`).join(', ');
 const avg=c=>c.n?(c.sum/c.n).toFixed(1):'-';
 
 function evalTable(rows){
@@ -261,6 +265,7 @@ function card(r){
     <div class="admin"><button class="btn sm" data-pin="${r.cls}|${r.grp}">암호 새로 정하기</button><button class="btn sm" data-del="${r.cls}|${r.grp}">기록 지우기</button></div>
     <div class="name">${t(d.designName)?esc(d.designName):'<span class="empty">설계 이름 없음</span>'}</div>
     <dl>
+      <dt>역할 (학번)</dt><dd>${roleText(d)?esc(roleText(d)):'<span class="empty">-</span>'}</dd>
       <dt>고른 기구나 장치</dt><dd>${t(d.device)?esc(d.device):'<span class="empty">-</span>'}</dd>
       <dt>불편한 점</dt><dd>${list(d.improve)}</dd>
       <dt>고려할 점</dt><dd>${list(d.consider)}</dd>
@@ -307,7 +312,7 @@ function buildMd(){
     }
     rows.forEach(r=>{
       const d=r.d;
-      L.push(`### ${r.grp}모둠${d.groupName?' · '+t(d.groupName):''}`,'',`- 저장: ${when(r.at)}`,`- 기구나 장치: ${t(d.device)||'-'}`,`- 설계 이름: **${t(d.designName)||'-'}**`,'');
+      L.push(`### ${r.grp}모둠${d.groupName?' · '+t(d.groupName):''}`,'',`- 저장: ${when(r.at)}`,`- 역할(학번): ${roleText(d)||'-'}`,`- 기구나 장치: ${t(d.device)||'-'}`,`- 설계 이름: **${t(d.designName)||'-'}**`,'');
       L.push('**불편한 점**',''); d.improve.filter(t).forEach(x=>L.push('- '+t(x))); L.push('');
       L.push('**고려할 점**',''); d.consider.filter(t).forEach(x=>L.push('- '+t(x))); L.push('');
       L.push('**아이디어**',''); d.ideas.forEach((i,n)=>{ if(t(i.text)) L.push(`${n+1}. ${t(i.text)}${i.forces.length?` (${i.forces.map(FN).join(', ')})`:''}${d.pick===n?' ← 선택':''}`); }); L.push('');
@@ -320,14 +325,14 @@ function buildMd(){
   return L.join('\n');
 }
 function buildCsv(){
-  const head=['반','모둠','모둠 이름','저장 시각','기구나 장치','불편한 점','고려할 점','아이디어','선택한 아이디어','설계 이름','이용한 힘','사용 방법','점검표','과정·기능(%)','가치·태도(%)','소감','받은 평가: 힘 이용 평균','받은 평가: 목적 달성 평균'];
+  const head=['반','모둠','모둠 이름','저장 시각',...ROLES.map(r=>r+' 학번'),'기구나 장치','불편한 점','고려할 점','아이디어','선택한 아이디어','설계 이름','이용한 힘','사용 방법','점검표','과정·기능(%)','가치·태도(%)','소감','받은 평가: 힘 이용 평균','받은 평가: 목적 달성 평균'];
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   const out=[head.map(q).join(',')];
   shown().forEach(c=>{
     const rows=ROWS.filter(r=>r.cls===c), {agg}=evalAgg(rows);
     rows.forEach(r=>{
       const d=r.d, a=agg[r.grp];
-      out.push([clsLabel(c),r.grp,d.groupName,when(r.at),d.device,d.improve.filter(t).join('\n'),d.consider.filter(t).join('\n'),
+      out.push([clsLabel(c),r.grp,d.groupName,when(r.at),...ROLES.map(x=>d.roles[x]),d.device,d.improve.filter(t).join('\n'),d.consider.filter(t).join('\n'),
         d.ideas.filter(i=>t(i.text)).map(i=>t(i.text)+(i.forces.length?` (${i.forces.map(FN).join(', ')})`:'')).join('\n'),
         d.pick>=0&&d.ideas[d.pick]?d.ideas[d.pick].text:'',d.designName,
         FORCES.filter(f=>d.useOn.includes(f.id)).map(f=>`${f.name}: ${t(d.use[f.id])}`).join('\n'),d.howto,
