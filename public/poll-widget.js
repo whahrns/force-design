@@ -5,6 +5,7 @@
   const API='https://scnbrusxjwhehpbjznye.supabase.co/rest/v1/rpc/';
   const APIKEY='sb_publishable_yPvmRWZqaGARrsrz2HL1Xw_JEzHDOcB';
   const KEY='force-poll-v1';
+  if(new URLSearchParams(location.search).has('preview')) return;   // 교사용 미리 보기에서는 설문에 참여하지 않음
   const page=document.body.hasAttribute('data-poll-page');
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 

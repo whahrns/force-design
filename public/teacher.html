@@ -46,6 +46,10 @@ button,input,select{font:inherit;color:inherit}
 .bar-in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 .bar h1{font-size:24px;margin-right:auto}
 #tools{display:contents}#tools[hidden]{display:none}
+.sizes{display:inline-flex;gap:4px}
+.sizes .btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.stuwrap{display:flex;justify-content:center;background:var(--soft);border:2px solid var(--ink);border-radius:14px;padding:12px;margin-bottom:20px}
+#stuFrame{width:390px;max-width:100%;height:calc(100vh - 190px);min-height:520px;border:2px solid var(--line);border-radius:18px;background:var(--paper)}
 .tabs{display:inline-flex;border:2px solid var(--ink);border-radius:999px;overflow:hidden}
 .tab{border:none;background:var(--card);padding:4px 14px;cursor:pointer;font-size:15px;white-space:nowrap}
 .tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
@@ -150,7 +154,7 @@ footer{padding:20px 0 40px}
   <div class="bar-in">
     <h1>힘 설계 활동 · 교사용</h1>
     <span id="tools" hidden>
-      <span class="tabs" role="tablist"><button class="tab" role="tab" id="tabRec" aria-selected="true">모둠 기록</button><button class="tab" role="tab" id="tabPoll" aria-selected="false">실시간 설문</button></span>
+      <span class="tabs" role="tablist"><button class="tab" role="tab" id="tabRec" aria-selected="true">모둠 기록</button><button class="tab" role="tab" id="tabPoll" aria-selected="false">실시간 설문</button><button class="tab" role="tab" id="tabStu" aria-selected="false">학생 화면</button></span>
       <select id="clsSel" class="in rec-only" aria-label="반 고르기"></select>
       <button class="btn primary rec-only" id="refresh">새로고침</button>
       <button class="btn rec-only" id="dlMd">md 내려받기</button>
@@ -175,6 +179,18 @@ footer{padding:20px 0 40px}
     <div class="summary"><span id="sumText"></span><span class="note" id="loadMsg" role="status"></span></div>
     <div id="out"></div>
   </div>
+
+  <section id="stuView" hidden>
+    <div class="summary">
+      <span class="sizes" role="group" aria-label="화면 크기">
+        <button class="btn sm" data-w="390" aria-pressed="true">휴대폰</button><button class="btn sm" data-w="820" aria-pressed="false">태블릿</button><button class="btn sm" data-w="0" aria-pressed="false">넓게</button>
+      </span>
+      <button class="btn sm" id="stuReload">처음 상태로</button>
+      <a class="btn sm" href="./?preview" target="_blank" rel="noopener" style="text-decoration:none">새 창으로 열기</a>
+      <span class="note">학생 페이지를 처음 상태로 보여 주는 보기 전용 화면이에요. 눌러 보고 입력해도 저장되지 않으니 TV에 띄워 사용법을 설명할 때 쓰세요.</span>
+    </div>
+    <div class="stuwrap"><iframe id="stuFrame" title="학생 화면 미리 보기" loading="lazy"></iframe></div>
+  </section>
 
   <section id="pollView" hidden>
     <div class="summary"><span class="note" id="pMsg" role="status"></span></div>
@@ -259,7 +275,7 @@ async function load(){
 }
 function logout(){
   pass=''; try{ sessionStorage.removeItem(PKEY); }catch(e){}
-  clearTimeout(pollT); $('#pollView').hidden=true; $('#bigView').hidden=true;
+  clearTimeout(pollT); $('#pollView').hidden=true; $('#bigView').hidden=true; $('#stuView').hidden=true;
   ROWS=[]; $('#out').innerHTML=''; $('#view').hidden=true; $('#tools').hidden=true; $('#login').hidden=false; $('#pass').value=''; $('#loginMsg').textContent='';
 }
 function classes(){ return [...new Set(ROWS.map(r=>r.cls))].sort((a,b)=>clsKey(a)-clsKey(b)); }
@@ -443,9 +459,10 @@ $('#dlCsv').addEventListener('click',()=>download(`힘설계_${fileTag()}_${toda
 let TAB='rec', QS=null, LIVE=null, pollT=null, pBusy=false, pGen=0;
 function showTab(t){
   TAB=t;
-  $('#tabRec').setAttribute('aria-selected',t==='rec'); $('#tabPoll').setAttribute('aria-selected',t==='poll');
+  $('#tabRec').setAttribute('aria-selected',t==='rec'); $('#tabPoll').setAttribute('aria-selected',t==='poll'); $('#tabStu').setAttribute('aria-selected',t==='stu');
   document.querySelectorAll('.rec-only').forEach(el=>el.hidden=t!=='rec');
-  $('#view').hidden=t!=='rec'; $('#pollView').hidden=t!=='poll';
+  $('#view').hidden=t!=='rec'; $('#pollView').hidden=t!=='poll'; $('#stuView').hidden=t!=='stu';
+  if(t==='stu' && !$('#stuFrame').getAttribute('src')) $('#stuFrame').src='./?preview';   // 처음 열 때 학생 화면을 불러옴
   clearTimeout(pollT);
   if(t==='poll') enterPoll();
 }
@@ -511,6 +528,14 @@ $('#pollView').addEventListener('click',e=>{
 });
 $('#tabRec').addEventListener('click',()=>showTab('rec'));
 $('#tabPoll').addEventListener('click',()=>showTab('poll'));
+/* 학생 화면 미리 보기: 크기 바꾸기, 새로고침 */
+$('#tabStu').addEventListener('click',()=>showTab('stu'));
+$('#stuView').addEventListener('click',e=>{
+  const b=e.target.closest('[data-w]'); if(!b) return;
+  document.querySelectorAll('.sizes [data-w]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('#stuFrame').style.width=+b.dataset.w?b.dataset.w+'px':'100%';
+});
+$('#stuReload').addEventListener('click',()=>{ $('#stuFrame').src='./?preview&t='+Date.now(); });
 $('#bigClose').addEventListener('click',()=>{ $('#bigView').hidden=true; });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#bigView').hidden=true; });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&TAB==='poll') pollTick(); });
