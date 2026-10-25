@@ -103,7 +103,9 @@ section.step{padding:34px 0;border-top:2px dashed var(--line)}
 .roles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
 .role{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
 .role strong{font-family:var(--display);font-weight:400;font-size:20px;display:block}
-.role small{display:block;color:var(--muted);font-size:13px;line-height:1.45;margin-bottom:6px}
+.role{display:flex;flex-direction:column}
+.role small{display:block;color:var(--muted);font-size:13px;line-height:1.45;margin-bottom:6px;min-height:calc(2em * 1.45)}   /* 설명은 모두 두 줄 높이로 맞춤 */
+.role .in{margin-top:auto}   /* 학번 칸은 카드 아래쪽에 나란히 */
 
 /* 입력 */
 .sheet{background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:18px 20px;margin-top:14px}
