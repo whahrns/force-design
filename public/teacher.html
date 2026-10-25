@@ -58,6 +58,9 @@ button,input,select{font:inherit;color:inherit}
 .qi.on{background:var(--soft);border-radius:10px;padding:10px}
 .qi details{font-size:13px;color:var(--muted)}
 .lq{font-family:var(--display);font-size:24px;line-height:1.35;margin:6px 0 12px}
+.lcls{font-family:var(--display);font-size:22px;margin-bottom:6px}
+.pcls{font-weight:700}
+.pcls select{font-weight:700;font-size:18px;border-color:var(--ink)}
 .bars{display:grid;gap:8px}
 .br{display:grid;grid-template-columns:minmax(0,1fr) 3.2em 3.2em;gap:8px;align-items:center}
 .br .lab{position:relative;border:2px solid var(--line);border-radius:10px;padding:6px 10px;overflow:hidden}
@@ -104,6 +107,11 @@ th{font-family:var(--display);font-weight:400;font-size:16px}
 td.l,th.l{text-align:left}
 td.avg{font-weight:700}
 td.total{font-family:var(--display);font-size:20px}
+td.rank{padding:4px 6px}
+.rk{display:inline-block;min-width:4.2em;font-family:var(--display);font-size:20px;border-radius:999px;padding:1px 10px;border:2px solid var(--line);white-space:nowrap}
+.rk.r1{font-size:26px;border-color:var(--f);background:var(--f-bg);color:var(--ink)}
+.rk.r2,.rk.r3{border-color:var(--ink)}
+tr.top1 td{font-weight:700}
 .top1{background:var(--b-bg)}
 details{margin-top:10px}
 summary{cursor:pointer;font-weight:700}
@@ -169,12 +177,12 @@ footer{padding:20px 0 40px}
   </div>
 
   <section id="pollView" hidden>
-    <div class="summary"><label>1학년 <select id="pCls" class="in" aria-label="설문할 반"></select></label><span class="note" id="pMsg" role="status"></span></div>
+    <div class="summary"><span class="note" id="pMsg" role="status"></span></div>
     <div class="pgrid">
       <div class="panel" id="live"></div>
       <div class="panel"><h3 class="sec" style="margin-top:0">질문 목록</h3><div id="qList"></div></div>
     </div>
-    <p class="note">학생은 <b>force-design.whahrns.workers.dev/poll</b> 에서 반을 고르고 기다리면, 선생님이 연 질문이 바로 나타나요. 응답은 익명이고, 다른 질문을 열거나 끝내면 이전 응답은 지워져요.</p>
+    <p class="note">학생은 모둠 활동 페이지 오른쪽 아래의 <b>📊 설문</b> 버튼(또는 <b>force-design.whahrns.workers.dev/poll</b>)으로 참여해요. 반 구분 없이 접속한 모두가 같은 질문을 보고, 응답 결과가 모두에게 실시간으로 보여요. 익명이고, 새로 시작하거나 내리면 이전 응답은 지워져요.</p>
   </section>
 
   <footer class="note">학생 이름은 서버에 저장되지 않아요. 무료 서버는 1주일 동안 접속이 없으면 잠시 멈추니, 수업 전에 Supabase 대시보드에서 Restore를 눌러 주세요.</footer>
@@ -287,18 +295,19 @@ function totals(agg,maxG){
   list.forEach((g,i)=>{ rank[g]=i&&score[g]===score[list[i-1]]?rank[list[i-1]]:i+1; });
   return {score,rank};
 }
+const rankBadge=r=>r?`<span class="rk${r<=3?' r'+r:''}">${r===1?'🥇':r===2?'🥈':r===3?'🥉':''}${r}위</span>`:'-';
 const avg=c=>c.n?(c.sum/c.n).toFixed(1):'-';
 
 function evalTable(rows){
   const {maxG,agg,matrix}=evalAgg(rows);
   if(!maxG) return '<p class="note">아직 평가 기록이 없어요.</p>';
   const {score,rank}=totals(agg,maxG);
-  let h=`<div class="tblwrap"><table><thead><tr><th rowspan="2" class="l">받은 모둠</th>${EROWS.map(r=>`<th colspan="4">${r}</th>`).join('')}<th rowspan="2">총점</th><th rowspan="2">순위</th><th rowspan="2">평가한<br>모둠 수</th></tr><tr>${EROWS.map(()=>'<th>☆</th><th>○</th><th>△</th><th>평균</th>').join('')}</tr></thead><tbody>`;
+  let h=`<div class="tblwrap"><table><thead><tr><th rowspan="2" class="l">받은 모둠</th><th rowspan="2">순위</th><th rowspan="2">총점</th>${EROWS.map(r=>`<th colspan="4">${r}</th>`).join('')}<th rowspan="2">평가한<br>모둠 수</th></tr><tr>${EROWS.map(()=>'<th>☆</th><th>○</th><th>△</th><th>평균</th>').join('')}</tr></thead><tbody>`;
   for(let g=1;g<=maxG;g++){
     const a=agg[g], name=(rows.find(r=>r.grp===g)||{d:{}}).d.groupName;
-    h+=`<tr class="${rank[g]===1?'top1':''}"><td class="l">${g}모둠${name?' · '+esc(name):''}</td>`+
+    h+=`<tr class="${rank[g]===1?'top1':''}"><td class="l">${g}모둠${name?' · '+esc(name):''}</td><td class="rank">${rankBadge(rank[g])}</td><td class="total">${rank[g]?score[g]:'-'}</td>`+
       a.rows.map(c=>`<td>${c.c[1]||''}</td><td>${c.c[2]||''}</td><td>${c.c[3]||''}</td><td class="avg">${avg(c)}</td>`).join('')+
-      `<td class="total">${rank[g]?score[g]:'-'}</td><td>${rank[g]||'-'}</td><td>${a.raters.size}</td></tr>`;
+      `<td>${a.raters.size}</td></tr>`;
   }
   h+='</tbody></table></div><p class="note">점수: ☆ 3점, ○ 2점, △ 1점. 총점은 두 항목에서 받은 점수를 모두 더한 값이고, 빈칸과 자기 모둠에 준 평가는 빼고 계산해요. 색칠한 줄이 총점 1위 모둠이에요. 모둠마다 평가해 준 모둠 수가 다르면 평균도 함께 보세요.</p>';
   const raters=rows.map(r=>r.grp);
@@ -430,8 +439,8 @@ $('#out').addEventListener('click',async e=>{
 });
 $('#dlMd').addEventListener('click',()=>download(`힘설계_${fileTag()}_${today()}.md`,buildMd(),'text/markdown;charset=utf-8'));
 $('#dlCsv').addEventListener('click',()=>download(`힘설계_${fileTag()}_${today()}.csv`,buildCsv(),'text/csv;charset=utf-8'));
-/* ---------- 실시간 설문 ---------- */
-let TAB='rec', QS=null, LIVE=null, pollT=null, pBusy=false;
+/* ---------- 실시간 설문 (반 구분 없이 하나, 시작·종료만) ---------- */
+let TAB='rec', QS=null, LIVE=null, pollT=null, pBusy=false, pGen=0;
 function showTab(t){
   TAB=t;
   $('#tabRec').setAttribute('aria-selected',t==='rec'); $('#tabPoll').setAttribute('aria-selected',t==='poll');
@@ -441,8 +450,6 @@ function showTab(t){
   if(t==='poll') enterPoll();
 }
 const authFail=e=>{ if(authMsg(e)){ logout(); $('#loginMsg').textContent=authMsg(e); $('#loginMsg').className='err'; return true; } return false; };
-$('#pCls').innerHTML=Array.from({length:10},(_,i)=>`<option value="1-${i+1}">${i+1}반</option>`).join('');
-try{ $('#pCls').value=sessionStorage.getItem('force-teacher-pcls')||'1-1'; }catch(e){}
 async function enterPoll(){
   if(!QS){
     try{ QS=(await rpc('teacher_poll_questions',{p_pass:pass})).questions||[]; }
@@ -451,14 +458,13 @@ async function enterPoll(){
   pollTick();
 }
 const Q=qid=>(QS||[]).find(q=>q.qid===qid);
-const ansText=q=>q.kind==='ox'?q.options[q.answer]:`${q.answer+1}번 ${q.options[q.answer]}`;
 async function pollTick(){
-  clearTimeout(pollT);
+  const my=++pGen; clearTimeout(pollT);
   if(TAB!=='poll'||!pass) return;
-  try{ LIVE=await rpc('teacher_poll_results',{p_pass:pass,p_class:$('#pCls').value}); $('#pMsg').textContent=''; }
-  catch(e){ if(authFail(e)) return; $('#pMsg').textContent='서버에 연결하지 못했어요. 잠시 뒤 다시 시도해요.'; }
+  try{ const r=await rpc('teacher_poll_results',{p_pass:pass,p_class:'all'}); if(my!==pGen) return; LIVE=r; $('#pMsg').textContent=''; }
+  catch(e){ if(my!==pGen) return; if(authFail(e)) return; $('#pMsg').textContent='서버에 연결하지 못했어요. 잠시 뒤 다시 시도해요.'; }
   renderPoll();
-  if(document.visibilityState==='visible') pollT=setTimeout(pollTick,2000);
+  if(TAB==='poll'&&pass) pollT=setTimeout(pollTick, document.visibilityState==='visible'?2000:5000);
 }
 function barsHtml(q,counts,showAns,big){
   const total=counts.reduce((a,b)=>a+b,0);
@@ -466,56 +472,43 @@ function barsHtml(q,counts,showAns,big){
     return `<div class="br${showAns&&i===q.answer?' ans':''}"><div class="lab"><i style="width:${pct}%"></i><span>${q.kind==='ox'?'':(i+1)+'. '}${esc(o)}${showAns&&i===q.answer?' ✓':''}</span></div><b>${pct}%</b>${big?'':`<small>${c}명</small>`}</div>`; }).join('')}</div>`;
 }
 function renderPoll(){
-  const cls=$('#pCls').value, L=LIVE&&LIVE.active?LIVE:null, q=L&&Q(L.qid);
+  const L=LIVE&&LIVE.active?LIVE:null, q=L&&Q(L.qid);
   $('#qList').innerHTML=(QS||[]).map(x=>`<div class="qi${q&&q.qid===x.qid?' on':''}"><div class="qt"><span class="tagc">${esc(x.tag)}</span>${esc(x.question)}
     <details><summary>보기·정답</summary>${x.options.map((o,i)=>`${x.kind==='ox'?'':(i+1)+'. '}${esc(o)}${i===x.answer?' ✓':''}`).join(' / ')}</details></div>
-    <button class="btn sm" data-open="${x.qid}">${q&&q.qid===x.qid?'다시 시작':'열기'}</button></div>`).join('');
-  if(!q){ $('#live').innerHTML=`<p class="note" style="margin:0">${cls.split('-')[1]}반에 열린 설문이 없어요. 질문 목록에서 ‘열기’를 누르세요.</p>`; renderBig(); return; }
+    <button class="btn sm${q&&q.qid===x.qid?'':' primary'}" data-open="${x.qid}">${q&&q.qid===x.qid?'다시 시작':'시작'}</button></div>`).join('');
+  if(!q){ $('#live').innerHTML='<p class="note" style="margin:0">진행 중인 설문이 없어요. 질문 목록에서 ‘시작’을 누르면 사이트에 접속한 모두의 화면에 바로 나타나요.</p>'; renderBig(); return; }
   const total=L.counts.reduce((a,b)=>a+b,0);
-  $('#live').innerHTML=`<span class="state ${L.open?'open':'closed'}">${L.open?'응답 받는 중':'마감됨'}</span> <span class="note">${esc(q.tag)} · 응답 ${total}명${L.revealed?' · 정답 공개됨':''}</span>
-    <div class="lq">${esc(q.question)}</div>${barsHtml(q,L.counts,true,false)}
-    <p class="note">정답: ${esc(ansText(q))} (학생 화면에는 ‘정답 공개’를 눌러야 보여요)</p>
-    <div class="ctl">
-      <button class="btn" data-act="${L.open?'close':'reopen'}">${L.open?'응답 마감':'다시 받기'}</button>
-      <button class="btn${L.revealed?'':' primary'}" data-act="${L.revealed?'hide':'reveal'}">${L.revealed?'정답 숨기기':'정답 공개'}</button>
-      <button class="btn" data-act="big">크게 보기 (TV)</button>
-      <button class="btn" data-act="end">설문 끝내기</button>
-    </div>`;
+  $('#live').innerHTML=`<span class="state ${L.open?'open':'closed'}">${L.open?'진행 중':'종료됨'}</span> <span class="note">응답 ${total}명</span>
+    <div class="lq">${esc(q.question)}</div>${barsHtml(q,L.counts,!L.open,false)}
+    <div class="ctl">${L.open?'<button class="btn primary" data-act="stop">종료 (정답 공개)</button>':'<button class="btn" data-act="clear">설문 내리기</button>'}
+      <button class="btn" data-act="big">크게 보기 (TV)</button></div>`;
   renderBig();
 }
-/* TV용: 정답 공개 전에는 응답 수만, 공개 뒤에 결과와 정답 */
 function renderBig(){
   if($('#bigView').hidden) return;
   const L=LIVE&&LIVE.active?LIVE:null, q=L&&Q(L.qid);
   if(!q){ $('#bigBody').innerHTML='<p class="bq">설문을 기다리는 중이에요</p>'; return; }
   const total=L.counts.reduce((a,b)=>a+b,0);
-  $('#bigBody').innerHTML=`<div class="btag">${esc(q.tag)}</div><div class="bq">${esc(q.question)}</div>`+
-    (L.revealed?barsHtml(q,L.counts,true,true):`<div class="bars">${q.options.map((o,i)=>`<div class="br"><div class="lab"><span>${q.kind==='ox'?'':(i+1)+'. '}${esc(o)}</span></div></div>`).join('')}</div>`)+
-    `<div class="cnt">응답 ${total}명 ${L.open?'· 답을 골라 주세요':'· 마감'}</div>`;
+  $('#bigBody').innerHTML=`<div class="btag">${esc(q.tag)}</div><div class="bq">${esc(q.question)}</div>${barsHtml(q,L.counts,!L.open,true)}<div class="cnt">응답 ${total}명 ${L.open?'· 진행 중':'· 종료'}</div>`;
 }
 async function pollAct(fn,body,msg){
   if(pBusy) return; pBusy=true;
-  try{ await rpc(fn,Object.assign({p_pass:pass,p_class:$('#pCls').value},body)); if(msg) $('#pMsg').textContent=msg; }
+  try{ await rpc(fn,Object.assign({p_pass:pass,p_class:'all'},body)); if(msg) $('#pMsg').textContent=msg; }
   catch(e){ if(!authFail(e)) $('#pMsg').textContent='처리하지 못했어요: '+e.message; }
   finally{ pBusy=false; pollTick(); }
 }
 $('#pollView').addEventListener('click',e=>{
   const o=e.target.closest('[data-open]'), a=e.target.closest('[data-act]');
   if(o){
-    const L=LIVE&&LIVE.active?LIVE:null;
-    if(L && !confirm('지금 열린 설문의 응답은 지워지고 새로 시작해요. 열까요?')) return;
-    pollAct('teacher_poll_open',{p_qid:+o.dataset.open},'설문을 열었어요.');
+    if(LIVE&&LIVE.active&&!confirm('지금 설문의 응답은 지워지고 이 질문으로 새로 시작해요. 시작할까요?')) return;
+    pollAct('teacher_poll_open',{p_qid:+o.dataset.open},'설문을 시작했어요.');
   }else if(a){
     const k=a.dataset.act;
-    if(k==='close') pollAct('teacher_poll_set',{p_open:false,p_revealed:null});
-    else if(k==='reopen') pollAct('teacher_poll_set',{p_open:true,p_revealed:null});
-    else if(k==='reveal') pollAct('teacher_poll_set',{p_open:false,p_revealed:true});
-    else if(k==='hide') pollAct('teacher_poll_set',{p_open:null,p_revealed:false});
-    else if(k==='end'){ if(confirm('설문을 끝낼까요? 학생 화면에서 사라지고 응답은 지워져요.')) pollAct('teacher_poll_end',{},'설문을 끝냈어요.'); }
+    if(k==='stop') pollAct('teacher_poll_set',{p_open:false,p_revealed:true},'설문을 종료하고 정답을 공개했어요.');
+    else if(k==='clear') pollAct('teacher_poll_end',{},'설문을 내렸어요.');
     else if(k==='big'){ $('#bigView').hidden=false; renderBig(); $('#bigClose').focus(); }
   }
 });
-$('#pCls').addEventListener('change',e=>{ try{ sessionStorage.setItem('force-teacher-pcls',e.target.value); }catch(_){} LIVE=null; pollTick(); });
 $('#tabRec').addEventListener('click',()=>showTab('rec'));
 $('#tabPoll').addEventListener('click',()=>showTab('poll'));
 $('#bigClose').addEventListener('click',()=>{ $('#bigView').hidden=true; });
