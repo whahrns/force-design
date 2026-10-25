@@ -462,7 +462,7 @@ function showTab(t){
   $('#tabRec').setAttribute('aria-selected',t==='rec'); $('#tabPoll').setAttribute('aria-selected',t==='poll'); $('#tabStu').setAttribute('aria-selected',t==='stu');
   document.querySelectorAll('.rec-only').forEach(el=>el.hidden=t!=='rec');
   $('#view').hidden=t!=='rec'; $('#pollView').hidden=t!=='poll'; $('#stuView').hidden=t!=='stu';
-  if(t==='stu' && !$('#stuFrame').getAttribute('src')) $('#stuFrame').src='./?preview';   // 처음 열 때 학생 화면을 불러옴
+  if(t==='stu' && !$('#stuFrame').getAttribute('src')) $('#stuFrame').src='./?preview&t='+Date.now();   // 처음 열 때 학생 화면을 불러옴
   clearTimeout(pollT);
   if(t==='poll') enterPoll();
 }
