@@ -52,7 +52,7 @@
   else{
     btn=document.createElement('button'); btn.type='button'; btn.className='pv-btn'; btn.innerHTML='📊 설문<span class="dot" aria-hidden="true"></span>';
     btn.setAttribute('aria-expanded','false');
-    panel.hidden=true; btn.hidden=true;   // 설문이 진행 중일 때만 보임
+    panel.hidden=true; btn.hidden=true;   // 설문이 열려 있을 때만 보임
     document.body.appendChild(btn); document.body.appendChild(panel);
     btn.addEventListener('click',()=>{ panel.hidden=!panel.hidden; btn.setAttribute('aria-expanded',!panel.hidden); if(!panel.hidden) tick(); });
     panel.querySelector('.pv-x').addEventListener('click',()=>{ panel.hidden=true; btn.setAttribute('aria-expanded','false'); btn.focus(); });
@@ -85,10 +85,9 @@
       cur=r;
       // 새 설문이 시작되면 설문 창을 저절로 엶 (같은 설문은 한 번만)
       if(btn){
-        const live=!!(cur.active&&cur.open);
-        btn.hidden=!live;
-        if(!live){ panel.hidden=true; btn.setAttribute('aria-expanded','false'); }          // 종료하면 자동으로 닫힘
-        else if(P.seen!==cur.session){ P.seen=cur.session; store(); panel.hidden=false; btn.setAttribute('aria-expanded','true'); }   // 시작하면 자동으로 열림
+        btn.hidden=!cur.active;
+        if(!cur.active){ panel.hidden=true; btn.setAttribute('aria-expanded','false'); }    // 교사가 '설문 내리기'를 누르면 사라짐
+        else if(P.seen!==cur.session){ P.seen=cur.session; store(); panel.hidden=false; btn.setAttribute('aria-expanded','true'); }   // 시작하면 자동으로 열림 ('종료' 뒤에도 결과와 정답을 보여 줌)
       }
     }
     catch(e){ if(my!==gen) return; }
