@@ -79,7 +79,13 @@
   }
   async function tick(){
     const my=++gen; clearTimeout(timer);
-    try{ const r=await rpc('poll_current',{}); if(my!==gen) return; if(!cur||r.session!==cur.session) note=''; cur=r; }
+    try{
+      const r=await rpc('poll_current',{}); if(my!==gen) return;
+      if(!cur||r.session!==cur.session) note='';
+      cur=r;
+      // 새 설문이 시작되면 설문 창을 저절로 엶 (같은 설문은 한 번만)
+      if(btn && cur.active && cur.open && P.seen!==cur.session){ P.seen=cur.session; store(); panel.hidden=false; btn.setAttribute('aria-expanded','true'); }
+    }
     catch(e){ if(my!==gen) return; }
     render();
     const open=page||(btn&&!panel.hidden);
