@@ -54,6 +54,14 @@ button,input,select{font:inherit;color:inherit}
 .tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
 .pgrid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px;align-items:start}
 @media (max-width:820px){.pgrid{grid-template-columns:1fr}}
+.qbox{margin-top:0}
+.qbox summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
+.qbox summary::-webkit-details-marker{display:none}
+.qbox summary::before{content:"▾";font-size:14px;color:var(--muted)}
+.qbox:not([open]) summary::before{content:"▸"}
+.qbox summary .sec{margin:0}
+.qbox[open] .qhint{display:none}
+.qbox[open] #qList{margin-top:10px}
 .qi{border-top:1px dashed var(--line);padding:10px 0;display:flex;gap:10px;align-items:flex-start}
 .qi:first-child{border-top:none;padding-top:0}
 .qi .qt{flex:1}
@@ -161,7 +169,7 @@ footer{padding:20px 0 40px}
   <div class="bar-in">
     <h1>힘 설계 활동 · 교사용</h1>
     <span id="tools" hidden>
-      <span class="tabs" role="tablist"><button class="tab" role="tab" id="tabRec" aria-selected="true">모둠 기록</button><button class="tab" role="tab" id="tabPoll" aria-selected="false">실시간 설문</button><button class="tab" role="tab" id="tabStu" aria-selected="false">학생 화면</button></span>
+      <span class="tabs" role="tablist"><button class="tab" role="tab" id="tabRec" aria-selected="true">모둠 기록</button><button class="tab" role="tab" id="tabPoll" aria-selected="false">실시간</button><button class="tab" role="tab" id="tabStu" aria-selected="false">학생 화면</button></span>
       <select id="clsSel" class="in rec-only" aria-label="반 고르기"></select>
       <button class="btn primary rec-only" id="refresh">새로고침</button>
       <button class="btn rec-only" id="dlMd">md 내려받기</button>
@@ -200,7 +208,7 @@ footer{padding:20px 0 40px}
     <div class="summary"><span class="note" id="pMsg" role="status"></span></div>
     <div class="pgrid">
       <div class="panel" id="live"></div>
-      <div class="panel"><h3 class="sec" style="margin-top:0">질문 목록</h3><div id="qList"></div></div>
+      <details class="panel qbox" id="qBox" open><summary><h3 class="sec">질문 목록</h3><span class="note qhint"></span></summary><div id="qList"></div></details>
     </div>
     <div class="panel" id="drawPanel" style="margin-top:14px">
       <h3 class="sec" style="margin-top:0">🎲 모둠 뽑기</h3>
@@ -523,7 +531,7 @@ function showTab(t){
 const authFail=e=>{ if(authMsg(e)){ logout(); $('#loginMsg').textContent=authMsg(e); $('#loginMsg').className='err'; return true; } return false; };
 async function enterPoll(){
   if(!QS){
-    try{ QS=(await rpc('teacher_poll_questions',{p_pass:pass})).questions||[]; }
+    try{ QS=(await rpc('teacher_poll_questions',{p_pass:pass})).questions||[]; qHint(); }
     catch(e){ if(!authFail(e)) $('#pMsg').textContent='질문을 불러오지 못했어요: '+e.message; return; }
   }
   pollTick();
@@ -605,6 +613,11 @@ $('#pollView').addEventListener('click',e=>{
 });
 $('#tabRec').addEventListener('click',()=>showTab('rec'));
 $('#tabPoll').addEventListener('click',()=>showTab('poll'));
+/* 질문 목록 접기: 접은 상태를 이 기기에 기억 */
+try{ if(localStorage.getItem('force-teacher-qbox')==='closed') $('#qBox').open=false; }catch(e){}
+const qHint=()=>{ $('#qBox .qhint').textContent=(QS?QS.length+'개 · ':'')+'눌러서 펼치기'; };
+qHint();
+$('#qBox').addEventListener('toggle',()=>{ qHint(); try{ localStorage.setItem('force-teacher-qbox',$('#qBox').open?'open':'closed'); }catch(e){} });
 /* 학생 화면 미리 보기 */
 $('#tabStu').addEventListener('click',()=>showTab('stu'));
 $('#stuReload').addEventListener('click',()=>{ $('#stuFrame').src='./?preview&t='+Date.now(); });
