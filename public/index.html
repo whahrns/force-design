@@ -286,6 +286,9 @@ th{background:var(--sel)}
 .pastebox{border-color:var(--outline);border-radius:var(--r)}
 .pastebox:focus{border-color:var(--accent)}
 .syncpill{border-color:var(--outline)}
+.helpbtn{margin-left:auto;font-weight:700}   /* 상단 바 첫 줄 오른쪽 끝 */
+.helpbtn[aria-pressed="true"]{background:var(--amber);color:#252B3A}
+.helpmsg{position:fixed;top:calc(var(--barh,72px) + 8px);right:16px;z-index:30;max-width:min(320px,calc(100vw - 32px));background:var(--card);border:var(--dw) solid var(--outline);border-radius:14px;padding:8px 12px;font-size:14px;box-shadow:3px 3px 0 var(--outline)}
 .pvbanner{border-bottom:var(--ow) solid var(--outline);background:var(--amber);color:#252B3A}
 
 .sheet{position:relative;margin-top:28px}
@@ -334,6 +337,7 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
     </div>
     <button class="syncpill" id="syncPill" type="button" aria-label="저장 상태 (눌러서 저장 설정 보기)">☁ 저장 안 됨</button>
     <label class="langsel">🌐 번역 <select id="lang" class="tbtn" style="padding:2px 6px" aria-label="번역 언어 Language"></select></label>
+    <button class="tbtn helpbtn" id="helpBtn" type="button" aria-pressed="false">🙋 도움 요청</button>
     <nav class="stages" id="stages" aria-label="활동 단계"></nav>
   </div>
   <div class="progress"><i id="prog"></i></div>
@@ -1165,6 +1169,33 @@ $('#tStart').addEventListener('click',()=>{
 $('#tReset').addEventListener('click',()=>{ left=STAGES[cur].min*60; stop(); drawTime(); });
 $('#stages').addEventListener('click',e=>{ const b=e.target.closest('[data-st]'); if(b) setStage(+b.dataset.st,true); });
 drawStages(); drawTime();
+
+/* ---------- 도움 요청: 연결한 모둠만, 누르면 교사 화면 '실시간' 탭에 몇 반 몇 모둠인지 뜸 ---------- */
+let helpOn=false, helpT=null, helpMsgT=null;
+function helpMsg(t){
+  let m=document.getElementById('helpMsg');
+  if(!m){ m=document.createElement('div'); m.id='helpMsg'; m.className='helpmsg'; m.setAttribute('role','status'); document.body.appendChild(m); }
+  m.textContent=t; m.hidden=false; clearTimeout(helpMsgT); helpMsgT=setTimeout(()=>{ m.hidden=true; },4000);
+}
+function helpShow(r){
+  const was=helpOn; helpOn=!!(r&&r.pending);
+  $('#helpBtn').setAttribute('aria-pressed',helpOn);
+  $('#helpBtn').textContent=helpOn?`🙋 요청함 · ${r.order}번째`:'🙋 도움 요청';
+  if(was&&!helpOn) helpMsg('선생님이 도움 요청을 확인했어요.');
+  clearTimeout(helpT); if(helpOn) helpT=setTimeout(()=>helpCall(null),5000);   // 기다리는 동안만 5초마다 확인
+}
+async function helpCall(on){
+  if(PREVIEW||!Y.cls||!Y.pin) return;
+  try{ helpShow(await rpc('help_set',{p_class:Y.cls,p_group:Y.grp,p_pin:Y.pin,p_on:on})); }
+  catch(e){ if(on!==null) helpMsg(e.code?errText(e):'보내지 못했어요. 인터넷 연결을 확인해 주세요.'); else { clearTimeout(helpT); helpT=setTimeout(()=>helpCall(null),10000); } }
+}
+$('#helpBtn').addEventListener('click',()=>{
+  if(PREVIEW){ helpMsg('미리 보기에서는 도움 요청을 보낼 수 없어요.'); return; }
+  if(!Y.cls||!Y.pin){ helpMsg('먼저 아래 ‘우리 모둠 기록 저장하기’에서 반·모둠을 연결해 주세요.'); $('#sync').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}); return; }
+  if(helpOn){ if(confirm('도움 요청을 취소할까요?')) helpCall(false); }
+  else{ helpCall(true).then(()=>{ if(helpOn) helpMsg('선생님께 도움 요청을 보냈어요. 잠시만 기다려 주세요.'); }); }
+});
+helpCall(null);   // 새로 열었을 때 이미 보낸 요청이 있는지 확인
 </script>
 <script src="./draw-wheel.js"></script>
 <script src="./poll-widget.js"></script>

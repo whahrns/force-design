@@ -68,6 +68,7 @@ html{overflow-x:clip}
 .qbox:not([open]) summary::before{content:"▸"}
 .qbox summary .sec{margin:0}
 .qbox[open] .qhint{display:none}
+#drawPanel[open] .ctl{margin-top:10px}
 .qbox[open] #qList{margin-top:10px;max-height:min(46vh,420px);overflow-y:auto;overscroll-behavior:contain;padding-right:6px}   /* 질문 목록만 따로 스크롤 → 위 진행 중 설문이 계속 보임 */
 .qi{border-top:1px dashed var(--line);padding:10px 0;display:flex;gap:10px;align-items:flex-start}
 .qi:first-child{border-top:none;padding-top:0}
@@ -215,6 +216,13 @@ th{background:var(--sel)}
 .use{border:var(--dw) solid var(--outline);border-left:6px solid var(--c);border-radius:0 12px 12px 0}
 .chip{border:1.5px solid currentColor;border-radius:999px;padding:0 8px}
 footer{color:var(--muted)}
+.hbadge{display:inline-block;min-width:1.5em;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--pink);color:#252B3A;font-weight:800;font-size:13px;line-height:1.5;border:1.5px solid var(--outline)}
+.helpp{box-shadow:6px 6px 0 var(--pink)}
+.helpp.has{background:var(--e-bg)}
+.hrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:8px 0;border-top:1px dashed var(--line)}
+.hrow:first-child{border-top:none;padding-top:0}
+.hrow b{font-family:var(--display);font-weight:800;font-synthesis:none;font-size:22px}
+.hrow .btn{margin-left:auto}
 @media (prefers-reduced-motion:reduce){
   .btn,.tab{transition:none}
   .btn:hover,.btn:active{transform:none}
@@ -228,7 +236,7 @@ footer{color:var(--muted)}
   <div class="bar-in">
     <h1>힘 설계 활동 · 교사용</h1>
     <span id="tools" hidden>
-      <span class="tabs" role="tablist"><button class="tab" role="tab" id="tabRec" aria-selected="true">모둠 기록</button><button class="tab" role="tab" id="tabPoll" aria-selected="false">실시간</button><button class="tab" role="tab" id="tabStu" aria-selected="false">학생 화면</button></span>
+      <span class="tabs" role="tablist"><button class="tab" role="tab" id="tabRec" aria-selected="true">모둠 기록</button><button class="tab" role="tab" id="tabPoll" aria-selected="false">실시간<span class="hbadge" id="helpBadge" hidden></span></button><button class="tab" role="tab" id="tabStu" aria-selected="false">학생 화면</button></span>
       <select id="clsSel" class="in rec-only" aria-label="반 고르기"></select>
       <button class="btn primary rec-only" id="refresh">새로고침</button>
       <button class="btn rec-only" id="dlMd">md 내려받기</button>
@@ -264,12 +272,13 @@ footer{color:var(--muted)}
 
   <section id="pollView" hidden>
     <div class="summary"><span class="note" id="pMsg" role="status"></span></div>
+    <div class="panel helpp" id="helpPanel" style="margin-bottom:14px"><h3 class="sec" style="margin-top:0">🙋 도움 요청</h3><div id="helpList" aria-live="polite"></div></div>
     <div class="pgrid">
       <div class="panel" id="live"></div>
       <details class="panel qbox" id="qBox" open><summary><h3 class="sec">질문 목록</h3><span class="note qhint"></span></summary><div id="qList"></div></details>
     </div>
-    <div class="panel" id="drawPanel" style="margin-top:14px">
-      <h3 class="sec" style="margin-top:0">🎲 모둠 뽑기</h3>
+    <details class="panel qbox" id="drawPanel" style="margin-top:14px" open>
+      <summary><h3 class="sec">🎲 모둠 뽑기</h3><span class="note qhint">눌러서 펼치기</span></summary>
       <div class="ctl" style="margin-top:6px;align-items:center">
         <label>모둠 수 <select id="drawN"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option></select></label>
         <button class="btn" id="drawShow" aria-pressed="false">학생 화면에 띄우기</button>
@@ -279,7 +288,7 @@ footer{color:var(--muted)}
         <span class="state" id="drawState" hidden></span>
       </div>
       <div class="dr-wrap"><div class="dr-wheel" id="drawWheel"></div><div class="dr-txt" id="drawTxt"></div></div>
-    </div>
+    </details>
     <p class="note">학생은 모둠 활동 페이지 오른쪽 아래의 <b>📊 설문</b> 버튼(또는 <b>force-design.whahrns.workers.dev/poll</b>)으로 참여해요. 반 구분 없이 접속한 모두가 같은 질문을 보고, 응답 결과가 모두에게 실시간으로 보여요. 익명이고, 새로 시작하거나 내리면 이전 응답은 지워져요.</p>
   </section>
 
@@ -346,7 +355,7 @@ async function load(){
     try{ sessionStorage.setItem(PKEY,pass); }catch(e){}
     ROWS=(rows||[]).map(r=>({cls:r.class_code,grp:r.group_no,at:r.updated_at,d:norm(r.data)}))
       .sort((x,y)=>clsKey(x.cls)-clsKey(y.cls)||x.grp-y.grp);
-    $('#login').hidden=true; $('#tools').hidden=false; showTab(TAB);
+    $('#login').hidden=true; $('#tools').hidden=false; showTab(TAB); helpTick();
     fillClasses(); render(); loadDesigns();
     $('#loadMsg').textContent='불러온 시각 '+new Date().toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
   }catch(e){
@@ -680,6 +689,9 @@ $('#pollView').addEventListener('click',e=>{
 });
 $('#tabRec').addEventListener('click',()=>showTab('rec'));
 $('#tabPoll').addEventListener('click',()=>showTab('poll'));
+/* 모둠 뽑기 접기: 접은 상태를 이 기기에 기억 */
+try{ if(localStorage.getItem('force-teacher-draw')==='closed') $('#drawPanel').open=false; }catch(e){}
+$('#drawPanel').addEventListener('toggle',()=>{ try{ localStorage.setItem('force-teacher-draw',$('#drawPanel').open?'open':'closed'); }catch(e){} });
 /* 질문 목록 접기: 접은 상태를 이 기기에 기억 */
 try{ if(localStorage.getItem('force-teacher-qbox')==='closed') $('#qBox').open=false; }catch(e){}
 const qHint=()=>{ $('#qBox .qhint').textContent=(QS?QS.length+'개 · ':'')+'눌러서 펼치기'; };
@@ -694,6 +706,34 @@ $('#stuReload').addEventListener('click',()=>{ $('#stuFrame').src='./?preview&t=
 $('#bigClose').addEventListener('click',()=>{ $('#bigView').hidden=true; });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#bigView').hidden=true; });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&TAB==='poll') pollTick(); });
+
+
+/* ---------- 도움 요청: 로그인해 있는 동안 4초마다 확인, '실시간' 탭 숫자·창 제목에도 표시 ---------- */
+let helpT2=null, HELP=[];
+const agoText=s=>s<60?'방금':s<3600?Math.floor(s/60)+'분 전':Math.floor(s/3600)+'시간 전';
+function renderHelp(){
+  const n=HELP.length;
+  $('#helpBadge').hidden=!n; $('#helpBadge').textContent=n;
+  document.title=(n?`(${n}) `:'')+'힘 설계 교사용';
+  $('#helpPanel').classList.toggle('has',!!n);
+  $('#helpList').innerHTML=n?HELP.map(h=>`<div class="hrow"><b>${esc(clsLabel(h.cls))} ${h.grp}모둠</b>${h.name?`<span>${esc(h.name)}</span>`:''}<span class="note">${agoText(h.ago)}</span><button class="btn sm primary" data-help="${esc(h.cls)}|${h.grp}">해결</button></div>`).join('')
+    :'<p class="note" style="margin:0">지금 도움을 요청한 모둠이 없어요. 학생이 화면 위쪽의 ‘🙋 도움 요청’을 누르면 여기에 몇 반 몇 모둠인지 떠요.</p>';
+}
+async function helpTick(){
+  clearTimeout(helpT2);
+  if(!pass) return;
+  try{ HELP=(await rpc('teacher_help_list',{p_pass:pass})).list||[]; renderHelp(); }
+  catch(e){ if(authFail(e)) return; }
+  helpT2=setTimeout(helpTick, document.visibilityState==='visible'?4000:10000);
+}
+$('#helpList').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-help]'); if(!b) return;
+  const [c,g]=b.dataset.help.split('|'); b.disabled=true;
+  try{ await rpc('teacher_help_done',{p_pass:pass,p_class:c,p_group:+g}); }
+  catch(err){ if(!authFail(err)) $('#pMsg').textContent='처리하지 못했어요: '+err.message; }
+  helpTick();
+});
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') helpTick(); });
 
 if(pass) load(); else $('#pass').focus();
 </script>
