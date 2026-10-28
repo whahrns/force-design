@@ -53,7 +53,7 @@ img,svg{max-width:100%}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut)}
 h1,h2,h3{font-family:var(--display);font-weight:800;font-synthesis:none;letter-spacing:-.01em;line-height:1.2;margin:0}
 button,input,textarea,select{font:inherit;color:inherit}
-:focus-visible{outline:3px solid var(--accent);outline-offset:5px;border-radius:8px}   /* 그림자 바깥까지 보이게 */
+:focus-visible{outline:3px solid var(--accent);outline-offset:5px}   /* 그림자 바깥까지 보이게 (모양은 요소 그대로) */
 
 /* ---------- 상단 진행바 ---------- */
 .bar{position:fixed;top:0;left:0;right:0;z-index:20;background:var(--paper);border-bottom:2px solid var(--ink);padding-top:env(safe-area-inset-top,0px)}
@@ -287,7 +287,12 @@ th{background:var(--sel)}
 .pastebox:focus{border-color:var(--accent)}
 .syncpill{border-color:var(--outline)}
 .helpbtn{margin-left:auto;font-weight:700}   /* 상단 바 첫 줄 오른쪽 끝 */
-.helpbtn[aria-pressed="true"]{background:var(--amber);color:#252B3A}
+.helpbtn{display:inline-flex;align-items:center;gap:6px}
+.helpbtn[aria-pressed="true"]{background:#FFE6F4;color:#252B3A;padding-right:5px}   /* 기다리는 중: 연분홍 + 깜빡이는 점 + 순서 동그라미 */
+.helpbtn .hdot{width:9px;height:9px;border-radius:50%;background:var(--pink);border:1.5px solid #252B3A;animation:hpulse 1.4s ease-in-out infinite}
+.helpbtn .hnum{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:#FFFFFF;border:1.5px solid #252B3A;font-family:var(--display);font-weight:800;font-synthesis:none;font-size:13px}
+@keyframes hpulse{50%{transform:scale(.6);opacity:.5}}
+@media (prefers-reduced-motion:reduce){.helpbtn .hdot{animation:none}}
 .helpmsg{position:fixed;top:calc(var(--barh,72px) + 8px);right:16px;z-index:30;max-width:min(320px,calc(100vw - 32px));background:var(--card);border:var(--dw) solid var(--outline);border-radius:14px;padding:8px 12px;font-size:14px;box-shadow:3px 3px 0 var(--outline)}
 .pvbanner{border-bottom:var(--ow) solid var(--outline);background:var(--amber);color:#252B3A}
 
@@ -1180,7 +1185,8 @@ function helpMsg(t){
 function helpShow(r){
   const was=helpOn; helpOn=!!(r&&r.pending);
   $('#helpBtn').setAttribute('aria-pressed',helpOn);
-  $('#helpBtn').textContent=helpOn?`🙋 요청함 · ${r.order}번째`:'🙋 도움 요청';
+  $('#helpBtn').innerHTML=helpOn?`<span class="hdot" aria-hidden="true"></span>선생님 기다리는 중<span class="hnum">${r.order}번째</span>`:'🙋 도움 요청';
+  $('#helpBtn').setAttribute('aria-label',helpOn?`도움 요청 중, ${r.order}번째로 기다리고 있어요. 누르면 취소`:'선생님께 도움 요청');
   if(was&&!helpOn) helpMsg('선생님이 도움 요청을 확인했어요.');
   clearTimeout(helpT); if(helpOn) helpT=setTimeout(()=>helpCall(null),5000);   // 기다리는 동안만 5초마다 확인
 }
