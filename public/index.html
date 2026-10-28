@@ -184,6 +184,9 @@ th{font-family:var(--display);font-weight:400;font-size:18px}
 .poster h3{font-size:22px;margin-top:18px}
 .dimg{display:block;max-width:100%;max-height:70vh;margin-top:10px;border:2px solid var(--line);border-radius:12px;background:#fff}
 #dPick.off{opacity:.45;pointer-events:none}
+.pastebox{margin-top:10px;border:2px dashed var(--line);border-radius:12px;padding:12px 14px;color:var(--muted);font-size:15px;cursor:text;caret-color:transparent;-webkit-user-select:text;user-select:text}
+.pastebox:focus{border-color:var(--ink);color:var(--ink);outline:none}
+.pastebox.off{opacity:.45;pointer-events:none}
 .poster .dimg{max-height:none;width:100%}
 .empty{color:var(--muted);font-style:normal}
 
@@ -379,6 +382,7 @@ footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
         <label class="big" id="dPick" for="dFile">사진 올리기<input type="file" id="dFile" accept="image/*" hidden></label>
         <button class="tbtn" id="dDel" type="button" hidden style="align-self:center">사진 지우기</button>
       </div>
+      <div class="pastebox" id="dPaste" contenteditable="true" role="textbox" aria-label="사진 붙여넣기 칸" inputmode="none" spellcheck="false">📋 캡처한 사진을 여기에 붙여넣기 (컴퓨터: Ctrl+V · 패드: 길게 눌러 ‘붙여넣기’)</div>
       <p class="sync-status" id="dMsg" role="status"></p>
     </div>
   </section>
@@ -881,6 +885,7 @@ function renderDesign(){
   $('#dPick').classList.toggle('off',!on);
   $('#dPick').firstChild.textContent=DESIGN_URL?'다시 올리기':'사진 올리기';
   $('#dDel').hidden=!(on && DESIGN_URL);
+  $('#dPaste').classList.toggle('off',!on);
   if(!on && !dBusy){ const m=$('#dMsg'); m.className='sync-status'; m.textContent=PREVIEW?'미리 보기에서는 올릴 수 없어요. 학생은 여기서 사진을 골라 올려요.':'먼저 맨 위 ‘우리 모둠 기록 저장하기’에서 반·모둠을 연결하면 사진을 올릴 수 있어요.'; }
 }
 async function loadDesign(){
@@ -900,6 +905,25 @@ async function shrinkImage(file){
   for(const q of [0.85,0.7,0.55]){ const b=await new Promise(ok=>c.toBlob(ok,'image/jpeg',q)); if(b && b.size<2.8*1024*1024) return b; }
   throw new Error('too_large');
 }
+/* 붙여넣기: 캡처를 Ctrl+V(컴퓨터) 또는 붙여넣기 칸에서 길게 눌러 붙여넣기(패드) */
+function pastedImage(e){
+  const items=[...((e.clipboardData&&e.clipboardData.items)||[])];
+  const it=items.find(x=>x.kind==='file'&&/^image\//.test(x.type));
+  return it?it.getAsFile():null;
+}
+document.addEventListener('paste',e=>{
+  const f=pastedImage(e);
+  if(e.target.closest&&e.target.closest('#dPaste')){ e.preventDefault(); $('#dPaste').blur(); }   // 붙여넣기 칸에는 글자가 들어가지 않게
+  if(!f){ if(e.target.closest&&e.target.closest('#dPaste')){ $('#dMsg').textContent='붙여넣은 것이 사진이 아니에요. 사진을 복사한 뒤 다시 붙여넣어 주세요.'; $('#dMsg').className='sync-status err'; } return; }
+  e.preventDefault();
+  if(PREVIEW||!Y.cls||!Y.pin){ renderDesign(); $('#dMsg').scrollIntoView({block:'center'}); return; }
+  if(DESIGN_URL && !confirm('붙여넣은 사진으로 우리 모둠 설계도 사진을 바꿀까요?')) return;
+  $('#dMsg').scrollIntoView({block:'center',behavior:'smooth'});
+  uploadDesign(new File([f],'paste.png',{type:f.type||'image/png'}));
+});
+const PASTE_HINT=$('#dPaste').textContent;
+$('#dPaste').addEventListener('input',()=>{ $('#dPaste').textContent=PASTE_HINT; });   // 글자를 치거나 지워도 안내 문구 유지
+$('#dPaste').addEventListener('keydown',e=>{ if(!(e.ctrlKey||e.metaKey)) e.preventDefault(); });
 $('#dDel').addEventListener('click',async()=>{
   if(dBusy||!DESIGN_URL||!confirm('우리 모둠 설계도 사진을 지울까요?\n같은 모둠의 다른 기기와 교사 화면에서도 사라져요.')) return;
   const m=$('#dMsg'); dBusy=true; m.className='sync-status'; m.textContent='지우는 중이에요…';
@@ -912,8 +936,9 @@ $('#dDel').addEventListener('click',async()=>{
     m.className='sync-status err'; m.textContent=err.code==='locked'?errText(err):'지우지 못했어요. 잠시 뒤 다시 눌러 주세요.';
   }
 });
-$('#dFile').addEventListener('change',async e=>{
-  const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f||dBusy) return;
+$('#dFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) uploadDesign(f); });
+async function uploadDesign(f){
+  if(dBusy) return;
   const m=$('#dMsg'); m.className='sync-status';
   if(PREVIEW||!Y.cls||!Y.pin){ renderDesign(); return; }
   if(!/^image\//.test(f.type||'image/')){ m.textContent='사진 파일만 올릴 수 있어요.'; m.className='sync-status err'; return; }
@@ -933,7 +958,7 @@ $('#dFile').addEventListener('change',async e=>{
     m.className='sync-status err';
     m.textContent=err.code==='locked'?errText(err):err.message==='decode'?'이 사진은 열 수 없어요. 캡처한 사진(PNG·JPG)으로 다시 골라 주세요.':err.message==='too_large'?'사진이 너무 커요. 화면 캡처로 다시 올려 주세요.':(err instanceof TypeError||!navigator.onLine)?'인터넷에 연결되지 않아 올리지 못했어요. 연결을 확인하고 다시 골라 주세요.':'올리지 못했어요. 잠시 뒤 다시 골라 주세요.';
   }
-});
+}
 
 if(PREVIEW){ $('#pvBanner').hidden=false; showPick(); setStatus('none'); renderDesign(); }
 else if(Y.cls){ showOn(); connect(Y.cls,Y.grp,Y.pin,true); } else { showPick(); setStatus('none'); renderDesign(); }
