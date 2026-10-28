@@ -77,7 +77,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 /* ---------- 도입 ---------- */
 .hero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:center;padding:40px 0 20px}
 .hero h1{font-size:clamp(30px,6vw,54px);text-wrap:balance}
-.step-h h2,.sheet h3,.example h3,.poster h2{text-wrap:balance}
+.step-h h2,.sheet h3,.poster h2{text-wrap:balance}
 .hero p{margin:14px 0 0;color:var(--muted);max-width:30em}
 .goal{margin-top:18px;border-left:5px solid var(--ink);padding:6px 14px;background:var(--card)}
 .goal .std{margin-top:8px;padding-top:8px;border-top:var(--dw) dashed var(--line);font-size:14px;line-height:1.55;color:var(--muted)}
@@ -152,10 +152,6 @@ textarea.in{min-height:70px;resize:vertical}
 .idea.chosen{border-color:var(--ink);box-shadow:4px 4px 0 var(--ink)}
 
 /* 예시 */
-.example{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px;margin:10px 0 18px}
-.example h3{font-size:22px}
-.example p{margin:6px 0 0;font-size:15px}
-.tag{display:inline-block;font-weight:700;padding:0 8px;border-radius:6px;background:var(--cb);color:var(--c)}
 
 .checklist{list-style:none;padding:0;margin:10px 0 0}
 .checklist li{margin:6px 0}
@@ -208,7 +204,7 @@ th{font-family:var(--display);font-weight:800;font-synthesis:none;font-size:18px
 .tr{display:block;font-family:var(--body);font-weight:400;font-size:.9em;line-height:1.5;color:var(--b);margin-top:2px;text-align:left;word-break:normal;overflow-wrap:anywhere}
 h1 .tr{font-size:.42em;margin-top:8px}
 h2 .tr,.fc h3 .tr{font-size:.55em}
-.sheet h3 .tr,.example h3 .tr{font-size:.7em}
+.sheet h3 .tr{font-size:.7em}
 .role strong .tr{font-size:.7em}
 .langsel{display:inline-flex;align-items:center;gap:6px;font-size:14px}
 .pvbanner{background:var(--f-bg);color:var(--ink);border-bottom:2px solid var(--f);text-align:center;font-weight:700;padding:6px 16px;font-size:15px}
@@ -274,8 +270,6 @@ section.step::before{content:"";position:absolute;top:0;left:0;right:0;height:va
 .bank{background:var(--soft);border:var(--dw) solid var(--outline);border-radius:var(--r)}
 .idea{border:var(--dw) solid var(--outline);border-radius:var(--r);background:var(--card)}
 .idea.chosen{background:var(--sel);border-color:var(--outline);box-shadow:5px 5px 0 var(--accent)}
-.example{border:var(--ow) solid var(--outline);border-radius:22px;box-shadow:6px 6px 0 var(--amber)}
-.tag{border:var(--dw) solid currentColor;border-radius:999px;padding:0 10px}
 .checklist input,.range input{accent-color:var(--accent)}
 .use-box{border:var(--dw) solid var(--outline);border-left:8px solid var(--c);border-radius:0 var(--r) var(--r) 0}
 .tblwrap{border:var(--ow) solid var(--outline);border-radius:var(--r);box-shadow:5px 5px 0 var(--mint)}
@@ -309,7 +303,7 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
 
 @media (max-width:760px){
   .sheet{box-shadow:4px 4px 0 var(--accent);border-radius:18px}
-  .example,.tblwrap{box-shadow:4px 4px 0 var(--amber)}
+  .tblwrap{box-shadow:4px 4px 0 var(--amber)}
   .poster{box-shadow:5px 5px 0 var(--accent);padding:18px}
   .step-h .n{width:48px;height:48px;flex-basis:48px;font-size:26px}
   .step-h h2{font-size:25px}
@@ -324,8 +318,6 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
   .roles{grid-template-columns:1fr 1fr}
   .rf{grid-template-columns:1fr}
   .two{grid-template-columns:1fr}
-  .example{grid-template-columns:1fr}
-  .example svg{max-width:260px}
   .time{font-size:28px;min-width:76px}
 }
 @media print{.bar,.btnrow,.add,.x{display:none}body{background:#fff}}
@@ -451,25 +443,6 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
   <section class="step" id="s4">
     <div class="step-h"><span class="n">3</span><h2>가장 알맞은 방법 골라 설계도 그리기</h2><span class="min">12분</span></div>
     <p class="lead">제안한 방법 중 가장 알맞은 것을 골라(위에서 ‘이걸로 설계’ 선택) 도화지에 설계도를 그립니다. 설계도에는 힘의 특징을 어디에, 어떻게 이용했는지 꼭 설명해야 합니다.</p>
-
-    <div class="example">
-      <svg viewBox="0 0 260 200" role="img" aria-label="용수철 가위 설계도 예시: 둥근 손잡이 사이에 용수철, 윗면에 고무 패드">
-        <path d="M150 110 L250 70" stroke="var(--muted)" stroke-width="8" stroke-linecap="round"/>
-        <path d="M150 120 L250 150" stroke="var(--muted)" stroke-width="8" stroke-linecap="round"/>
-        <circle cx="150" cy="115" r="6" fill="var(--ink)"/>
-        <ellipse cx="80" cy="70" rx="66" ry="30" fill="var(--f-bg)" stroke="var(--ink)" stroke-width="3"/>
-        <ellipse cx="80" cy="58" rx="46" ry="14" fill="var(--f)" opacity=".85"/>
-        <ellipse cx="80" cy="160" rx="66" ry="28" fill="var(--card)" stroke="var(--ink)" stroke-width="3"/>
-        <path d="M80 100 q12 5 0 10 q-12 5 0 10 q12 5 0 10" stroke="var(--e)" stroke-width="4" fill="none"/>
-        <text x="96" y="122" font-size="14" fill="var(--e)" font-family="Gowun Dodum, sans-serif">용수철</text>
-        <text x="20" y="22" font-size="14" fill="var(--f)" font-family="Gowun Dodum, sans-serif">고무 패드</text>
-      </svg>
-      <div>
-        <h3>설계도 예시: 손의 힘이 약해도 쓸 수 있는 용수철 가위</h3>
-        <p><span class="tag F-e">탄성력</span> 손잡이 사이에 용수철을 넣어, 손으로 벌리지 않아도 누른 뒤 저절로 원래 모양으로 돌아옵니다.</p>
-        <p><span class="tag F-f">마찰력</span> 손바닥으로 누르는 손잡이에 마찰력이 큰 고무 패드를 붙여 미끄러지지 않습니다.</p>
-      </div>
-    </div>
 
     <div class="sheet">
       <label class="fld" for="designName">설계한 기구나 장치의 이름</label>
