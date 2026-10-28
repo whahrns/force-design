@@ -222,10 +222,12 @@ footer{padding:20px 0 40px}
       <h3 class="sec" style="margin-top:0">🎲 모둠 뽑기</h3>
       <div class="ctl" style="margin-top:6px;align-items:center">
         <label>모둠 수 <select id="drawN"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option></select></label>
-        <button class="btn" id="drawStart">시작 (학생 화면에 띄우기)</button>
+        <button class="btn" id="drawStart">학생 화면에 띄우기</button>
         <button class="btn primary" id="drawGo">뽑기 (룰렛 돌리기)</button>
+        <button class="btn" id="drawHide">숨기기</button>
+        <button class="btn" id="drawReset">초기화</button>
         <button class="btn" id="drawBig">크게 보기 (TV)</button>
-        <button class="btn" id="drawOff">내리기</button>
+        <span class="state" id="drawState" hidden></span>
       </div>
       <div class="dr-wrap"><div class="dr-wheel" id="drawWheel"></div><div class="dr-txt" id="drawTxt"></div></div>
     </div>
@@ -582,18 +584,19 @@ function orderHtml(D){ return `<div class="dr-order">${D.drawn.map((g,i)=>`<span
 function drawTexts(D){
   if(!D) return ['<p class="note">‘시작’을 누르면 사이트에 접속한 모두의 화면 가운데에 룰렛이 떠요. ‘뽑기’를 누르면 룰렛이 돌다가 한 모둠에서 멈춰요.</p>','모둠 뽑기를 기다리는 중이에요'];
   if(dSpin) return ['<div class="dr-last">두구두구…</div>','두구두구…'];
-  if(!D.last) return ['<div class="dr-last" style="font-size:28px">준비됐어요</div><p class="note">학생 화면에 룰렛이 떠 있어요. ‘뽑기’를 눌러 돌려 보세요.</p>','곧 룰렛이 돌아가요!'];
+  if(!D.last) return ['<div class="dr-last" style="font-size:28px">준비됐어요</div><p class="note">‘뽑기’를 눌러 룰렛을 돌려 보세요.</p>','곧 룰렛이 돌아가요!'];
   const rest=[]; for(let g=1;g<=D.groups;g++) if(!D.drawn.includes(g)) rest.push(g);
   return [`<div class="dr-last">${D.last}모둠</div>${orderHtml(D)}<p class="note">${rest.length?'남은 모둠: '+rest.join(', '):'모든 모둠을 뽑았어요. 다시 뽑으면 처음부터 시작해요.'}</p>`,
     `${D.last}모둠!${orderHtml(D)}`];
 }
-function drawTextOut(){ const D=LIVE&&LIVE.draw, [a,b]=drawTexts(D); $('#drawTxt').innerHTML=a; $('#bigTxt').innerHTML=b; }
+function drawTextOut(){ const D=LIVE&&LIVE.draw, [a,b]=drawTexts(D); $('#drawTxt').innerHTML=a; $('#bigTxt').innerHTML=b;
+  const st=$('#drawState'); st.hidden=!D; if(D){ st.textContent=D.shown?'학생 화면에 떠 있음':'학생 화면에서 숨김'; st.className='state '+(D.shown?'open':'closed'); } }
 function renderDraw(){
   const D=LIVE&&LIVE.draw;
   if(D&&document.activeElement!==$('#drawN')) $('#drawN').value=String(D.groups);
   if(!D){ dSeq=null; dSpin=false; W1.set(null); W2.set(null); drawTextOut(); return; }
   if(D.seq!==dSeq){
-    const spin=dSeq!==null&&!!D.last&&D.age<20;   // 지켜보는 중에 새로 뽑았을 때만 돌림
+    const spin=dSeq!==null&&!!D.last&&D.pseq===D.seq&&D.age<20;   // 지켜보는 중에 새로 뽑았을 때만 돌림
     dSeq=D.seq;
     if(spin){ dSpin=true; const done=()=>{ dSpin=false; drawTextOut(); }; W1.set(D,{spin:true,done}); W2.set(D,{spin:true}); }
     else{ dSpin=false; W1.set(D); W2.set(D); }
@@ -606,9 +609,10 @@ async function drawAct(fn,body,msg){
   catch(e){ if(!authFail(e)) $('#pMsg').textContent='처리하지 못했어요: '+e.message; }
   finally{ pBusy=false; pollTick(); }
 }
-$('#drawStart').addEventListener('click',()=>{ const D=LIVE&&LIVE.draw; if(D&&D.drawn.length&&!confirm('뽑은 기록을 지우고 새로 시작할까요?')) return; drawAct('teacher_draw_start',{p_groups:+$('#drawN').value},'학생 화면에 룰렛을 띄웠어요.'); });
+$('#drawStart').addEventListener('click',()=>{ const D=LIVE&&LIVE.draw; if(D&&D.drawn.length&&D.groups!==+$('#drawN').value&&!confirm('모둠 수가 바뀌어 뽑은 기록이 지워져요. 띄울까요?')) return; drawAct('teacher_draw_start',{p_groups:+$('#drawN').value},'학생 화면에 룰렛을 띄웠어요.'); });
 $('#drawGo').addEventListener('click',()=>{ if(dSpin) return; drawAct('teacher_draw_pick',{p_groups:+$('#drawN').value},'룰렛을 돌렸어요.'); });
-$('#drawOff').addEventListener('click',()=>{ if(confirm('모둠 뽑기를 학생 화면에서 내리고 뽑은 기록도 지울까요?')) drawAct('teacher_draw_reset',{},'모둠 뽑기를 내렸어요.'); });
+$('#drawHide').addEventListener('click',()=>drawAct('teacher_draw_hide',{},'학생 화면에서 룰렛을 숨겼어요. 뽑은 기록은 남아 있어요.'));
+$('#drawReset').addEventListener('click',()=>{ if(confirm('뽑은 기록을 지우고 처음부터 다시 뽑을까요?')) drawAct('teacher_draw_reset',{},'뽑은 기록을 지웠어요. 처음부터 다시 뽑아요.'); });
 $('#drawBig').addEventListener('click',()=>{ BIG='draw'; $('#bigView').hidden=false; renderBig(); $('#bigClose').focus(); });
 function renderBig(){
   if($('#bigView').hidden) return;

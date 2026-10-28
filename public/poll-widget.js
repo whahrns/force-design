@@ -134,11 +134,11 @@
       `<div class="dw-order">${D.drawn.map((g,i)=>`<span class="${i===D.drawn.length-1?'now':''}">${i+1}. ${g}모둠</span>`).join('')}</div>`;
   }
   function drawUpdate(d){
-    D=d||null;
+    D=d&&d.shown!==false?d:null;   // 교사가 '숨기기'하면 사라짐 (기록은 서버에 남음)
     dBtn.hidden=!D;
     if(!D){ dCard.hidden=true; spinning=false; if(wheel) wheel.set(null); return; }
     if(P.dseq!==D.seq){   // 시작·뽑기마다 한 번 저절로 뜸
-      const spin=!!D.last&&D.age<20;
+      const spin=!!D.last&&D.pseq===D.seq&&D.age<20;   // '뽑기' 직후에만 돌림 (다시 띄우기·초기화는 돌지 않음)
       P.dseq=D.seq; store(); dCard.hidden=false;
       if(wheel){ spinning=spin; wheel.set(D,{spin,done(){ spinning=false; drawText(); }}); }
     }
