@@ -127,7 +127,7 @@ section.step{padding:34px 0;border-top:2px dashed var(--line)}
 .sheet h3{font-size:22px;margin-bottom:8px}
 label.fld{display:block;margin:12px 0 4px;font-weight:700}
 .in,textarea.in{width:100%;border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:8px 12px;font-size:16px;line-height:1.6}
-textarea.in{min-height:70px;resize:vertical}
+textarea.in{min-height:70px;resize:none;overflow:hidden}   /* 높이는 내용에 맞춰 자동으로 */
 .in:focus{border-color:var(--ink);outline:none}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .list-row{display:flex;gap:8px;margin-bottom:6px}
@@ -644,6 +644,14 @@ $('#reflects').innerHTML = ROLES.map(([r],i)=>`<div><label for="rf${i}"><strong>
 document.querySelectorAll('[data-rf]').forEach(el=>el.addEventListener('input',()=>{ S.reflects[el.dataset.rf]=el.value; save(); }));
 function sids(){ document.querySelectorAll('[data-sid]').forEach(s=>s.textContent=S.roles[s.dataset.sid]||''); }   // 역할 칸에 적은 학번 같이 보여 주기
 sids();
+/* 글 칸 높이를 내용에 맞춰 늘리기 */
+function grow(el){ if(!el.offsetParent) return; el.style.height='auto'; el.style.height=(el.scrollHeight+4)+'px'; }
+const growAll=()=>document.querySelectorAll('textarea.in').forEach(grow);
+document.addEventListener('input',e=>{ if(e.target.matches('textarea.in')) grow(e.target); });
+new MutationObserver(()=>requestAnimationFrame(growAll)).observe(document.querySelector('main'),{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});
+addEventListener('resize',()=>requestAnimationFrame(growAll));
+if(document.fonts) document.fonts.ready.then(growAll);
+requestAnimationFrame(growAll);
 function outs(){ $('#o0').textContent=S.self0+'%'; $('#o1').textContent=S.self1+'%'; }
 outs();
 
@@ -835,7 +843,7 @@ function renderAll(){
   outs(); ['improve','consider'].forEach(renderList); renderIdeas(); renderChosen(); renderUse();
   document.querySelectorAll('[data-chk]').forEach(c=>c.checked=S.checks.includes(+c.dataset.chk));
   if(!S.groupsSet) S.groups=8;
-  $('#gcount').value=String(S.groups); renderEval();
+  $('#gcount').value=String(S.groups); renderEval(); growAll();
 }
 function applyRec(rec,keepRoles){
   S=clean(rec.data);
