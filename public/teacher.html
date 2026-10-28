@@ -133,6 +133,12 @@ summary{cursor:pointer;font-weight:700}
 .card header h4{font-family:var(--display);font-weight:400;font-size:24px;margin:0}
 .card header .t{margin-left:auto;font-size:13px;color:var(--muted)}
 .admin{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.dr-wrap{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:18px;align-items:center;margin-top:12px}
+.dr-wrap .dr-wheel:empty{display:none}
+@media (max-width:640px){.dr-wrap{grid-template-columns:1fr}}
+.dr-bigwheel .dwh{max-width:min(62vh,560px)}
+.dr-bigtxt{text-align:center;font-family:var(--display);font-size:clamp(36px,6vw,72px);margin-top:10px}
+.dr-bigtxt .dr-order{margin-top:10px;font-family:var(--body)}
 .dr-last{font-family:var(--display);font-size:44px;line-height:1.1;margin:12px 0 6px}
 .dr-order{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .dr-order span{border:2px solid var(--line);border-radius:999px;padding:0 10px;font-size:14px}
@@ -214,11 +220,12 @@ footer{padding:20px 0 40px}
       <h3 class="sec" style="margin-top:0">🎲 모둠 뽑기</h3>
       <div class="ctl" style="margin-top:6px;align-items:center">
         <label>모둠 수 <select id="drawN"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option></select></label>
-        <button class="btn primary" id="drawGo">뽑기</button>
+        <button class="btn" id="drawStart">시작 (학생 화면에 띄우기)</button>
+        <button class="btn primary" id="drawGo">뽑기 (룰렛 돌리기)</button>
         <button class="btn" id="drawBig">크게 보기 (TV)</button>
-        <button class="btn" id="drawOff">처음부터 (학생 화면에서 내리기)</button>
+        <button class="btn" id="drawOff">내리기</button>
       </div>
-      <div id="drawOut"></div>
+      <div class="dr-wrap"><div class="dr-wheel" id="drawWheel"></div><div class="dr-txt" id="drawTxt"></div></div>
     </div>
     <p class="note">학생은 모둠 활동 페이지 오른쪽 아래의 <b>📊 설문</b> 버튼(또는 <b>force-design.whahrns.workers.dev/poll</b>)으로 참여해요. 반 구분 없이 접속한 모두가 같은 질문을 보고, 응답 결과가 모두에게 실시간으로 보여요. 익명이고, 새로 시작하거나 내리면 이전 응답은 지워져요.</p>
   </section>
@@ -229,8 +236,10 @@ footer{padding:20px 0 40px}
 <div class="big" id="bigView" hidden role="dialog" aria-modal="true" aria-label="설문 크게 보기">
   <button class="btn" id="bigClose">닫기</button>
   <div id="bigBody"></div>
+  <div id="bigDraw" hidden><div class="btag">🎲 모둠 뽑기</div><div class="dr-bigwheel" id="bigWheel"></div><div class="dr-bigtxt" id="bigTxt"></div></div>
 </div>
 
+<script src="./draw-wheel.js"></script>
 <script>
 const API='https://scnbrusxjwhehpbjznye.supabase.co/rest/v1/rpc/';
 const APIKEY='sb_publishable_yPvmRWZqaGARrsrz2HL1Xw_JEzHDOcB';
@@ -563,31 +572,45 @@ function renderPoll(){
       <button class="btn" data-act="big">크게 보기 (TV)</button></div>`;
   renderBig();
 }
-/* 모둠 뽑기: 서버가 아직 안 뽑힌 모둠 중 하나를 고르고, 학생 화면에는 설문과 같은 길로 결과가 뜸 */
-let BIG='poll';
-function drawHtml(D,big){
-  const order=D.drawn.map((g,i)=>`<span class="${i===D.drawn.length-1?'now':''}">${i+1}. ${g}모둠</span>`).join('');
+/* 모둠 뽑기: '시작'하면 학생 화면에 룰렛이 뜨고, '뽑기'를 누르면 서버가 고른 모둠에서 룰렛이 멈춤 */
+let BIG='poll', dSeq=null, dSpin=false;
+const W1=DrawWheel($('#drawWheel')), W2=DrawWheel($('#bigWheel'));
+function orderHtml(D){ return `<div class="dr-order">${D.drawn.map((g,i)=>`<span class="${i===D.drawn.length-1?'now':''}">${i+1}. ${g}모둠</span>`).join('')}</div>`; }
+function drawTexts(D){
+  if(!D) return ['<p class="note">‘시작’을 누르면 사이트에 접속한 모두의 화면 가운데에 룰렛이 떠요. ‘뽑기’를 누르면 룰렛이 돌다가 한 모둠에서 멈춰요.</p>','모둠 뽑기를 기다리는 중이에요'];
+  if(dSpin) return ['<div class="dr-last">두구두구…</div>','두구두구…'];
+  if(!D.last) return ['<div class="dr-last" style="font-size:28px">준비됐어요</div><p class="note">학생 화면에 룰렛이 떠 있어요. ‘뽑기’를 눌러 돌려 보세요.</p>','곧 룰렛이 돌아가요!'];
   const rest=[]; for(let g=1;g<=D.groups;g++) if(!D.drawn.includes(g)) rest.push(g);
-  return (big?`<div class="dr-big">${D.last}모둠</div>`:`<div class="dr-last">${D.last}모둠</div>`)+
-    `<div class="dr-order">${order}</div><p class="note">${rest.length?'남은 모둠: '+rest.join(', '):'모든 모둠을 뽑았어요. 다시 뽑으면 처음부터 시작해요.'}</p>`;
+  return [`<div class="dr-last">${D.last}모둠</div>${orderHtml(D)}<p class="note">${rest.length?'남은 모둠: '+rest.join(', '):'모든 모둠을 뽑았어요. 다시 뽑으면 처음부터 시작해요.'}</p>`,
+    `${D.last}모둠!${orderHtml(D)}`];
 }
+function drawTextOut(){ const D=LIVE&&LIVE.draw, [a,b]=drawTexts(D); $('#drawTxt').innerHTML=a; $('#bigTxt').innerHTML=b; }
 function renderDraw(){
   const D=LIVE&&LIVE.draw;
   if(D&&document.activeElement!==$('#drawN')) $('#drawN').value=String(D.groups);
-  $('#drawOut').innerHTML=D&&D.last?drawHtml(D,false):'<p class="note">아직 뽑지 않았어요. ‘뽑기’를 누르면 사이트에 접속한 모두의 화면 가운데에 결과가 떠요.</p>';
+  if(!D){ dSeq=null; dSpin=false; W1.set(null); W2.set(null); drawTextOut(); return; }
+  if(D.seq!==dSeq){
+    const spin=dSeq!==null&&!!D.last&&D.age<20;   // 지켜보는 중에 새로 뽑았을 때만 돌림
+    dSeq=D.seq;
+    if(spin){ dSpin=true; const done=()=>{ dSpin=false; drawTextOut(); }; W1.set(D,{spin:true,done}); W2.set(D,{spin:true}); }
+    else{ dSpin=false; W1.set(D); W2.set(D); }
+  }
+  drawTextOut();
 }
 async function drawAct(fn,body,msg){
   if(pBusy) return; pBusy=true;
-  try{ const r=await rpc(fn,Object.assign({p_pass:pass},body)); $('#pMsg').textContent=typeof msg==='function'?msg(r):msg; }
+  try{ await rpc(fn,Object.assign({p_pass:pass},body)); $('#pMsg').textContent=msg; }
   catch(e){ if(!authFail(e)) $('#pMsg').textContent='처리하지 못했어요: '+e.message; }
   finally{ pBusy=false; pollTick(); }
 }
-$('#drawGo').addEventListener('click',()=>drawAct('teacher_draw_pick',{p_groups:+$('#drawN').value},r=>r.draw&&r.draw.last?`${r.draw.last}모둠이 뽑혔어요.`:''));
-$('#drawOff').addEventListener('click',()=>{ if(confirm('뽑은 기록을 지우고 학생 화면에서도 내릴까요?')) drawAct('teacher_draw_reset',{},'모둠 뽑기를 처음으로 돌리고 학생 화면에서 내렸어요.'); });
+$('#drawStart').addEventListener('click',()=>{ const D=LIVE&&LIVE.draw; if(D&&D.drawn.length&&!confirm('뽑은 기록을 지우고 새로 시작할까요?')) return; drawAct('teacher_draw_start',{p_groups:+$('#drawN').value},'학생 화면에 룰렛을 띄웠어요.'); });
+$('#drawGo').addEventListener('click',()=>{ if(dSpin) return; drawAct('teacher_draw_pick',{p_groups:+$('#drawN').value},'룰렛을 돌렸어요.'); });
+$('#drawOff').addEventListener('click',()=>{ if(confirm('모둠 뽑기를 학생 화면에서 내리고 뽑은 기록도 지울까요?')) drawAct('teacher_draw_reset',{},'모둠 뽑기를 내렸어요.'); });
 $('#drawBig').addEventListener('click',()=>{ BIG='draw'; $('#bigView').hidden=false; renderBig(); $('#bigClose').focus(); });
 function renderBig(){
   if($('#bigView').hidden) return;
-  if(BIG==='draw'){ const D=LIVE&&LIVE.draw; $('#bigBody').innerHTML='<div class="btag">🎲 모둠 뽑기</div>'+(D&&D.last?drawHtml(D,true):'<p class="bq">모둠 뽑기를 기다리는 중이에요</p>'); return; }
+  $('#bigBody').hidden=BIG==='draw'; $('#bigDraw').hidden=BIG!=='draw';
+  if(BIG==='draw'){ drawTextOut(); return; }
   const L=LIVE&&LIVE.active?LIVE:null, q=L&&Q(L.qid);
   if(!q){ $('#bigBody').innerHTML='<p class="bq">설문을 기다리는 중이에요</p>'; return; }
   const total=L.counts.reduce((a,b)=>a+b,0);

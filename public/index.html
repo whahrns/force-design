@@ -1166,6 +1166,7 @@ $('#tReset').addEventListener('click',()=>{ left=STAGES[cur].min*60; stop(); dra
 $('#stages').addEventListener('click',e=>{ const b=e.target.closest('[data-st]'); if(b) setStage(+b.dataset.st,true); });
 drawStages(); drawTime();
 </script>
+<script src="./draw-wheel.js"></script>
 <script src="./poll-widget.js"></script>
 </body>
 </html>
