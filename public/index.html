@@ -80,6 +80,8 @@ button,input,textarea,select{font:inherit;color:inherit}
 .step-h h2,.sheet h3,.example h3,.poster h2{text-wrap:balance}
 .hero p{margin:14px 0 0;color:var(--muted);max-width:30em}
 .goal{margin-top:18px;border-left:5px solid var(--ink);padding:6px 14px;background:var(--card)}
+.goal .std{margin-top:8px;padding-top:8px;border-top:var(--dw) dashed var(--line);font-size:14px;line-height:1.55;color:var(--muted)}
+.goal .std b{color:var(--accent);margin-right:4px}
 .fbd .arr{opacity:0;animation:pop .5s ease-out forwards}
 .fbd .arr:nth-of-type(2){animation-delay:.2s}.fbd .arr:nth-of-type(3){animation-delay:.4s}.fbd .arr:nth-of-type(4){animation-delay:.6s}
 @keyframes pop{to{opacity:1}}
@@ -354,7 +356,10 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
     <div>
       <h1>힘의 특징을 이용한<br>기구나 장치 설계하기</h1>
       <p>매일 쓰는 물건 중에 조금 불편한 것이 있나요? 오늘은 모둠이 함께 중력, 마찰력, 부력, 탄성력의 특징을 이용해 그 물건을 더 편리하게 바꾸는 설계도를 만듭니다.</p>
-      <div class="goal">오늘의 목표: 일상생활에서 힘의 특징을 이용한 기구나 장치를 설계할 수 있다.</div>
+      <div class="goal">
+        <div class="goal-t">오늘의 목표: 일상생활에서 힘의 특징을 이용한 기구나 장치를 설계할 수 있다.</div>
+        <div class="std"><b>성취기준 [9과05-04]</b> 다양한 사례에서 작용하는 힘과 힘의 평형 관계를 설명하고, 일상생활에서 힘의 특징을 이용한 기구나 장치를 설계할 수 있다.</div>
+      </div>
       <p class="note" style="margin-top:12px">준비물: 스마트 기기, 연필, 지우개, 색연필, 도화지</p>
     </div>
     <svg class="fbd" viewBox="0 0 360 360" role="img" aria-label="상자에 작용하는 네 가지 힘: 아래로 중력, 위로 부력, 왼쪽으로 마찰력, 오른쪽으로 탄성력">
@@ -1082,6 +1087,7 @@ const LANGS={ko:{name:'한국어',tts:'ko-KR'},en:{name:'English',tts:'en-US'},z
 const TR_RAW={
 '힘의 특징을 이용한 기구나 장치 설계하기':{en:'Designing a Tool or Device Using the Properties of Forces',zh:'利用力的特点设计器具或装置',vi:'Thiết kế dụng cụ hoặc thiết bị dựa trên đặc điểm của lực',ru:'Проектируем инструмент или устройство, используя свойства сил'},
 '매일 쓰는 물건 중에 조금 불편한 것이 있나요? 오늘은 모둠이 함께 중력, 마찰력, 부력, 탄성력의 특징을 이용해 그 물건을 더 편리하게 바꾸는 설계도를 만듭니다.':{en:'Is there something you use every day that is a little inconvenient? Today your group will use the properties of gravity, friction, buoyancy and elastic force to draw a design that makes it easier to use.',zh:'你每天用的东西中，有没有不太方便的？今天小组一起利用重力、摩擦力、浮力和弹力的特点，画出让这件东西更方便的设计图。',vi:'Có đồ vật nào em dùng hằng ngày mà hơi bất tiện không? Hôm nay cả nhóm sẽ dùng đặc điểm của trọng lực, lực ma sát, lực đẩy và lực đàn hồi để vẽ bản thiết kế giúp đồ vật đó tiện lợi hơn.',ru:'Есть ли вещь, которой ты пользуешься каждый день, но она немного неудобная? Сегодня группа, используя свойства силы тяжести, силы трения, выталкивающей силы и силы упругости, нарисует проект, который сделает её удобнее.'},
+'성취기준 [9과05-04] 다양한 사례에서 작용하는 힘과 힘의 평형 관계를 설명하고, 일상생활에서 힘의 특징을 이용한 기구나 장치를 설계할 수 있다.':{en:'Achievement standard [9과05-04]: Explain the forces and the balance of forces in various cases, and design tools or devices for daily life that use the properties of forces.',zh:'成就标准 [9과05-04]：能够说明各种情境中作用的力及力的平衡关系，并利用力的特点设计日常生活中的器具或装置。',vi:'Chuẩn thành tích [9과05-04]: Giải thích các lực tác dụng và sự cân bằng lực trong nhiều tình huống, và thiết kế dụng cụ hoặc thiết bị dùng trong đời sống tận dụng đặc điểm của lực.',ru:'Образовательный стандарт [9과05-04]: объяснять действующие силы и равновесие сил в разных ситуациях и конструировать приспособления для повседневной жизни, используя свойства сил.'},
 '오늘의 목표: 일상생활에서 힘의 특징을 이용한 기구나 장치를 설계할 수 있다.':{en:'Today’s goal: I can design a tool or device for daily life that uses the properties of forces.',zh:'今天的目标：能够利用力的特点设计日常生活中的器具或装置。',vi:'Mục tiêu hôm nay: Em có thể thiết kế dụng cụ hoặc thiết bị dùng trong đời sống dựa trên đặc điểm của lực.',ru:'Цель урока: я могу спроектировать инструмент или устройство для повседневной жизни, используя свойства сил.'},
 '준비물: 스마트 기기, 연필, 지우개, 색연필, 도화지':{en:'Materials: smart device, pencil, eraser, colored pencils, drawing paper',zh:'准备物品：智能设备、铅笔、橡皮、彩色铅笔、图画纸',vi:'Chuẩn bị: thiết bị thông minh, bút chì, tẩy, bút chì màu, giấy vẽ',ru:'Понадобится: планшет или телефон, карандаш, ластик, цветные карандаши, бумага для рисования'},
 '힘의 특징 떠올리기':{en:'Recall the properties of forces',zh:'回想力的特点',vi:'Nhớ lại đặc điểm của các lực',ru:'Вспоминаем свойства сил'},
@@ -1179,7 +1185,7 @@ const TR={}; for(const k in TR_RAW) TR[k.replace(/\s+/g,'')]=TR_RAW[k];
 
 /* 번역 */
 let LANG='ko'; try{ LANG=localStorage.getItem(KEY+'-lang')||'ko'; }catch(e){} if(!LANGS[LANG]) LANG='ko';
-const TSEL='#s0 h1, #s0 p, #s0 .goal, .step-h h2, .lead, #s1 > h3, .fc h3, .fc .body > span[style], .fc dt, .fc dd, .role strong, .role small, .rf strong, label.fld, .bank summary, #bank button, .ex, .example h3, .example p, .sheet > h3, .checklist span, .legend, .self p, #s6 p.note, #sync h3, #sync > p:not(.sync-status), #rolesNote, #dNote';
+const TSEL='#s0 h1, #s0 p, #s0 .goal-t, #s0 .std, .step-h h2, .lead, #s1 > h3, .fc h3, .fc .body > span[style], .fc dt, .fc dd, .role strong, .role small, .rf strong, label.fld, .bank summary, #bank button, .ex, .example h3, .example p, .sheet > h3, .checklist span, .legend, .self p, #s6 p.note, #sync h3, #sync > p:not(.sync-status), #rolesNote, #dNote';
 function applyLang(){
   document.querySelectorAll('.tr').forEach(e=>e.remove());
   document.documentElement.dataset.lang=LANG;
