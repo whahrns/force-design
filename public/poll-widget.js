@@ -41,7 +41,20 @@
 .pv-opt.right{border-color:var(--b);box-shadow:0 0 0 2px var(--b) inset}
 .pv-opt.right i{background:var(--b-bg)}
 .pv-msg{margin:10px 0 0;font-size:15px;font-weight:700}
-.pv-none{margin:0;color:var(--muted)}`;
+.pv-none{margin:0;color:var(--muted)}
+.dw-btn{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;border:2px solid var(--ink);background:var(--card);color:var(--ink);
+  border-radius:999px;padding:8px 16px;font:inherit;font-size:16px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.dw-card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:45;width:min(420px,calc(100vw - 32px));text-align:center;
+  background:var(--card);color:var(--ink);border:3px solid var(--ink);border-radius:22px;padding:22px 20px 20px;box-shadow:7px 7px 0 var(--accent,var(--g))}
+.dw-card .pv-x{top:8px;right:10px}
+.dw-tag{font-size:15px;color:var(--muted)}
+.dw-num{font-family:var(--display);font-weight:800;font-size:clamp(64px,22vw,110px);line-height:1.05;margin:8px 0 4px;font-variant-numeric:tabular-nums}
+.dw-num small{font-size:.38em;margin-left:4px}
+.dw-num.roll{color:var(--muted)}
+.dw-mine{display:inline-block;margin:2px 0 8px;font-weight:700;border:2px solid var(--ink);border-radius:999px;padding:2px 12px;background:var(--amber,#FFD05B);color:#252B3A}
+.dw-order{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;font-size:14px;margin-top:6px}
+.dw-order span{border:2px solid var(--line);border-radius:999px;padding:0 10px}
+.dw-order span.now{border-color:var(--ink);font-weight:700}`;
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
   let btn=null;
@@ -83,7 +96,7 @@
     try{
       const r=await rpc('poll_current',{}); if(my!==gen) return;
       if(!cur||r.session!==cur.session) note='';
-      cur=r;
+      cur=r; drawUpdate(r.draw);
       // 새 설문이 시작되면 설문 창을 저절로 엶 (같은 설문은 한 번만)
       if(btn){
         btn.hidden=!cur.active;
@@ -93,7 +106,7 @@
     }
     catch(e){ if(my!==gen) return; }
     render();
-    const open=page||(btn&&!panel.hidden);
+    const open=page||(btn&&!panel.hidden)||!!D;
     timer=setTimeout(tick, document.visibilityState!=='visible'?15000:open?2500:6000);
   }
   panel.addEventListener('click',async e=>{
@@ -103,6 +116,39 @@
     catch(err){ note=err.code==='closed'?'설문이 끝났어요.':err.code==='changed'?'질문이 바뀌었어요.':'제출하지 못했어요. 다시 눌러 주세요.'; }
     finally{ sending=false; tick(); }
   });
+  /* 모둠 뽑기: 교사가 뽑으면 화면 가운데에 결과 카드가 뜸 (poll_current에 함께 옴) */
+  const dBtn=document.createElement('button'); dBtn.type='button'; dBtn.className='dw-btn'; dBtn.textContent='🎲 모둠 뽑기'; dBtn.hidden=true;
+  const dCard=document.createElement('div'); dCard.className='dw-card'; dCard.hidden=true;
+  dCard.setAttribute('role','dialog'); dCard.setAttribute('aria-label','모둠 뽑기 결과');
+  dCard.innerHTML='<button class="pv-x" type="button" aria-label="닫기">×</button><div class="dw-body" aria-live="polite"></div>';
+  document.body.appendChild(dBtn); document.body.appendChild(dCard);
+  const dBody=dCard.querySelector('.dw-body');
+  let D=null, rollT=null;
+  const myGrp=()=>{ try{ const y=JSON.parse(localStorage.getItem('force-design-activity-v1-sync')||'{}'); return y.cls?+y.grp||0:0; }catch(e){ return 0; } };
+  function drawRender(rolling){
+    if(!D||!D.last){ dBody.innerHTML=''; return; }
+    const mine=myGrp();
+    dBody.innerHTML='<div class="dw-tag">🎲 모둠 뽑기</div>'+
+      (rolling?`<div class="dw-num roll">${rolling}<small>모둠</small></div>`:
+        `<div class="dw-num">${D.last}<small>모둠</small></div>${mine&&mine===D.last?'<div class="dw-mine">우리 모둠이에요!</div>':''}`+
+        `<div class="dw-order">${D.drawn.map((g,i)=>`<span class="${i===D.drawn.length-1?'now':''}">${i+1}. ${g}모둠</span>`).join('')}</div>`);
+  }
+  function drawShow(){
+    clearInterval(rollT); dCard.hidden=false;
+    rollT=null;
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches){ drawRender(); return; }
+    let n=0; rollT=setInterval(()=>{ n++; if(n>14){ clearInterval(rollT); rollT=null; drawRender(); return; } drawRender(1+Math.floor(Math.random()*D.groups)); },70);   // 잠깐 숫자가 돌다가 멈춤
+  }
+  function drawUpdate(d){
+    D=d&&d.last?d:null;
+    dBtn.hidden=!D;
+    if(!D){ dCard.hidden=true; clearInterval(rollT); rollT=null; return; }
+    if(P.dseq!==D.seq){ P.dseq=D.seq; store(); drawShow(); }   // 새로 뽑을 때마다 한 번 저절로 뜸
+    else if(!dCard.hidden&&!rollT) drawRender();
+  }
+  dBtn.addEventListener('click',()=>{ dCard.hidden=!dCard.hidden; if(!dCard.hidden) drawRender(); });
+  dCard.querySelector('.pv-x').addEventListener('click',()=>{ dCard.hidden=true; clearInterval(rollT); rollT=null; drawRender(); dBtn.focus(); });
+
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') tick(); });
   tick();
 })();

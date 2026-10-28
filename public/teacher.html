@@ -125,6 +125,13 @@ summary{cursor:pointer;font-weight:700}
 .card header h4{font-family:var(--display);font-weight:400;font-size:24px;margin:0}
 .card header .t{margin-left:auto;font-size:13px;color:var(--muted)}
 .admin{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.dr-last{font-family:var(--display);font-size:44px;line-height:1.1;margin:12px 0 6px}
+.dr-order{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.dr-order span{border:2px solid var(--line);border-radius:999px;padding:0 10px;font-size:14px}
+.dr-order span.now{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.big .dr-big{font-family:var(--display);font-size:clamp(90px,20vw,220px);line-height:1;margin:40px 0 20px;text-align:center}
+.big .dr-order{justify-content:center;font-size:clamp(18px,2.4vw,28px)}
+.big .dr-order span{font-size:1em;padding:2px 16px}
 .btn.sm{font-size:13px;padding:1px 10px;border-width:1.5px}
 .card .name{font-family:var(--display);font-size:21px;line-height:1.3;margin:4px 0}
 .card dl{margin:0}
@@ -194,6 +201,16 @@ footer{padding:20px 0 40px}
     <div class="pgrid">
       <div class="panel" id="live"></div>
       <div class="panel"><h3 class="sec" style="margin-top:0">질문 목록</h3><div id="qList"></div></div>
+    </div>
+    <div class="panel" id="drawPanel" style="margin-top:14px">
+      <h3 class="sec" style="margin-top:0">🎲 모둠 뽑기</h3>
+      <div class="ctl" style="margin-top:6px;align-items:center">
+        <label>모둠 수 <select id="drawN"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option></select></label>
+        <button class="btn primary" id="drawGo">뽑기</button>
+        <button class="btn" id="drawBig">크게 보기 (TV)</button>
+        <button class="btn" id="drawOff">처음부터 (학생 화면에서 내리기)</button>
+      </div>
+      <div id="drawOut"></div>
     </div>
     <p class="note">학생은 모둠 활동 페이지 오른쪽 아래의 <b>📊 설문</b> 버튼(또는 <b>force-design.whahrns.workers.dev/poll</b>)으로 참여해요. 반 구분 없이 접속한 모두가 같은 질문을 보고, 응답 결과가 모두에게 실시간으로 보여요. 익명이고, 새로 시작하거나 내리면 이전 응답은 지워져요.</p>
   </section>
@@ -517,7 +534,7 @@ async function pollTick(){
   if(TAB!=='poll'||!pass) return;
   try{ const r=await rpc('teacher_poll_results',{p_pass:pass,p_class:'all'}); if(my!==pGen) return; LIVE=r; $('#pMsg').textContent=''; }
   catch(e){ if(my!==pGen) return; if(authFail(e)) return; $('#pMsg').textContent='서버에 연결하지 못했어요. 잠시 뒤 다시 시도해요.'; }
-  renderPoll();
+  renderPoll(); renderDraw();
   if(TAB==='poll'&&pass) pollT=setTimeout(pollTick, document.visibilityState==='visible'?2000:5000);
 }
 function barsHtml(q,counts,showAns,big){
@@ -538,8 +555,31 @@ function renderPoll(){
       <button class="btn" data-act="big">크게 보기 (TV)</button></div>`;
   renderBig();
 }
+/* 모둠 뽑기: 서버가 아직 안 뽑힌 모둠 중 하나를 고르고, 학생 화면에는 설문과 같은 길로 결과가 뜸 */
+let BIG='poll';
+function drawHtml(D,big){
+  const order=D.drawn.map((g,i)=>`<span class="${i===D.drawn.length-1?'now':''}">${i+1}. ${g}모둠</span>`).join('');
+  const rest=[]; for(let g=1;g<=D.groups;g++) if(!D.drawn.includes(g)) rest.push(g);
+  return (big?`<div class="dr-big">${D.last}모둠</div>`:`<div class="dr-last">${D.last}모둠</div>`)+
+    `<div class="dr-order">${order}</div><p class="note">${rest.length?'남은 모둠: '+rest.join(', '):'모든 모둠을 뽑았어요. 다시 뽑으면 처음부터 시작해요.'}</p>`;
+}
+function renderDraw(){
+  const D=LIVE&&LIVE.draw;
+  if(D&&document.activeElement!==$('#drawN')) $('#drawN').value=String(D.groups);
+  $('#drawOut').innerHTML=D&&D.last?drawHtml(D,false):'<p class="note">아직 뽑지 않았어요. ‘뽑기’를 누르면 사이트에 접속한 모두의 화면 가운데에 결과가 떠요.</p>';
+}
+async function drawAct(fn,body,msg){
+  if(pBusy) return; pBusy=true;
+  try{ const r=await rpc(fn,Object.assign({p_pass:pass},body)); $('#pMsg').textContent=typeof msg==='function'?msg(r):msg; }
+  catch(e){ if(!authFail(e)) $('#pMsg').textContent='처리하지 못했어요: '+e.message; }
+  finally{ pBusy=false; pollTick(); }
+}
+$('#drawGo').addEventListener('click',()=>drawAct('teacher_draw_pick',{p_groups:+$('#drawN').value},r=>r.draw&&r.draw.last?`${r.draw.last}모둠이 뽑혔어요.`:''));
+$('#drawOff').addEventListener('click',()=>{ if(confirm('뽑은 기록을 지우고 학생 화면에서도 내릴까요?')) drawAct('teacher_draw_reset',{},'모둠 뽑기를 처음으로 돌리고 학생 화면에서 내렸어요.'); });
+$('#drawBig').addEventListener('click',()=>{ BIG='draw'; $('#bigView').hidden=false; renderBig(); $('#bigClose').focus(); });
 function renderBig(){
   if($('#bigView').hidden) return;
+  if(BIG==='draw'){ const D=LIVE&&LIVE.draw; $('#bigBody').innerHTML='<div class="btag">🎲 모둠 뽑기</div>'+(D&&D.last?drawHtml(D,true):'<p class="bq">모둠 뽑기를 기다리는 중이에요</p>'); return; }
   const L=LIVE&&LIVE.active?LIVE:null, q=L&&Q(L.qid);
   if(!q){ $('#bigBody').innerHTML='<p class="bq">설문을 기다리는 중이에요</p>'; return; }
   const total=L.counts.reduce((a,b)=>a+b,0);
@@ -560,7 +600,7 @@ $('#pollView').addEventListener('click',e=>{
     const k=a.dataset.act;
     if(k==='stop') pollAct('teacher_poll_set',{p_open:false,p_revealed:true},'설문을 종료하고 정답을 공개했어요.');
     else if(k==='clear') pollAct('teacher_poll_end',{},'설문을 내렸어요.');
-    else if(k==='big'){ $('#bigView').hidden=false; renderBig(); $('#bigClose').focus(); }
+    else if(k==='big'){ BIG='poll'; $('#bigView').hidden=false; renderBig(); $('#bigClose').focus(); }
   }
 });
 $('#tabRec').addEventListener('click',()=>showTab('rec'));
