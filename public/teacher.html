@@ -351,16 +351,22 @@ function evalTable(rows){
   const {maxG,agg,matrix}=evalAgg(rows);
   if(!maxG) return '<p class="note">아직 평가 기록이 없어요.</p>';
   const {score,rank}=totals(agg,maxG);
-  let h=`<div class="tblwrap"><table><thead><tr><th rowspan="2" class="l">받은 모둠</th><th rowspan="2">순위</th><th rowspan="2">총점</th>${EROWS.map(r=>`<th colspan="4">${r}</th>`).join('')}<th rowspan="2">평가한<br>모둠 수</th></tr><tr>${EROWS.map(()=>'<th>☆</th><th>○</th><th>△</th><th>평균</th>').join('')}</tr></thead><tbody>`;
+  const name=g=>(rows.find(r=>r.grp===g)||{d:{}}).d.groupName;
+  /* 위: 순위·총점·항목별 평균만 간단히 */
+  let h=`<div class="tblwrap"><table><thead><tr><th class="l">받은 모둠</th><th>순위</th><th>총점</th>${EROWS.map(r=>`<th>${r}<br><small>평균</small></th>`).join('')}<th>평가한<br>모둠 수</th></tr></thead><tbody>`;
   for(let g=1;g<=maxG;g++){
-    const a=agg[g], name=(rows.find(r=>r.grp===g)||{d:{}}).d.groupName;
-    h+=`<tr class="${rank[g]===1?'top1':''}"><td class="l">${g}모둠${name?' · '+esc(name):''}</td><td class="rank">${rankBadge(rank[g])}</td><td class="total">${rank[g]?score[g]:'-'}</td>`+
-      a.rows.map(c=>`<td>${c.c[1]||''}</td><td>${c.c[2]||''}</td><td>${c.c[3]||''}</td><td class="avg">${avg(c)}</td>`).join('')+
-      `<td>${a.raters.size}</td></tr>`;
+    const a=agg[g];
+    h+=`<tr class="${rank[g]===1?'top1':''}"><td class="l">${g}모둠${name(g)?' · '+esc(name(g)):''}</td><td class="rank">${rankBadge(rank[g])}</td><td class="total">${rank[g]?score[g]:'-'}</td>`+
+      a.rows.map(c=>`<td class="avg">${avg(c)}</td>`).join('')+`<td>${a.raters.size}</td></tr>`;
   }
-  h+='</tbody></table></div><p class="note">점수: ☆ 3점, ○ 2점, △ 1점. 총점은 두 항목에서 받은 점수를 모두 더한 값이고, 빈칸과 자기 모둠에 준 평가는 빼고 계산해요. 색칠한 줄이 총점 1위 모둠이에요. 모둠마다 평가해 준 모둠 수가 다르면 평균도 함께 보세요.</p>';
+  h+='</tbody></table></div><p class="note">☆ 3점, ○ 2점, △ 1점. 총점은 두 항목 점수의 합(자기 모둠 평가 제외)이에요.</p>';
+  /* 아래(접힘): 받은 ☆○△ 개수와 모둠별로 준 평가 */
   const raters=rows.map(r=>r.grp);
-  h+=`<details><summary>모둠별로 준 평가 자세히 보기</summary><div class="tblwrap" style="margin-top:8px"><table><thead><tr><th class="l">평가한 모둠 ↓ / 받은 모둠 →</th>${Array.from({length:maxG},(_,i)=>`<th>${i+1}</th>`).join('')}</tr></thead><tbody>`;
+  h+=`<details><summary>자세히 보기 (받은 ☆○△ 개수, 모둠별로 준 평가)</summary>`;
+  h+=`<div class="tblwrap" style="margin-top:8px"><table><thead><tr><th rowspan="2" class="l">받은 모둠</th>${EROWS.map(r=>`<th colspan="3">${r}</th>`).join('')}</tr><tr>${EROWS.map(()=>'<th>☆</th><th>○</th><th>△</th>').join('')}</tr></thead><tbody>`;
+  for(let g=1;g<=maxG;g++) h+=`<tr><td class="l">${g}모둠</td>`+agg[g].rows.map(c=>`<td>${c.c[1]||''}</td><td>${c.c[2]||''}</td><td>${c.c[3]||''}</td>`).join('')+'</tr>';
+  h+='</tbody></table></div>';
+  h+=`<div class="tblwrap" style="margin-top:12px"><table><thead><tr><th class="l">평가한 모둠 ↓ / 받은 모둠 →</th>${Array.from({length:maxG},(_,i)=>`<th>${i+1}</th>`).join('')}</tr></thead><tbody>`;
   raters.forEach(rg=>{ EROWS.forEach((er,ri)=>{
     h+=`<tr><td class="l">${rg}모둠 · ${er}</td>`;
     for(let g=1;g<=maxG;g++) h+=`<td>${g===rg?'<span class="empty">—</span>':MARKS[+(matrix[rg][ri+'-'+g]||0)]||''}</td>`;
