@@ -528,10 +528,6 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
       </div>
       <label class="fld" id="reflectH">오늘 활동에서 새롭게 알게 된 점이나 더 해 보고 싶은 것</label>
       <div class="rf" id="reflects" role="group" aria-labelledby="reflectH"></div>
-      <div class="btnrow" id="dlRow">
-        <button class="big" id="dlMd">우리 모둠 기록 내려받기 (.md)</button>
-        <span class="note" id="dlMsg" role="status" style="align-self:center"></span>
-      </div>
       <p class="note">더 해 보기: 우리 모둠 기구의 모습, 특징, 사용 방법을 간단히 정리해 홍보물로 만들어 공유해 보세요. 부력 조절 장치는 부력의 어떤 특징을 이용한 것일지도 생각해 보세요.</p>
     </div>
   </section>
@@ -769,41 +765,6 @@ function poster(){
 $('#openPoster').addEventListener('click',()=>{ poster(); $('#overlay').classList.add('open'); $('#closePoster').focus(); });
 $('#closePoster').addEventListener('click',()=>{ $('#overlay').classList.remove('open'); $('#openPoster').focus(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#overlay').classList.remove('open'); });
-
-/* md 내려받기 */
-function buildMd(){
-  const L=[]; const t=x=>(x||'').trim();
-  const d=new Date(); const day=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  L.push('# 힘의 특징을 이용한 기구나 장치 설계하기','');
-  L.push(`- 모둠: ${t(S.groupName)||'(미입력)'}`);
-  if(Y.cls) L.push(`- 반·모둠 번호: ${whoLabel(Y.cls,Y.grp)}`);
-  L.push(`- 날짜: ${day}`);
-  const r=ROLES.map(([k])=>`${k} ${t(S.roles[k])||'-'}`).join(', '); L.push(`- 역할: ${r}`,'');
-  L.push('## 1. 선택한 기구나 장치','',t(S.device)||'(미입력)','');
-  L.push('### 개선할 점',''); S.improve.filter(t).forEach(x=>L.push('- '+t(x))); L.push('');
-  L.push('### 개선할 때 고려할 점',''); S.consider.filter(t).forEach(x=>L.push('- '+t(x))); L.push('');
-  L.push('## 2. 힘으로 해결할 방법 제안','');
-  S.ideas.forEach((i,n)=>{ if(!t(i.text)) return; const fs=i.forces.map(f=>F(f).name).join(', '); L.push(`${n+1}. ${t(i.text)}${fs?` (이용한 힘: ${fs})`:''}${S.pick===n?' ← 선택':''}`); });
-  L.push('','## 3. 설계','',`**${t(S.designName)||'(이름 미입력)'}**`,'');
-  FORCES.filter(f=>S.useOn.includes(f.id)).forEach(f=>L.push(`- ${f.name}: ${t(S.use[f.id])||'(설명 미입력)'}`));
-  L.push('','### 사용 방법','',t(S.howto)||'(미입력)','');
-  L.push('### 설계도 점검표',''); CHECKS.forEach((c,i)=>L.push(`- [${S.checks.includes(i)?'x':' '}] ${c}`)); L.push('');
-  L.push('## 4. 다른 모둠 평가 (☆ 매우 잘함, ○ 잘함, △ 보통)','');
-  const rows=['힘의 특징을 적절하게 이용했는가?','기구나 장치를 개선하려는 목적을 달성했는가?'];
-  let head='| 평가 항목 |', sep='|---|'; for(let g=1;g<=S.groups;g++){head+=` ${g}모둠 |`;sep+=':-:|';}
-  L.push(head,sep); rows.forEach((rw,ri)=>{ let line=`| ${rw} |`; for(let g=1;g<=S.groups;g++) line+=` ${MARKS[S.evals[ri+'-'+g]||0]} |`; L.push(line); });
-  L.push('','## 5. 나의 활동 확인','',`- 과정·기능: ${S.self0}%`,`- 가치·태도: ${S.self1}%`,'','### 새롭게 알게 된 점이나 더 해 보고 싶은 것',''); ROLES.forEach(([r])=>L.push(`- ${r}${S.roles[r]?` (${S.roles[r]})`:''}: ${t(S.reflects[r])||'(미입력)'}`)); if(t(S.reflect)) L.push(`- 공통: ${t(S.reflect)}`); L.push('');
-  return {text:L.join('\n'), name:`힘설계_${(t(S.groupName)||'모둠').replace(/[\\/:*?"<>|]/g,'')}_${day}.md`};
-}
-$('#dlMd').addEventListener('click',()=>{
-  const {text,name}=buildMd(); const msg=$('#dlMsg');
-  try{
-    const u=URL.createObjectURL(new Blob([text],{type:'text/markdown;charset=utf-8'}));
-    const a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(u),2000);
-    msg.textContent='내려받았어요.';
-  }catch(e){ msg.textContent='이 브라우저에서는 내려받기를 할 수 없어요.'; }
-});
 
 /* 지우기 (이 기기만) */
 $('#wipe').addEventListener('click',()=>{ if(PREVIEW) return; if(confirm('이 기기에 입력한 모둠 활동 내용을 모두 지울까요?\n서버에 저장된 모둠 기록은 지워지지 않아요.')){ try{localStorage.removeItem(KEY);localStorage.removeItem(SYNC_KEY)}catch(e){} location.reload(); }});
