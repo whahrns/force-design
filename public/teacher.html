@@ -63,7 +63,7 @@ html{overflow-x:clip}
 .qbox:not([open]) summary::before{content:"▸"}
 .qbox summary .sec{margin:0}
 .qbox[open] .qhint{display:none}
-.qbox[open] #qList{margin-top:10px}
+.qbox[open] #qList{margin-top:10px;max-height:min(46vh,420px);overflow-y:auto;overscroll-behavior:contain;padding-right:6px}   /* 질문 목록만 따로 스크롤 → 위 진행 중 설문이 계속 보임 */
 .qi{border-top:1px dashed var(--line);padding:10px 0;display:flex;gap:10px;align-items:flex-start}
 .qi:first-child{border-top:none;padding-top:0}
 .qi .qt{flex:1}
