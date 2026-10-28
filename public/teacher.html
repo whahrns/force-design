@@ -47,8 +47,10 @@ button,input,select{font:inherit;color:inherit}
 .bar h1{font-size:24px;margin-right:8px}
 .bar .in{padding:4px 10px;font-size:15px;height:37px}   /* 반 선택도 버튼과 같은 높이 → 탭을 바꿔도 상단 바 높이가 그대로 */
 #tools{display:contents}#tools[hidden]{display:none}
-.stuwrap{display:flex;justify-content:center;background:var(--soft);border:2px solid var(--ink);border-radius:14px;padding:12px;margin-bottom:20px}
-#stuFrame{width:100%;height:calc(100vh - 190px);min-height:520px;border:2px solid var(--line);border-radius:18px;background:var(--paper)}
+#stuView{position:relative;left:50%;width:calc(100vw - 32px);transform:translateX(-50%)}   /* 본문 폭을 넘어 화면 가로를 거의 다 씀 */
+.stuwrap{display:flex;justify-content:center;margin-bottom:12px}
+#stuFrame{width:100%;height:calc(100vh - 150px);min-height:480px;border:3px solid var(--ink);border-radius:14px;background:var(--paper)}
+html{overflow-x:clip}
 .tabs{display:inline-flex;border:2px solid var(--ink);border-radius:999px;overflow:hidden;margin-right:auto}   /* 탭은 제목 옆에 고정, 나머지 버튼은 오른쪽 */
 .tab{border:none;background:var(--card);padding:4px 14px;cursor:pointer;font-size:15px;white-space:nowrap}
 .tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
@@ -533,6 +535,7 @@ function showTab(t){
   $('#tabRec').setAttribute('aria-selected',t==='rec'); $('#tabPoll').setAttribute('aria-selected',t==='poll'); $('#tabStu').setAttribute('aria-selected',t==='stu');
   document.querySelectorAll('.rec-only').forEach(el=>el.hidden=t!=='rec');
   $('#view').hidden=t!=='rec'; $('#pollView').hidden=t!=='poll'; $('#stuView').hidden=t!=='stu';
+  if(t==='stu') requestAnimationFrame(fitStu);
   if(t==='stu' && !$('#stuFrame').getAttribute('src')) $('#stuFrame').src='./?preview&t='+Date.now();   // 처음 열 때 학생 화면을 불러옴
   clearTimeout(pollT);
   if(t==='poll') enterPoll();
@@ -643,6 +646,9 @@ qHint();
 $('#qBox').addEventListener('toggle',()=>{ qHint(); try{ localStorage.setItem('force-teacher-qbox',$('#qBox').open?'open':'closed'); }catch(e){} });
 /* 학생 화면 미리 보기 */
 $('#tabStu').addEventListener('click',()=>showTab('stu'));
+/* 학생 화면 창 높이: 창 위쪽부터 화면 아래까지 꽉 차게 */
+function fitStu(){ const f=$('#stuFrame'); if($('#stuView').hidden) return; f.style.height=Math.max(480,innerHeight-f.getBoundingClientRect().top-scrollY*0-12)+'px'; }
+addEventListener('resize',fitStu);
 $('#stuReload').addEventListener('click',()=>{ $('#stuFrame').src='./?preview&t='+Date.now(); });
 $('#bigClose').addEventListener('click',()=>{ $('#bigView').hidden=true; });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#bigView').hidden=true; });
