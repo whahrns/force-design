@@ -376,7 +376,7 @@ footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
       <p class="note" id="dNote">도화지나 패드에 그린 설계도를 캡처하거나 사진으로 찍어 올려요. 모둠당 1장이고, 다시 올리면 새 사진으로 바뀌어요.</p>
       <img id="dImg" class="dimg" alt="우리 모둠 설계도" hidden>
       <div class="btnrow" style="margin-top:8px">
-        <label class="big" id="dPick" for="dFile">설계도 사진 고르기<input type="file" id="dFile" accept="image/*" hidden></label>
+        <label class="big" id="dPick" for="dFile">사진 올리기<input type="file" id="dFile" accept="image/*" hidden></label>
         <button class="tbtn" id="dDel" type="button" hidden style="align-self:center">사진 지우기</button>
       </div>
       <p class="sync-status" id="dMsg" role="status"></p>
@@ -879,7 +879,7 @@ function renderDesign(){
   const on=!PREVIEW && Y.cls && Y.pin, img=$('#dImg');
   img.hidden=!DESIGN_URL; if(DESIGN_URL) img.src=DESIGN_URL;
   $('#dPick').classList.toggle('off',!on);
-  $('#dPick').firstChild.textContent=DESIGN_URL?'다시 올리기':'설계도 사진 고르기';
+  $('#dPick').firstChild.textContent=DESIGN_URL?'다시 올리기':'사진 올리기';
   $('#dDel').hidden=!(on && DESIGN_URL);
   if(!on && !dBusy){ const m=$('#dMsg'); m.className='sync-status'; m.textContent=PREVIEW?'미리 보기에서는 올릴 수 없어요. 학생은 여기서 사진을 골라 올려요.':'먼저 맨 위 ‘우리 모둠 기록 저장하기’에서 반·모둠을 연결하면 사진을 올릴 수 있어요.'; }
 }
