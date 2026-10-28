@@ -113,7 +113,12 @@ section.step{padding:34px 0;border-top:2px dashed var(--line)}
 .role strong{font-family:var(--display);font-weight:800;font-synthesis:none;font-size:20px;display:block}
 .role{display:flex;flex-direction:column}
 .role small{display:block;color:var(--muted);font-size:13px;line-height:1.45;margin-bottom:6px;min-height:calc(2em * 1.45)}   /* 설명은 모두 두 줄 높이로 맞춤 */
-.role .in{margin-top:auto}   /* 학번 칸은 카드 아래쪽에 나란히 */
+.role .in{margin-top:auto}
+.rf{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}   /* 역할별 소감 칸 */
+.rf label{display:block;margin-bottom:4px}
+.rf strong{font-family:var(--display);font-weight:800;font-synthesis:none;font-size:19px}
+.rf .sid{margin-left:6px;font-size:13px;color:var(--muted)}
+.rf textarea{min-height:96px}   /* 학번 칸은 카드 아래쪽에 나란히 */
 
 /* 입력 */
 .sheet{background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:18px 20px;margin-top:14px}
@@ -315,6 +320,7 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
   .hero svg{max-width:300px;margin:0 auto;display:block}
   .forces{grid-template-columns:1fr 1fr}
   .roles{grid-template-columns:1fr 1fr}
+  .rf{grid-template-columns:1fr}
   .two{grid-template-columns:1fr}
   .example{grid-template-columns:1fr}
   .example svg{max-width:260px}
@@ -515,8 +521,8 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
         <p><b>가치·태도</b> 힘의 특징을 이용한 기구나 장치를 설계하며 과학적 원리로 문제를 해결하는 것에 열린 태도를 지니게 되었는가?</p>
         <div class="range"><input type="range" min="0" max="100" step="10" id="self1" data-k="self1" aria-label="가치·태도 자기 평가"><output id="o1"></output></div>
       </div>
-      <label class="fld" for="reflect">오늘 활동에서 새롭게 알게 된 점이나 더 해 보고 싶은 것</label>
-      <textarea class="in" id="reflect" data-k="reflect"></textarea>
+      <label class="fld" id="reflectH">오늘 활동에서 새롭게 알게 된 점이나 더 해 보고 싶은 것</label>
+      <div class="rf" id="reflects" role="group" aria-labelledby="reflectH"></div>
       <div class="btnrow" id="dlRow">
         <button class="big" id="dlMd">우리 모둠 기록 내려받기 (.md)</button>
         <span class="note" id="dlMsg" role="status" style="align-self:center"></span>
@@ -582,7 +588,7 @@ const CHECKS = [
   '설계도 제목과 모둠 이름을 적었다'
 ];
 const KEY = 'force-design-activity-v1';
-const def = () => ({device:'',improve:['',''],consider:['',''],ideas:[{text:'',forces:[]},{text:'',forces:[]}],pick:-1,designName:'',use:{g:'',f:'',b:'',e:''},useOn:[],howto:'',checks:[],groups:8,groupsSet:false,evals:{},self0:50,self1:50,reflect:'',roles:{},groupName:''});
+const def = () => ({device:'',improve:['',''],consider:['',''],ideas:[{text:'',forces:[]},{text:'',forces:[]}],pick:-1,designName:'',use:{g:'',f:'',b:'',e:''},useOn:[],howto:'',checks:[],groups:8,groupsSet:false,evals:{},self0:50,self1:50,reflect:'',reflects:{},roles:{},groupName:''});
 /* 저장된 기록 정리: 형식이 어긋난 값(서버·기기)이 화면을 망가뜨리지 않도록 */
 function clean(d){
   const o=def(); d=(d&&typeof d==='object')?d:{};
@@ -590,6 +596,7 @@ function clean(d){
   const N=(x,a,b,dv)=>Number.isFinite(+x)&&x!==null&&x!==''?Math.min(b,Math.max(a,Math.round(+x))):dv;
   const isF=f=>FORCES.some(x=>x.id===f);
   ['device','designName','howto','reflect','groupName'].forEach(k=>o[k]=Sx(d[k]));
+  ROLES.forEach(([r])=>o.reflects[r]=Sx(d.reflects&&d.reflects[r]));   // 역할별 소감 (reflect는 예전 공통 칸)
   ['improve','consider'].forEach(k=>{ const a=A(d[k]).slice(0,30).map(Sx); if(a.length) o[k]=a; });
   const ideas=A(d.ideas).slice(0,30).map(i=>({text:Sx(i&&i.text),forces:[...new Set(A(i&&i.forces).filter(isF))]}));
   if(ideas.length) o.ideas=ideas;
@@ -632,7 +639,7 @@ document.querySelectorAll('.fc').forEach(b=>b.addEventListener('click',()=>b.set
 $('#roles').innerHTML = `<div class="role" style="grid-column:1/-1"><strong>모둠 이름</strong><input class="in" id="groupName" placeholder="예: 3모둠 스프링즈" value="${esc(S.groupName)}"></div>` +
   ROLES.map(([r,d])=>`<div class="role"><strong>${r}</strong><small>${d}</small><input class="in" data-role="${r}" placeholder="학번 (예: 10312)" inputmode="numeric" maxlength="5" autocomplete="off" value="${esc(S.roles[r])}"></div>`).join('');
 $('#groupName').addEventListener('input',e=>{S.groupName=e.target.value;save()});
-document.querySelectorAll('[data-role]').forEach(i=>i.addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,'').slice(0,5); S.roles[e.target.dataset.role]=e.target.value; save(); checkRoles(); }));
+document.querySelectorAll('[data-role]').forEach(i=>i.addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,'').slice(0,5); S.roles[e.target.dataset.role]=e.target.value; save(); checkRoles(); sids(); }));
 /* 학번 확인: 1 + 반 2자리 + 번호 2자리, 연결한 반의 학생만 */
 const SID=/^1(0[1-9]|10)(0[1-9]|[1-3][0-9]|40)$/;
 const sidOk=(v,cls)=>SID.test(v) && (!cls || +v.slice(1,3)===+cls.split('-')[1]);
@@ -659,6 +666,10 @@ document.querySelectorAll('[data-k]').forEach(el=>{
   el.value = S[el.dataset.k];
   el.addEventListener('input',()=>{ S[el.dataset.k] = el.type==='range' ? +el.value : el.value; save(); if(el.type==='range') outs(); });
 });
+$('#reflects').innerHTML = ROLES.map(([r],i)=>`<div><label for="rf${i}"><strong>${r}</strong><span class="sid" data-sid="${r}"></span></label><textarea class="in" id="rf${i}" data-rf="${r}" placeholder="새롭게 알게 된 점, 더 해 보고 싶은 것">${esc(S.reflects[r]||'')}</textarea></div>`).join('');
+document.querySelectorAll('[data-rf]').forEach(el=>el.addEventListener('input',()=>{ S.reflects[el.dataset.rf]=el.value; save(); }));
+function sids(){ document.querySelectorAll('[data-sid]').forEach(s=>s.textContent=S.roles[s.dataset.sid]||''); }   // 역할 칸에 적은 학번 같이 보여 주기
+sids();
 function outs(){ $('#o0').textContent=S.self0+'%'; $('#o1').textContent=S.self1+'%'; }
 outs();
 
@@ -776,7 +787,7 @@ function buildMd(){
   const rows=['힘의 특징을 적절하게 이용했는가?','기구나 장치를 개선하려는 목적을 달성했는가?'];
   let head='| 평가 항목 |', sep='|---|'; for(let g=1;g<=S.groups;g++){head+=` ${g}모둠 |`;sep+=':-:|';}
   L.push(head,sep); rows.forEach((rw,ri)=>{ let line=`| ${rw} |`; for(let g=1;g<=S.groups;g++) line+=` ${MARKS[S.evals[ri+'-'+g]||0]} |`; L.push(line); });
-  L.push('','## 5. 나의 활동 확인','',`- 과정·기능: ${S.self0}%`,`- 가치·태도: ${S.self1}%`,'','### 새롭게 알게 된 점',''); L.push(t(S.reflect)||'(미입력)','');
+  L.push('','## 5. 나의 활동 확인','',`- 과정·기능: ${S.self0}%`,`- 가치·태도: ${S.self1}%`,'','### 새롭게 알게 된 점이나 더 해 보고 싶은 것',''); ROLES.forEach(([r])=>L.push(`- ${r}${S.roles[r]?` (${S.roles[r]})`:''}: ${t(S.reflects[r])||'(미입력)'}`)); if(t(S.reflect)) L.push(`- 공통: ${t(S.reflect)}`); L.push('');
   return {text:L.join('\n'), name:`힘설계_${(t(S.groupName)||'모둠').replace(/[\\/:*?"<>|]/g,'')}_${day}.md`};
 }
 $('#dlMd').addEventListener('click',()=>{
@@ -872,7 +883,7 @@ async function push(){
 }
 function hasContent(o){
   const t=x=>String(x||'').trim();
-  return !!(Object.values(o.roles||{}).some(t)||t(o.device)||t(o.designName)||t(o.howto)||t(o.reflect)||t(o.groupName)||o.improve.some(t)||o.consider.some(t)||
+  return !!(Object.values(o.roles||{}).some(t)||t(o.device)||t(o.designName)||t(o.howto)||t(o.reflect)||Object.values(o.reflects||{}).some(t)||t(o.groupName)||o.improve.some(t)||o.consider.some(t)||
     o.ideas.some(i=>t(i.text)||i.forces.length)||Object.values(o.use).some(t)||o.useOn.length||o.checks.length||
     Object.values(o.evals).some(v=>v)||o.pick>=0||o.self0!==50||o.self1!==50);
 }
@@ -881,6 +892,7 @@ function renderAll(){
   document.querySelectorAll('[data-role]').forEach(i=>i.value=S.roles[i.dataset.role]||'');
   checkRoles();
   document.querySelectorAll('[data-k]').forEach(el=>el.value=S[el.dataset.k]);
+  document.querySelectorAll('[data-rf]').forEach(el=>el.value=S.reflects[el.dataset.rf]||''); sids();
   outs(); ['improve','consider'].forEach(renderList); renderIdeas(); renderChosen(); renderUse();
   document.querySelectorAll('[data-chk]').forEach(c=>c.checked=S.checks.includes(+c.dataset.chk));
   if(!S.groupsSet) S.groups=8;
@@ -1167,7 +1179,7 @@ const TR={}; for(const k in TR_RAW) TR[k.replace(/\s+/g,'')]=TR_RAW[k];
 
 /* 번역 */
 let LANG='ko'; try{ LANG=localStorage.getItem(KEY+'-lang')||'ko'; }catch(e){} if(!LANGS[LANG]) LANG='ko';
-const TSEL='#s0 h1, #s0 p, #s0 .goal, .step-h h2, .lead, #s1 > h3, .fc h3, .fc .body > span[style], .fc dt, .fc dd, .role strong, .role small, label.fld, .bank summary, #bank button, .ex, .example h3, .example p, .sheet > h3, .checklist span, .legend, .self p, #s6 p.note, #sync h3, #sync > p:not(.sync-status), #rolesNote, #dNote';
+const TSEL='#s0 h1, #s0 p, #s0 .goal, .step-h h2, .lead, #s1 > h3, .fc h3, .fc .body > span[style], .fc dt, .fc dd, .role strong, .role small, .rf strong, label.fld, .bank summary, #bank button, .ex, .example h3, .example p, .sheet > h3, .checklist span, .legend, .self p, #s6 p.note, #sync h3, #sync > p:not(.sync-status), #rolesNote, #dNote';
 function applyLang(){
   document.querySelectorAll('.tr').forEach(e=>e.remove());
   document.documentElement.dataset.lang=LANG;

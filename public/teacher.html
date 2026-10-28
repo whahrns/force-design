@@ -248,7 +248,7 @@ function norm(d){
   return {device:s(d.device),improve:a(d.improve).slice(0,30).map(s),consider:a(d.consider).slice(0,30).map(s),ideas,
     pick:n(d.pick,-1,ideas.length-1,-1),designName:s(d.designName),use,useOn:[...new Set(a(d.useOn).filter(isF))],howto:s(d.howto),
     checks:[...new Set(a(d.checks).map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<CHECKS.length))],
-    groups:n(d.groups,3,8,8),evals,self0:n(d.self0,0,100,50),self1:n(d.self1,0,100,50),reflect:s(d.reflect),groupName:s(d.groupName),
+    groups:n(d.groups,3,8,8),evals,self0:n(d.self0,0,100,50),self1:n(d.self1,0,100,50),reflect:s(d.reflect),reflects:Object.fromEntries(ROLES.map(r=>[r,s(d.reflects&&d.reflects[r])])),groupName:s(d.groupName),
     roles:Object.fromEntries(ROLES.map(r=>[r,d.roles&&typeof d.roles[r]==='string'&&SID.test(d.roles[r])?d.roles[r]:''])) };
 }
 
@@ -355,7 +355,7 @@ function card(r){
       <dt>자기 평가</dt><dd>
         <div class="meter"><span>과정·기능</span><i><b style="width:${+d.self0||0}%"></b></i><span>${+d.self0||0}%</span></div>
         <div class="meter"><span>가치·태도</span><i><b style="width:${+d.self1||0}%"></b></i><span>${+d.self1||0}%</span></div></dd>
-      <dt>소감</dt><dd class="pre">${t(d.reflect)?esc(d.reflect):'<span class="empty">-</span>'}</dd>
+      <dt>소감</dt><dd>${ROLES.map(r=>`<div class="pre"><b>${r}${d.roles[r]?' '+esc(d.roles[r]):''}</b> ${t(d.reflects[r])?esc(d.reflects[r]):'<span class="empty">-</span>'}</div>`).join('')}${t(d.reflect)?`<div class="pre"><b>공통</b> ${esc(d.reflect)}</div>`:''}</dd>
     </dl>
   </article>`;
 }
@@ -399,13 +399,13 @@ function buildMd(){
       L.push('**이용한 힘**',''); FORCES.filter(f=>d.useOn.includes(f.id)).forEach(f=>L.push(`- ${f.name}: ${t(d.use[f.id])||'-'}`)); L.push('');
       L.push('**사용 방법**','',t(d.howto)||'-','');
       L.push(`**설계도 점검표** ${d.checks.filter(i=>CHECKS[i]).length}/${CHECKS.length}`,''); CHECKS.forEach((c2,i)=>L.push(`- [${d.checks.includes(i)?'x':' '}] ${c2}`)); L.push('');
-      L.push(`**자기 평가** 과정·기능 ${d.self0}%, 가치·태도 ${d.self1}%`,'','**소감**','',t(d.reflect)||'-','');
+      L.push(`**자기 평가** 과정·기능 ${d.self0}%, 가치·태도 ${d.self1}%`,'','**소감**','',...ROLES.map(r=>`- ${r}${d.roles[r]?` (${d.roles[r]})`:''}: ${t(d.reflects[r])||'-'}`),...(t(d.reflect)?[`- 공통: ${t(d.reflect)}`]:[]),'');
     });
   });
   return L.join('\n');
 }
 function buildCsv(){
-  const head=['반','모둠','모둠 이름','저장 시각',...ROLES.map(r=>r+' 학번'),'기구나 장치','불편한 점','고려할 점','아이디어','선택한 아이디어','설계 이름','이용한 힘','사용 방법','점검표','과정·기능(%)','가치·태도(%)','소감','받은 평가: 힘 이용 평균','받은 평가: 목적 달성 평균','받은 평가: 총점','받은 평가: 순위'];
+  const head=['반','모둠','모둠 이름','저장 시각',...ROLES.map(r=>r+' 학번'),'기구나 장치','불편한 점','고려할 점','아이디어','선택한 아이디어','설계 이름','이용한 힘','사용 방법','점검표','과정·기능(%)','가치·태도(%)',...ROLES.map(r=>r+' 소감'),'소감(공통)','받은 평가: 힘 이용 평균','받은 평가: 목적 달성 평균','받은 평가: 총점','받은 평가: 순위'];
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   const out=[head.map(q).join(',')];
   shown().forEach(c=>{
@@ -416,7 +416,7 @@ function buildCsv(){
         d.ideas.filter(i=>t(i.text)).map(i=>t(i.text)+(i.forces.length?` (${i.forces.map(FN).join(', ')})`:'')).join('\n'),
         d.pick>=0&&d.ideas[d.pick]?d.ideas[d.pick].text:'',d.designName,
         FORCES.filter(f=>d.useOn.includes(f.id)).map(f=>`${f.name}: ${t(d.use[f.id])}`).join('\n'),d.howto,
-        `${d.checks.filter(i=>CHECKS[i]).length}/${CHECKS.length}`,d.self0,d.self1,d.reflect,
+        `${d.checks.filter(i=>CHECKS[i]).length}/${CHECKS.length}`,d.self0,d.self1,...ROLES.map(x=>d.reflects[x]),d.reflect,
         a?avg(a.rows[0]):'-',a?avg(a.rows[1]):'-',T.rank[r.grp]?T.score[r.grp]:'-',T.rank[r.grp]||'-'].map(q).join(','));
     });
   });
