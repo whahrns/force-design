@@ -26,7 +26,7 @@
   :root:not([data-theme="light"]){
     --paper:#171A24; --grid:#1D2130; --ink:#EEF0F7; --muted:#A6ABBE; --line:#454B60; --soft:#17302A;
     --card:#21263A;
-    --outline:#0B0D14; --accent:#9B7BFF; --pink:#FF78C5; --amber:#FFD05B; --mint:#5FD9A9; --sel:#2C2550;
+    --outline:#C4BFDA; --accent:#9B7BFF; --pink:#FF78C5; --amber:#FFD05B; --mint:#5FD9A9; --sel:#2C2550;
     --on-accent:#14121F;
     --g:#B39DFF; --f:#FFD05B; --b:#7BEBC2; --e:#FF8FD0;
     --g-bg:#2C2550; --f-bg:#3A300F; --b-bg:#14352B; --e-bg:#3F1A33;
@@ -35,7 +35,7 @@
 :root[data-theme="dark"]{
   --paper:#171A24; --grid:#1D2130; --ink:#EEF0F7; --muted:#A6ABBE; --line:#454B60; --soft:#17302A;
   --card:#21263A;
-  --outline:#0B0D14; --accent:#9B7BFF; --pink:#FF78C5; --amber:#FFD05B; --mint:#5FD9A9; --sel:#2C2550;
+  --outline:#C4BFDA; --accent:#9B7BFF; --pink:#FF78C5; --amber:#FFD05B; --mint:#5FD9A9; --sel:#2C2550;
   --on-accent:#14121F;
   --g:#B39DFF; --f:#FFD05B; --b:#7BEBC2; --e:#FF8FD0;
   --g-bg:#2C2550; --f-bg:#3A300F; --b-bg:#14352B; --e-bg:#3F1A33;
@@ -287,6 +287,14 @@ th{background:var(--sel)}
 .syncpill{border-color:var(--outline)}
 .pvbanner{border-bottom:var(--ow) solid var(--outline);background:var(--amber);color:#252B3A}
 
+.sheet{position:relative;margin-top:28px}
+.sheet::before{content:"";position:absolute;top:-17px;left:26px;width:64px;height:14px;background:var(--pink);border:var(--ow) solid var(--outline);border-bottom:none;border-radius:10px 10px 0 0}
+.sheet.sync::before{background:var(--amber)}
+
+footer{margin-top:40px;padding:30px 28px 46px;background:#252B3A;color:#E4E2EE;border-radius:44px 44px 0 0;box-shadow:0 -6px 0 var(--mint)}
+footer p{margin:0 0 14px;max-width:46em}
+footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3px 3px 0 var(--pink)}
+
 @media (prefers-reduced-motion:reduce){
   .tbtn,.stage,.chip,.syncpill,.add,.big,.ghost,.fc{transition:none}
   .fc:hover,.fc:active,.big:hover,.big:active,.tbtn:active{transform:none}
@@ -298,6 +306,8 @@ th{background:var(--sel)}
   .poster{box-shadow:5px 5px 0 var(--accent);padding:18px}
   .step-h .n{width:48px;height:48px;flex-basis:48px;font-size:26px}
   .step-h h2{font-size:25px}
+  .sheet::before{left:18px;width:48px}
+  footer{padding:24px 18px 36px;border-radius:30px 30px 0 0}
   html{--gut:10px}
   .sheet{padding:14px 12px}
   .overlay{padding-left:10px;padding-right:10px}
@@ -342,6 +352,13 @@ th{background:var(--sel)}
       <p class="note" style="margin-top:12px">준비물: 스마트 기기, 연필, 지우개, 색연필, 도화지</p>
     </div>
     <svg class="fbd" viewBox="0 0 360 360" role="img" aria-label="상자에 작용하는 네 가지 힘: 아래로 중력, 위로 부력, 왼쪽으로 마찰력, 오른쪽으로 탄성력">
+      <g class="deco" aria-hidden="true" stroke="var(--outline)" stroke-width="3">
+        <circle cx="180" cy="180" r="128" fill="var(--soft)"/>
+        <polygon points="38,62 74,62 56,30" fill="var(--amber)"/>
+        <path d="M296 300 a26 26 0 0 1 52 0 z" fill="var(--pink)"/>
+        <rect x="300" y="36" width="26" height="26" rx="5" fill="var(--sel)"/>
+        <circle cx="46" cy="312" r="11" fill="var(--mint)"/>
+      </g>
       <g font-family="Do Hyeon, sans-serif" font-size="24">
         <g class="arr" fill="var(--b)"><rect x="175" y="58" width="10" height="82" rx="3"/><polygon points="164,62 196,62 180,28"/><text x="204" y="108">부력</text></g>
         <g class="arr" fill="var(--g)"><rect x="175" y="220" width="10" height="82" rx="3"/><polygon points="164,298 196,298 180,332"/><text x="204" y="268">중력</text></g>
@@ -516,7 +533,7 @@ th{background:var(--sel)}
 
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="발표 카드">
   <div class="poster" id="poster"></div>
-  <div class="btnrow" style="max-width:880px;margin:14px auto 0">
+  <div class="btnrow" style="max-width:var(--maxw);margin:14px auto 0">
     <button class="big ghost" id="closePoster">닫기</button>
   </div>
 </div>
