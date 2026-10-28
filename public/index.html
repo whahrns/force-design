@@ -286,13 +286,20 @@ th{background:var(--sel)}
 .pastebox{border-color:var(--outline);border-radius:var(--r)}
 .pastebox:focus{border-color:var(--accent)}
 .syncpill{border-color:var(--outline)}
-.helpbtn{margin-left:auto;font-weight:700}   /* 상단 바 첫 줄 오른쪽 끝 */
-.helpbtn{display:inline-flex;align-items:center;gap:6px}
-.helpbtn[aria-pressed="true"]{background:#FFE6F4;color:#252B3A;padding-right:5px}   /* 기다리는 중: 연분홍 + 깜빡이는 점 + 순서 동그라미 */
-.helpbtn .hdot{width:9px;height:9px;border-radius:50%;background:var(--pink);border:1.5px solid #252B3A;animation:hpulse 1.4s ease-in-out infinite}
-.helpbtn .hnum{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:#FFFFFF;border:1.5px solid #252B3A;font-family:var(--display);font-weight:800;font-synthesis:none;font-size:13px}
-@keyframes hpulse{50%{transform:scale(.6);opacity:.5}}
-@media (prefers-reduced-motion:reduce){.helpbtn .hdot{animation:none}}
+.helpbtn{margin-left:auto;display:inline-flex;align-items:center;gap:8px;position:relative;height:44px;padding:0 18px 0 46px;border:none;border-radius:999px;cursor:pointer;
+  background:linear-gradient(180deg,#6FB4FF 0%,#3D86F2 55%,#2E6FDB 100%);color:#fff;font-family:var(--display);font-weight:800;font-synthesis:none;font-size:17px;letter-spacing:-.01em;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.45),inset 0 -3px 0 rgba(0,0,0,.12),0 5px 0 #F2C230,0 6px 0 #C99A12,0 9px 14px rgba(46,111,219,.25);
+  text-shadow:0 1.5px 0 #1D4FAF,1px 0 0 #1D4FAF,-1px 0 0 #1D4FAF,0 -1px 0 #1D4FAF;transition:transform var(--t),box-shadow var(--t)}   /* 파란 입체 버튼 + 노란 받침 */
+.helpbtn em{font-style:normal;color:#FFE45C}
+.helpbtn .hkid{position:absolute;left:4px;bottom:2px;width:42px;height:48px;pointer-events:none}   /* 두 손 든 학생 */
+.helpbtn:hover{transform:translateY(-2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.45),inset 0 -3px 0 rgba(0,0,0,.12),0 7px 0 #F2C230,0 8px 0 #C99A12,0 12px 16px rgba(46,111,219,.28)}
+.helpbtn:active{transform:translateY(3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.45),inset 0 -3px 0 rgba(0,0,0,.12),0 2px 0 #F2C230,0 3px 0 #C99A12}
+.helpbtn[aria-pressed="true"]{background:linear-gradient(180deg,#FF9BD2 0%,#FF6FB8 55%,#E9529E 100%);text-shadow:0 1.5px 0 #A3236A,1px 0 0 #A3236A,-1px 0 0 #A3236A,0 -1px 0 #A3236A}   /* 기다리는 중: 분홍 */
+.helpbtn .hnum{display:inline-grid;place-items:center;height:24px;padding:0 9px;border-radius:999px;background:#FFE45C;color:#252B3A;text-shadow:none;font-size:13px;border:2px solid #fff}
+.helpbtn[aria-pressed="true"] .hkid .hand{animation:hwave 1.2s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes hwave{50%{transform:rotate(-14deg)}}
+@media (max-width:560px){.helpbtn .hlong{display:none}.helpbtn{font-size:15px;padding-right:14px}}
+@media (prefers-reduced-motion:reduce){.helpbtn,.helpbtn .hand{transition:none;animation:none}.helpbtn:hover,.helpbtn:active{transform:none}}
 .helpmsg{position:fixed;top:calc(var(--barh,72px) + 8px);right:16px;z-index:30;max-width:min(320px,calc(100vw - 32px));background:var(--card);border:var(--dw) solid var(--outline);border-radius:14px;padding:8px 12px;font-size:14px;box-shadow:3px 3px 0 var(--outline)}
 .pvbanner{border-bottom:var(--ow) solid var(--outline);background:var(--amber);color:#252B3A}
 
@@ -342,7 +349,7 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
     </div>
     <button class="syncpill" id="syncPill" type="button" aria-label="저장 상태 (눌러서 저장 설정 보기)">☁ 저장 안 됨</button>
     <label class="langsel">🌐 번역 <select id="lang" class="tbtn" style="padding:2px 6px" aria-label="번역 언어 Language"></select></label>
-    <button class="tbtn helpbtn" id="helpBtn" type="button" aria-pressed="false">🙋 도움 요청</button>
+    <button class="helpbtn" id="helpBtn" type="button" aria-pressed="false" aria-label="선생님께 도움 요청하기"></button>
     <nav class="stages" id="stages" aria-label="활동 단계"></nav>
   </div>
   <div class="progress"><i id="prog"></i></div>
@@ -1177,6 +1184,7 @@ drawStages(); drawTime();
 
 /* ---------- 도움 요청: 연결한 모둠만, 누르면 교사 화면 '실시간' 탭에 몇 반 몇 모둠인지 뜸 ---------- */
 let helpOn=false, helpT=null, helpMsgT=null;
+const HELP_KID='<svg class="hkid" viewBox="0 0 42 48" aria-hidden="true"><g class="hand"><path d="M5 30 L7 14" stroke="#F6C9A5" stroke-width="6" stroke-linecap="round"/><circle cx="7" cy="12" r="4.2" fill="#FBD7BA" stroke="#7A4A2A" stroke-width="1.4"/></g><g class="hand"><path d="M37 30 L35 14" stroke="#F6C9A5" stroke-width="6" stroke-linecap="round"/><circle cx="35" cy="12" r="4.2" fill="#FBD7BA" stroke="#7A4A2A" stroke-width="1.4"/></g><path d="M8 48 Q8 34 21 34 Q34 34 34 48 Z" fill="#3E5BA9" stroke="#1D2B55" stroke-width="1.4"/><path d="M17 34 L21 40 L25 34" fill="#fff" stroke="#1D2B55" stroke-width="1.2"/><circle cx="21" cy="24" r="10" fill="#FBD7BA" stroke="#7A4A2A" stroke-width="1.4"/><path d="M11 24 Q10 12 21 12 Q32 12 31 24 Q28 17 21 17 Q15 17 11 24 Z" fill="#5A3A22"/><circle cx="17.5" cy="24.5" r="1.3" fill="#2B1B10"/><circle cx="24.5" cy="24.5" r="1.3" fill="#2B1B10"/><path d="M18.5 28 Q21 30.5 23.5 28" stroke="#C0392B" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="15" cy="27.5" r="1.8" fill="#FF9AA8" opacity=".7"/><circle cx="27" cy="27.5" r="1.8" fill="#FF9AA8" opacity=".7"/></svg>';
 function helpMsg(t){
   let m=document.getElementById('helpMsg');
   if(!m){ m=document.createElement('div'); m.id='helpMsg'; m.className='helpmsg'; m.setAttribute('role','status'); document.body.appendChild(m); }
@@ -1185,8 +1193,8 @@ function helpMsg(t){
 function helpShow(r){
   const was=helpOn; helpOn=!!(r&&r.pending);
   $('#helpBtn').setAttribute('aria-pressed',helpOn);
-  $('#helpBtn').innerHTML=helpOn?`<span class="hdot" aria-hidden="true"></span>선생님 기다리는 중<span class="hnum">${r.order}번째</span>`:'🙋 도움 요청';
-  $('#helpBtn').setAttribute('aria-label',helpOn?`도움 요청 중, ${r.order}번째로 기다리고 있어요. 누르면 취소`:'선생님께 도움 요청');
+  $('#helpBtn').innerHTML=HELP_KID+(helpOn?`<span><span class="hlong">선생님 </span>기다리는 중</span><span class="hnum">${r.order}번째</span>`:'<span><span class="hlong">선생님께 </span><em>도움 요청하기</em></span>');
+  $('#helpBtn').setAttribute('aria-label',helpOn?`도움 요청 중, ${r.order}번째로 기다리고 있어요. 누르면 취소`:'선생님께 도움 요청하기');
   if(was&&!helpOn) helpMsg('선생님이 도움 요청을 확인했어요.');
   clearTimeout(helpT); if(helpOn) helpT=setTimeout(()=>helpCall(null),5000);   // 기다리는 동안만 5초마다 확인
 }
@@ -1201,6 +1209,7 @@ $('#helpBtn').addEventListener('click',()=>{
   if(helpOn){ if(confirm('도움 요청을 취소할까요?')) helpCall(false); }
   else{ helpCall(true).then(()=>{ if(helpOn) helpMsg('선생님께 도움 요청을 보냈어요. 잠시만 기다려 주세요.'); }); }
 });
+helpShow(null);
 helpCall(null);   // 새로 열었을 때 이미 보낸 요청이 있는지 확인
 </script>
 <script src="./draw-wheel.js"></script>
