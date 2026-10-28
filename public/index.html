@@ -182,6 +182,9 @@ th{font-family:var(--display);font-weight:400;font-size:18px}
 .poster .fuse{margin-top:14px;font-size:19px}
 .poster .fuse .use-box label{font-family:var(--display);font-weight:400;font-size:22px}
 .poster h3{font-size:22px;margin-top:18px}
+.dimg{display:block;max-width:100%;max-height:70vh;margin-top:10px;border:2px solid var(--line);border-radius:12px;background:#fff}
+#dPick.off{opacity:.45;pointer-events:none}
+.poster .dimg{max-height:none;width:100%}
 .empty{color:var(--muted);font-style:normal}
 
 .tr{display:block;font-family:var(--body);font-weight:400;font-size:.9em;line-height:1.5;color:var(--b);margin-top:2px;text-align:left;word-break:normal;overflow-wrap:anywhere}
@@ -368,6 +371,14 @@ footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
 
       <h3 style="margin-top:20px">도화지 설계도 점검표</h3>
       <ul class="checklist" id="checklist"></ul>
+
+      <h3 style="margin-top:20px">설계도 사진 올리기</h3>
+      <p class="note" id="dNote">도화지나 패드에 그린 설계도를 캡처하거나 사진으로 찍어 올려요. 모둠당 1장이고, 다시 올리면 새 사진으로 바뀌어요.</p>
+      <img id="dImg" class="dimg" alt="우리 모둠 설계도" hidden>
+      <div class="btnrow" style="margin-top:8px">
+        <label class="big" id="dPick" for="dFile">설계도 사진 고르기<input type="file" id="dFile" accept="image/*" hidden></label>
+      </div>
+      <p class="sync-status" id="dMsg" role="status"></p>
     </div>
   </section>
 
@@ -631,7 +642,8 @@ function poster(){
     ${imp.length?`<h3>이런 점이 불편했어요</h3><ul>${imp.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
     <h3>힘의 특징을 이렇게 이용했어요</h3>
     <div class="fuse">${fs.length? fs.map(f=>`<div class="use-box F-${f.id}"><label>${f.name}</label><div>${esc(S.use[f.id])||'<span class="empty">설명을 적어 주세요</span>'}</div></div>`).join('') : '<p class="empty">3단계에서 이용한 힘을 골라 주세요.</p>'}</div>
-    ${S.howto.trim()?`<h3>사용 방법</h3><p style="white-space:pre-wrap">${esc(S.howto)}</p>`:''}`;
+    ${S.howto.trim()?`<h3>사용 방법</h3><p style="white-space:pre-wrap">${esc(S.howto)}</p>`:''}
+    ${DESIGN_URL?`<h3>설계도</h3><img class="dimg" src="${esc(DESIGN_URL)}" alt="우리 모둠 설계도">`:''}`;
 }
 $('#openPoster').addEventListener('click',()=>{ poster(); $('#overlay').classList.add('open'); $('#closePoster').focus(); });
 $('#closePoster').addEventListener('click',()=>{ $('#overlay').classList.remove('open'); $('#openPoster').focus(); });
@@ -731,6 +743,7 @@ function markDirty(){
 /* 암호가 바뀌었을 때(선생님이 새로 정함): 연결을 풀고 다시 고르게. 입력 내용은 기기에 남김 */
 function needRepick(e){
   Y.pin=''; storeY(); showPick(); setStatus('connfail',e);
+  dTk=null; DESIGN_URL=null; renderDesign();
 }
 async function push(){
   clearTimeout(pushT); clearTimeout(retryT);
@@ -798,7 +811,7 @@ async function connect(cls,grp,pin,quiet){
     Y.cls=cls; Y.grp=grp; Y.pin=pin; Y.last=null; Y.dirty=true;
   }
   storeY(); showOn();
-  if(Y.dirty) push(); else setStatus('saved');
+  if(Y.dirty) push().then(loadDesign); else { setStatus('saved'); loadDesign(); }
 }
 async function pullIfNewer(){
   if(!Y.cls||!Y.pin||Y.dirty||busy) return;
@@ -841,8 +854,75 @@ document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){ if(Y.cls&&Y.pin&&Y.dirty) push(); }
   else pullIfNewer();
 });
-if(PREVIEW){ $('#pvBanner').hidden=false; showPick(); setStatus('none'); }
-else if(Y.cls){ showOn(); connect(Y.cls,Y.grp,Y.pin,true); } else { showPick(); setStatus('none'); }
+/* ---------- 설계도 사진 (Supabase Storage, 비공개 버킷) ----------
+   모둠 암호로 10분짜리 출입증을 받고 → Edge Function이 그 모둠 사진의 서명된 주소를 줌 */
+const DFN=API.replace('/rest/v1/rpc/','/functions/v1/design-file');
+let dTk=null, dTkKey='', dTkAt=0, DESIGN_URL=null, dBusy=false;
+async function dfn(body){
+  const r=await fetch(DFN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>null);
+  if(!r.ok||!j||j.error){ const e=new Error((j&&j.error)||('HTTP '+r.status)); e.code=j&&j.error; throw e; }
+  return j;
+}
+async function designTicket(force){
+  const key=Y.cls+'|'+Y.grp+'|'+Y.pin;
+  if(!force && dTk && dTkKey===key && Date.now()-dTkAt<8*60000) return dTk;
+  const r=await rpc('design_ticket',{p_class:Y.cls,p_group:Y.grp,p_pin:Y.pin});
+  dTk=r.ticket; dTkKey=key; dTkAt=Date.now(); return dTk;
+}
+async function dcall(action){   // 출입증이 만료됐으면 한 번 새로 받아 다시 시도
+  try{ return await dfn({ticket:await designTicket(),action}); }
+  catch(e){ if(e.code==='expired'||e.code==='no_ticket') return await dfn({ticket:await designTicket(true),action}); throw e; }
+}
+function renderDesign(){
+  const on=!PREVIEW && Y.cls && Y.pin, img=$('#dImg');
+  img.hidden=!DESIGN_URL; if(DESIGN_URL) img.src=DESIGN_URL;
+  $('#dPick').classList.toggle('off',!on);
+  $('#dPick').firstChild.textContent=DESIGN_URL?'다시 올리기':'설계도 사진 고르기';
+  if(!on && !dBusy){ const m=$('#dMsg'); m.className='sync-status'; m.textContent=PREVIEW?'미리 보기에서는 올릴 수 없어요. 학생은 여기서 사진을 골라 올려요.':'먼저 맨 위 ‘우리 모둠 기록 저장하기’에서 반·모둠을 연결하면 사진을 올릴 수 있어요.'; }
+}
+async function loadDesign(){
+  if(PREVIEW||!Y.cls||!Y.pin){ DESIGN_URL=null; renderDesign(); return; }
+  try{ const r=await dcall('view'); DESIGN_URL=r.url; if(!dBusy){ $('#dMsg').textContent=r.url&&r.updated_at?`올린 사진 · ${hhmm(r.updated_at)}`:'아직 올린 사진이 없어요.'; $('#dMsg').className='sync-status'; } }
+  catch(e){ if(e.code==='wrong_pin') needRepick(e); }
+  renderDesign();
+}
+/* 패드 캡처는 크기가 커서 긴 변 1600px JPEG로 줄여서 올림 */
+async function shrinkImage(file){
+  let src;
+  try{ src=await createImageBitmap(file); }
+  catch(e){ src=await new Promise((ok,no)=>{ const u=URL.createObjectURL(file), im=new Image(); im.onload=()=>{ URL.revokeObjectURL(u); ok(im); }; im.onerror=()=>{ URL.revokeObjectURL(u); no(new Error('decode')); }; im.src=u; }); }
+  const w0=src.width, h0=src.height, k=Math.min(1,1600/Math.max(w0,h0));
+  const c=document.createElement('canvas'); c.width=Math.round(w0*k); c.height=Math.round(h0*k);
+  const g=c.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,c.width,c.height); g.drawImage(src,0,0,c.width,c.height);
+  for(const q of [0.85,0.7,0.55]){ const b=await new Promise(ok=>c.toBlob(ok,'image/jpeg',q)); if(b && b.size<2.8*1024*1024) return b; }
+  throw new Error('too_large');
+}
+$('#dFile').addEventListener('change',async e=>{
+  const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f||dBusy) return;
+  const m=$('#dMsg'); m.className='sync-status';
+  if(PREVIEW||!Y.cls||!Y.pin){ renderDesign(); return; }
+  if(!/^image\//.test(f.type||'image/')){ m.textContent='사진 파일만 올릴 수 있어요.'; m.className='sync-status err'; return; }
+  dBusy=true;
+  try{
+    m.textContent='사진 크기를 줄이는 중이에요…';
+    const blob=await shrinkImage(f);
+    m.textContent='올리는 중이에요…';
+    const {url}=await dcall('upload');
+    const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'image/jpeg','x-upsert':'true'},body:blob});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    dBusy=false; await loadDesign();
+    m.textContent='올렸어요 · '+hhmm(new Date()); m.className='sync-status ok';
+  }catch(err){
+    dBusy=false;
+    if(err.code==='wrong_pin'){ needRepick(err); return; }
+    m.className='sync-status err';
+    m.textContent=err.code==='locked'?errText(err):err.message==='decode'?'이 사진은 열 수 없어요. 캡처한 사진(PNG·JPG)으로 다시 골라 주세요.':err.message==='too_large'?'사진이 너무 커요. 화면 캡처로 다시 올려 주세요.':(err instanceof TypeError||!navigator.onLine)?'인터넷에 연결되지 않아 올리지 못했어요. 연결을 확인하고 다시 골라 주세요.':'올리지 못했어요. 잠시 뒤 다시 골라 주세요.';
+  }
+});
+
+if(PREVIEW){ $('#pvBanner').hidden=false; showPick(); setStatus('none'); renderDesign(); }
+else if(Y.cls){ showOn(); connect(Y.cls,Y.grp,Y.pin,true); } else { showPick(); setStatus('none'); renderDesign(); }
 
 /* 상단 바 높이 맞추기 */
 (function(){ const bar=$('#bar'); const set=()=>document.documentElement.style.setProperty('--barh', bar.offsetHeight+'px'); set(); try{ new ResizeObserver(set).observe(bar); }catch(e){ addEventListener('resize',set); } })();
@@ -940,13 +1020,15 @@ const TR_RAW={
 '반과 모둠 번호를 고르면 입력한 내용이 자동으로 저장되어 다른 기기에서도 이어서 쓸 수 있고, 선생님도 볼 수 있어요. 학생 이름은 저장하지 않아요.':{en:'Choose your class and group number. Your work is saved automatically, so you can continue on another device and your teacher can see it. Student names are not saved.',zh:'选择班级和小组号后，输入的内容会自动保存，可以在其他设备上继续写，老师也能看到。不会保存学生姓名。',vi:'Chọn lớp và số nhóm, nội dung sẽ được lưu tự động để có thể viết tiếp trên thiết bị khác và giáo viên cũng xem được. Tên học sinh không được lưu.',ru:'Выберите класс и номер группы — записи сохраняются автоматически, их можно продолжить на другом устройстве, и учитель их увидит. Имена учеников не сохраняются.'},
 '같은 반·모둠 번호를 고른 기기는 한 기록을 함께 써요. 여러 기기에서 동시에 고치면 마지막에 저장한 내용만 남으니, 입력은 기록자 한 명이 해 주세요.':{en:'Devices that choose the same class and group share one record. If several devices edit at once, only the last save remains, so let one recorder type.',zh:'选择相同班级和小组号的设备共用一份记录。多台设备同时修改时只保留最后保存的内容，请由记录员一个人输入。',vi:'Các thiết bị chọn cùng lớp và số nhóm dùng chung một bản ghi. Nếu nhiều thiết bị sửa cùng lúc, chỉ lần lưu cuối được giữ lại, nên hãy để một thư ký nhập.',ru:'Устройства с одинаковым классом и номером группы пишут в одну запись. Если исправлять с нескольких устройств одновременно, останется только последнее сохранение, поэтому пусть печатает один секретарь.'},
 '처음 연결하는 모둠은 기록자가 정한 숫자 4자리가 모둠 암호가 돼요. 모둠원에게 알려 주고, 다른 기기에서는 같은 암호를 넣으세요. 잊었으면 선생님께 말씀드리세요.':{en:'For a group connecting for the first time, the 4-digit number the recorder chooses becomes the group password. Tell your group members and enter the same password on other devices. If you forget it, ask your teacher.',zh:'第一次连接的小组，记录员设定的4位数字就是小组密码。请告诉组员，在其他设备上输入相同的密码。忘记了请告诉老师。',vi:'Với nhóm kết nối lần đầu, 4 chữ số do thư ký đặt sẽ là mật khẩu của nhóm. Hãy báo cho các bạn trong nhóm và nhập cùng mật khẩu trên thiết bị khác. Nếu quên, hãy báo giáo viên.',ru:'Для группы, которая подключается впервые, 4 цифры, выбранные секретарём, станут паролем группы. Сообщите его участникам и вводите тот же пароль на других устройствах. Если забыли — обратитесь к учителю.'},
+'도화지나 패드에 그린 설계도를 캡처하거나 사진으로 찍어 올려요. 모둠당 1장이고, 다시 올리면 새 사진으로 바뀌어요.':{en:'Take a photo or screenshot of the design you drew on paper or a tablet and upload it. One per group; uploading again replaces it.',zh:'把在图画纸或平板上画的设计图截图或拍照上传。每组1张，再次上传会替换。',vi:'Chụp ảnh hoặc chụp màn hình bản thiết kế đã vẽ trên giấy hoặc máy tính bảng rồi tải lên. Mỗi nhóm 1 ảnh, tải lại sẽ thay ảnh cũ.',ru:'Сфотографируйте или сделайте скриншот проекта, нарисованного на бумаге или планшете, и загрузите. Одно фото на группу; новая загрузка заменяет старую.'},
+'설계도 사진 올리기':{en:'Upload a photo of the design',zh:'上传设计图照片',vi:'Tải ảnh bản thiết kế',ru:'Загрузить фото проекта'},
 '역할 칸에는 이름 대신 학번 5자리를 적어요(예: 1학년 3반 12번 → 10312). 학번은 모둠 기록과 함께 저장되어 선생님이 확인해요.':{en:'Write your 5-digit student number instead of your name in the role boxes (e.g. Grade 1, Class 3, No. 12 → 10312). Student numbers are saved with the group record for your teacher.',zh:'角色栏里不写姓名，写5位学号（例：1年级3班12号 → 10312）。学号会和小组记录一起保存，供老师查看。',vi:'Trong ô vai trò, hãy ghi mã học sinh 5 chữ số thay cho tên (ví dụ: lớp 1-3, số 12 → 10312). Mã học sinh được lưu cùng bản ghi của nhóm để giáo viên xem.',ru:'В полях ролей пишите не имя, а 5-значный номер ученика (например, 1 класс, 3 группа, № 12 → 10312). Номера сохраняются вместе с записью группы для учителя.'}
 };
 const TR={}; for(const k in TR_RAW) TR[k.replace(/\s+/g,'')]=TR_RAW[k];
 
 /* 번역 */
 let LANG='ko'; try{ LANG=localStorage.getItem(KEY+'-lang')||'ko'; }catch(e){} if(!LANGS[LANG]) LANG='ko';
-const TSEL='#s0 h1, #s0 p, #s0 .goal, .step-h h2, .lead, #s1 > h3, .fc h3, .fc .body > span[style], .fc dt, .fc dd, .role strong, .role small, label.fld, .bank summary, #bank button, .ex, .example h3, .example p, .sheet > h3, .checklist span, .legend, .self p, #s6 p.note, #sync h3, #sync > p:not(.sync-status), #rolesNote';
+const TSEL='#s0 h1, #s0 p, #s0 .goal, .step-h h2, .lead, #s1 > h3, .fc h3, .fc .body > span[style], .fc dt, .fc dd, .role strong, .role small, label.fld, .bank summary, #bank button, .ex, .example h3, .example p, .sheet > h3, .checklist span, .legend, .self p, #s6 p.note, #sync h3, #sync > p:not(.sync-status), #rolesNote, #dNote';
 function applyLang(){
   document.querySelectorAll('.tr').forEach(e=>e.remove());
   document.documentElement.dataset.lang=LANG;

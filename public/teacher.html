@@ -130,6 +130,7 @@ summary{cursor:pointer;font-weight:700}
 .card dl{margin:0}
 .card dt{font-weight:700;margin-top:8px;font-size:14px;color:var(--muted)}
 .card dd{margin:0}
+.dshot img{display:block;width:100%;max-height:260px;object-fit:contain;background:#fff;border:2px solid var(--line);border-radius:10px;margin:4px 0}
 .card ul,.card ol{margin:2px 0;padding-left:20px}
 .card .pick{font-weight:700}
 .card .pick::after{content:" ← 선택";color:var(--b);font-size:13px}
@@ -259,7 +260,7 @@ async function load(){
     ROWS=(rows||[]).map(r=>({cls:r.class_code,grp:r.group_no,at:r.updated_at,d:norm(r.data)}))
       .sort((x,y)=>clsKey(x.cls)-clsKey(y.cls)||x.grp-y.grp);
     $('#login').hidden=true; $('#tools').hidden=false; showTab(TAB);
-    fillClasses(); render();
+    fillClasses(); render(); loadDesigns();
     $('#loadMsg').textContent='불러온 시각 '+new Date().toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
   }catch(e){
     if(authMsg(e)){ logout(); $('#loginMsg').textContent=authMsg(e); $('#loginMsg').className='err'; }
@@ -343,6 +344,7 @@ function card(r){
     <div class="name">${t(d.designName)?esc(d.designName):'<span class="empty">설계 이름 없음</span>'}</div>
     <dl>
       <dt>역할 (학번)</dt><dd>${roleText(d)?esc(roleText(d)):'<span class="empty">-</span>'}</dd>
+      <dt>설계도 사진</dt><dd class="dshot" data-dimg="${r.cls}|${r.grp}"><span class="empty">아직 올린 사진이 없어요</span></dd>
       <dt>고른 기구나 장치</dt><dd>${t(d.device)?esc(d.device):'<span class="empty">-</span>'}</dd>
       <dt>불편한 점</dt><dd>${list(d.improve)}</dd>
       <dt>고려할 점</dt><dd>${list(d.consider)}</dd>
@@ -424,7 +426,7 @@ function buildCsv(){
 $('#loginForm').addEventListener('submit',e=>{ e.preventDefault(); pass=$('#pass').value; $('#loginMsg').textContent=''; load(); });
 $('#refresh').addEventListener('click',load);
 $('#logout').addEventListener('click',logout);
-$('#clsSel').addEventListener('change',render);
+$('#clsSel').addEventListener('change',()=>{ render(); loadDesigns(); });
 /* 모둠 관리: 암호 새로 정하기, 기록 지우기 */
 $('#out').addEventListener('click',async e=>{
   const b=e.target.closest('[data-pin],[data-del]'); if(!b) return;
@@ -441,6 +443,7 @@ $('#out').addEventListener('click',async e=>{
       if(!confirm(`${who}의 서버 기록을 지울까요?
 지우면 되살릴 수 없어요. 필요하면 먼저 md나 CSV로 내려받아 두세요.`)) return;
       const r=await rpc('teacher_delete',{p_pass:pass,p_class:cls,p_group:+g});
+      try{ await dfn({ticket:await teacherTicket(),action:'delete',class:cls,group:+g}); }catch(_){}   // 설계도 사진도 함께 지움
       $('#loadMsg').textContent=r.ok?`${who} 기록을 지웠어요.`:`${who} 기록을 찾지 못했어요.`;
       load();
     }
@@ -451,6 +454,33 @@ $('#out').addEventListener('click',async e=>{
 });
 $('#dlMd').addEventListener('click',()=>download(`힘설계_${fileTag()}_${today()}.md`,buildMd(),'text/markdown;charset=utf-8'));
 $('#dlCsv').addEventListener('click',()=>download(`힘설계_${fileTag()}_${today()}.csv`,buildCsv(),'text/csv;charset=utf-8'));
+/* ---------- 설계도 사진: 교사 출입증으로 반별 사진 목록 ---------- */
+const DFN=API.replace('/rest/v1/rpc/','/functions/v1/design-file');
+async function dfn(body){
+  const r=await fetch(DFN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>null);
+  if(!r.ok||!j||j.error){ const e=new Error((j&&j.error)||('HTTP '+r.status)); e.code=j&&j.error; throw e; }
+  return j;
+}
+let tdTk=null, tdAt=0;
+async function teacherTicket(){
+  if(tdTk && Date.now()-tdAt<8*60000) return tdTk;
+  tdTk=(await rpc('teacher_design_ticket',{p_pass:pass})).ticket; tdAt=Date.now(); return tdTk;
+}
+async function loadDesigns(){
+  if(!pass) return;
+  try{
+    const t=await teacherTicket();
+    for(const c of shown()){
+      const r=await dfn({ticket:t,action:'list',class:c});
+      (r.files||[]).forEach(f=>{
+        const el=document.querySelector(`[data-dimg="${c}|${f.group}"]`); if(!el||!f.url) return;
+        el.innerHTML=`<a href="${esc(f.url)}" target="_blank" rel="noopener" title="크게 보기"><img src="${esc(f.url)}" alt="${f.group}모둠 설계도" loading="lazy"></a><span class="note">올린 시각 ${when(f.updated_at)} · 누르면 크게 보여요</span>`;
+      });
+    }
+  }catch(e){ if(e.code==='expired'){ tdTk=null; } else authFail(e); }
+}
+
 /* ---------- 실시간 설문 (반 구분 없이 하나, 시작·종료만) ---------- */
 let TAB='rec', QS=null, LIVE=null, pollT=null, pBusy=false, pGen=0;
 function showTab(t){

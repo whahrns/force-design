@@ -3,7 +3,7 @@
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: no-referrer
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://scnbrusxjwhehpbjznye.supabase.co; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://scnbrusxjwhehpbjznye.supabase.co; img-src 'self' data: blob: https://scnbrusxjwhehpbjznye.supabase.co; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
 
 /teacher*
   X-Robots-Tag: noindex, nofollow
