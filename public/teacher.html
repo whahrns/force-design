@@ -427,6 +427,17 @@ $('#loginForm').addEventListener('submit',e=>{ e.preventDefault(); pass=$('#pass
 $('#refresh').addEventListener('click',load);
 $('#logout').addEventListener('click',logout);
 $('#clsSel').addEventListener('change',()=>{ render(); loadDesigns(); });
+/* 설계도 사진만 지우기 */
+$('#out').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-ddel]'); if(!b) return;
+  const [cls,g]=b.dataset.ddel.split('|'), who=`${clsLabel(cls)} ${g}모둠`;
+  if(!confirm(`${who}의 설계도 사진을 지울까요?\n지우면 되살릴 수 없고, 학생 화면에서도 사라져요.`)) return;
+  try{
+    await dfn({ticket:await teacherTicket(),action:'delete',class:cls,group:+g});
+    const cell=document.querySelector(`[data-dimg="${cls}|${g}"]`); if(cell) cell.innerHTML='<span class="empty">아직 올린 사진이 없어요</span>';
+    $('#loadMsg').textContent=`${who} 설계도 사진을 지웠어요.`;
+  }catch(err){ if(err.code==='expired'){ tdTk=null; } if(!authFail(err)) $('#loadMsg').textContent='사진을 지우지 못했어요: '+err.message; }
+});
 /* 모둠 관리: 암호 새로 정하기, 기록 지우기 */
 $('#out').addEventListener('click',async e=>{
   const b=e.target.closest('[data-pin],[data-del]'); if(!b) return;
@@ -475,7 +486,7 @@ async function loadDesigns(){
       const r=await dfn({ticket:t,action:'list',class:c});
       (r.files||[]).forEach(f=>{
         const el=document.querySelector(`[data-dimg="${c}|${f.group}"]`); if(!el||!f.url) return;
-        el.innerHTML=`<a href="${esc(f.url)}" target="_blank" rel="noopener" title="크게 보기"><img src="${esc(f.url)}" alt="${f.group}모둠 설계도" loading="lazy"></a><span class="note">올린 시각 ${when(f.updated_at)} · 누르면 크게 보여요</span>`;
+        el.innerHTML=`<a href="${esc(f.url)}" target="_blank" rel="noopener" title="크게 보기"><img src="${esc(f.url)}" alt="${f.group}모둠 설계도" loading="lazy"></a><span class="note">올린 시각 ${when(f.updated_at)} · 누르면 크게 보여요</span> <button class="btn sm" data-ddel="${c}|${f.group}">사진 지우기</button>`;
       });
     }
   }catch(e){ if(e.code==='expired'){ tdTk=null; } else authFail(e); }

@@ -377,6 +377,7 @@ footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
       <img id="dImg" class="dimg" alt="우리 모둠 설계도" hidden>
       <div class="btnrow" style="margin-top:8px">
         <label class="big" id="dPick" for="dFile">설계도 사진 고르기<input type="file" id="dFile" accept="image/*" hidden></label>
+        <button class="tbtn" id="dDel" type="button" hidden style="align-self:center">사진 지우기</button>
       </div>
       <p class="sync-status" id="dMsg" role="status"></p>
     </div>
@@ -879,6 +880,7 @@ function renderDesign(){
   img.hidden=!DESIGN_URL; if(DESIGN_URL) img.src=DESIGN_URL;
   $('#dPick').classList.toggle('off',!on);
   $('#dPick').firstChild.textContent=DESIGN_URL?'다시 올리기':'설계도 사진 고르기';
+  $('#dDel').hidden=!(on && DESIGN_URL);
   if(!on && !dBusy){ const m=$('#dMsg'); m.className='sync-status'; m.textContent=PREVIEW?'미리 보기에서는 올릴 수 없어요. 학생은 여기서 사진을 골라 올려요.':'먼저 맨 위 ‘우리 모둠 기록 저장하기’에서 반·모둠을 연결하면 사진을 올릴 수 있어요.'; }
 }
 async function loadDesign(){
@@ -898,6 +900,18 @@ async function shrinkImage(file){
   for(const q of [0.85,0.7,0.55]){ const b=await new Promise(ok=>c.toBlob(ok,'image/jpeg',q)); if(b && b.size<2.8*1024*1024) return b; }
   throw new Error('too_large');
 }
+$('#dDel').addEventListener('click',async()=>{
+  if(dBusy||!DESIGN_URL||!confirm('우리 모둠 설계도 사진을 지울까요?\n같은 모둠의 다른 기기와 교사 화면에서도 사라져요.')) return;
+  const m=$('#dMsg'); dBusy=true; m.className='sync-status'; m.textContent='지우는 중이에요…';
+  try{
+    await dcall('delete'); DESIGN_URL=null; dBusy=false; renderDesign();
+    m.textContent='사진을 지웠어요.'; m.className='sync-status ok';
+  }catch(err){
+    dBusy=false;
+    if(err.code==='wrong_pin'){ needRepick(err); return; }
+    m.className='sync-status err'; m.textContent=err.code==='locked'?errText(err):'지우지 못했어요. 잠시 뒤 다시 눌러 주세요.';
+  }
+});
 $('#dFile').addEventListener('change',async e=>{
   const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f||dBusy) return;
   const m=$('#dMsg'); m.className='sync-status';
