@@ -181,7 +181,6 @@ footer{padding:20px 0 40px}
       <select id="clsSel" class="in rec-only" aria-label="반 고르기"></select>
       <button class="btn primary rec-only" id="refresh">새로고침</button>
       <button class="btn rec-only" id="dlMd">md 내려받기</button>
-      <button class="btn rec-only" id="dlCsv">CSV 내려받기</button>
       <button class="btn" id="logout">나가기</button>
     </span>
   </div>
@@ -442,24 +441,6 @@ function buildMd(){
   });
   return L.join('\n');
 }
-function buildCsv(){
-  const head=['반','모둠','모둠 이름','저장 시각',...ROLES.map(r=>r+' 학번'),'기구나 장치','불편한 점','고려할 점','아이디어','선택한 아이디어','설계 이름','이용한 힘','사용 방법','점검표','과정·기능(%)','가치·태도(%)',...ROLES.map(r=>r+' 소감'),'소감(공통)','받은 평가: 힘 이용 평균','받은 평가: 목적 달성 평균','받은 평가: 총점','받은 평가: 순위'];
-  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const out=[head.map(q).join(',')];
-  shown().forEach(c=>{
-    const rows=ROWS.filter(r=>r.cls===c), {agg,maxG}=evalAgg(rows), T=totals(agg,maxG);
-    rows.forEach(r=>{
-      const d=r.d, a=agg[r.grp];
-      out.push([clsLabel(c),r.grp,d.groupName,when(r.at),...ROLES.map(x=>d.roles[x]),d.device,d.improve.filter(t).join('\n'),d.consider.filter(t).join('\n'),
-        d.ideas.filter(i=>t(i.text)).map(i=>t(i.text)+(i.forces.length?` (${i.forces.map(FN).join(', ')})`:'')).join('\n'),
-        d.pick>=0&&d.ideas[d.pick]?d.ideas[d.pick].text:'',d.designName,
-        FORCES.filter(f=>d.useOn.includes(f.id)).map(f=>`${f.name}: ${t(d.use[f.id])}`).join('\n'),d.howto,
-        `${d.checks.filter(i=>CHECKS[i]).length}/${CHECKS.length}`,d.self0,d.self1,...ROLES.map(x=>d.reflects[x]),d.reflect,
-        a?avg(a.rows[0]):'-',a?avg(a.rows[1]):'-',T.rank[r.grp]?T.score[r.grp]:'-',T.rank[r.grp]||'-'].map(q).join(','));
-    });
-  });
-  return '﻿'+out.join('\r\n');
-}
 
 $('#loginForm').addEventListener('submit',e=>{ e.preventDefault(); pass=$('#pass').value; $('#loginMsg').textContent=''; load(); });
 $('#refresh').addEventListener('click',load);
@@ -490,7 +471,7 @@ $('#out').addEventListener('click',async e=>{
       $('#loadMsg').textContent=r.ok?`${who} 암호를 바꿨어요.`:`${who} 기록을 찾지 못했어요.`;
     }else{
       if(!confirm(`${who}의 서버 기록을 지울까요?
-지우면 되살릴 수 없어요. 필요하면 먼저 md나 CSV로 내려받아 두세요.`)) return;
+지우면 되살릴 수 없어요. 필요하면 먼저 md로 내려받아 두세요.`)) return;
       const r=await rpc('teacher_delete',{p_pass:pass,p_class:cls,p_group:+g});
       try{ await dfn({ticket:await teacherTicket(),action:'delete',class:cls,group:+g}); }catch(_){}   // 설계도 사진도 함께 지움
       $('#loadMsg').textContent=r.ok?`${who} 기록을 지웠어요.`:`${who} 기록을 찾지 못했어요.`;
@@ -502,7 +483,6 @@ $('#out').addEventListener('click',async e=>{
   }
 });
 $('#dlMd').addEventListener('click',()=>download(`힘설계_${fileTag()}_${today()}.md`,buildMd(),'text/markdown;charset=utf-8'));
-$('#dlCsv').addEventListener('click',()=>download(`힘설계_${fileTag()}_${today()}.csv`,buildCsv(),'text/csv;charset=utf-8'));
 /* ---------- 설계도 사진: 교사 출입증으로 반별 사진 목록 ---------- */
 const DFN=API.replace('/rest/v1/rpc/','/functions/v1/design-file');
 async function dfn(body){
