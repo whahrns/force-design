@@ -34,7 +34,7 @@
 }
 *,*::before,*::after{box-sizing:inherit}
 [hidden]{display:none !important}
-html{scroll-padding-top:calc(var(--barh,72px) + 16px);-webkit-text-size-adjust:100%}
+html{--maxw:1160px;--gut:16px;scroll-padding-top:calc(var(--barh,72px) + 16px);-webkit-text-size-adjust:100%}
 body{
   margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.7;
   word-break:keep-all;overflow-wrap:break-word;line-break:strict;
@@ -42,7 +42,7 @@ body{
   background-size:24px 24px;
 }
 img,svg{max-width:100%}
-.wrap{max-width:880px;margin:0 auto;padding:0 20px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut)}
 h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.25;margin:0}
 button,input,textarea,select{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--g);outline-offset:2px;border-radius:6px}
@@ -50,7 +50,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 /* ---------- 상단 진행바 ---------- */
 .bar{position:fixed;top:0;left:0;right:0;z-index:20;background:var(--paper);border-bottom:2px solid var(--ink);padding-top:env(safe-area-inset-top,0px)}
 .bar-space{height:calc(var(--barh,72px) - env(safe-area-inset-top,0px))}
-.bar-in{max-width:880px;margin:0 auto;padding:10px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.bar-in{max-width:var(--maxw);margin:0 auto;padding:10px var(--gut);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .clock{display:flex;align-items:center;gap:8px}
 .time{font-family:var(--display);font-size:34px;line-height:1;min-width:92px;font-variant-numeric:tabular-nums}
 .time.over{color:var(--e)}
@@ -175,7 +175,7 @@ th{font-family:var(--display);font-weight:400;font-size:18px}
 /* 발표 카드 */
 .overlay{position:fixed;inset:0;z-index:50;background:var(--paper);overflow:auto;display:none;padding:calc(env(safe-area-inset-top,0px) + 20px) 20px calc(env(safe-area-inset-bottom,0px) + 20px)}
 .overlay.open{display:block}
-.poster{max-width:880px;margin:0 auto;background:var(--card);border:3px solid var(--ink);border-radius:20px;padding:26px}
+.poster{max-width:var(--maxw);margin:0 auto;background:var(--card);border:3px solid var(--ink);border-radius:20px;padding:26px}
 .poster .grp{color:var(--muted)}
 .poster h2{font-size:clamp(32px,6vw,52px);margin:4px 0 6px}
 .poster .from{font-size:18px}
@@ -218,6 +218,9 @@ h2 .tr,.fc h3 .tr{font-size:.55em}
 footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
 
 @media (max-width:760px){
+  html{--gut:10px}
+  .sheet{padding:14px 12px}
+  .overlay{padding-left:10px;padding-right:10px}
   .hero{grid-template-columns:1fr;padding-top:24px}
   .hero svg{max-width:300px;margin:0 auto;display:block}
   .forces{grid-template-columns:1fr 1fr}
