@@ -228,6 +228,18 @@ h2 .tr,.fc h3 .tr{font-size:.55em}
 .sync-status.ok{color:var(--b)}
 footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
 
+/* 첫 화면: 반·모둠을 골라야 활동 페이지(main)로 들어감 */
+body:not(.gated) .gate{display:none}
+body.gated main,body.gated .clock,body.gated #syncPill,body.gated #helpBtn,body.gated #stages,body.gated .progress{display:none}
+body.gated .langsel{margin-left:auto}
+.gate{max-width:720px;margin:0 auto;padding:clamp(20px,6vh,56px) var(--gut) 48px}
+.gate h1{font-size:clamp(30px,6vw,46px);line-height:1.15;text-align:center;text-wrap:balance}
+.gate h1 .tr{text-align:center}
+.gate .sheet{margin-top:44px}
+.gate .sync-pick{margin:16px 0 4px}
+.sync-on{padding:10px 14px;margin-top:16px;background:var(--card);border:var(--dw) solid var(--outline);border-radius:var(--r)}
+.sync-on .sync-status{margin:0;flex:1 1 200px;text-align:right;font-size:15px}
+
 /* ---------- Playful Geometric 겉모양 ---------- */
 .bar{border-bottom:var(--ow) solid var(--outline)}
 .time{font-weight:800;font-synthesis:none}
@@ -336,7 +348,7 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
 @media print{.bar,.btnrow,.add,.x{display:none}body{background:#fff}}
 </style>
 </head>
-<body>
+<body class="gated">
 
 <div class="bar" id="bar">
   <div class="bar-in">
@@ -355,7 +367,32 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
 
 <div class="bar-space" aria-hidden="true"></div>
 <div class="pvbanner" id="pvBanner" hidden>교사용 미리 보기 · 눌러 보고 입력해도 저장되지 않아요</div>
+<div class="gate" id="gate">
+  <h1>힘의 특징을 이용한<br>기구나 장치 설계하기</h1>
+  <section class="sheet sync" id="sync" aria-labelledby="syncH">
+    <h3 id="syncH">우리 모둠 고르기</h3>
+    <p>반과 모둠 번호를 고르고 암호를 넣으면 활동 페이지로 들어가요. 입력한 내용은 자동으로 저장되어 다른 기기에서도 이어서 쓸 수 있고, 선생님도 볼 수 있어요. 학생 이름은 저장하지 않아요.</p>
+    <div class="sync-pick" id="syncPick">
+      <label>1학년 반<select id="sClass" class="in"></select></label>
+      <label>모둠 번호<select id="sGroup" class="in"></select></label>
+      <label>모둠 암호<input id="sPin" class="in pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="숫자 4자리" aria-describedby="pinHelp"></label>
+      <button class="big" id="sConnect" type="button">들어가기</button>
+      <button class="tbtn" id="sCancel" type="button" hidden>취소</button>
+    </div>
+    <p class="sync-status" id="syncStatus" role="status"></p>
+    <p class="note" id="pinHelp">처음 연결하는 모둠은 기록자가 정한 숫자 4자리가 모둠 암호가 돼요. 모둠원에게 알려 주고, 다른 기기에서는 같은 암호를 넣으세요. 잊었으면 선생님께 말씀드리세요.</p>
+    <p class="note">같은 반·모둠 번호를 고른 기기는 한 기록을 함께 써요. 여러 기기에서 동시에 고치면 마지막에 저장한 내용만 남으니, 입력은 기록자 한 명이 해 주세요.</p>
+  </section>
+</div>
+
 <main class="wrap">
+
+  <div class="sync-on" id="syncOn">
+    <strong id="syncWho"></strong>
+    <button class="tbtn primary" id="sSave" type="button">지금 저장</button>
+    <button class="tbtn" id="sChange" type="button">반·모둠 바꾸기</button>
+    <p class="sync-status" id="syncStatusOn" role="status"></p>
+  </div>
 
   <!-- 도입 -->
   <section class="hero" id="s0">
@@ -384,26 +421,6 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
       </g>
       <rect x="140" y="140" width="80" height="80" rx="8" fill="var(--card)" stroke="var(--ink)" stroke-width="4"/>
     </svg>
-  </section>
-
-  <section class="sheet sync" id="sync" aria-labelledby="syncH">
-    <h3 id="syncH">우리 모둠 기록 저장하기</h3>
-    <p>반과 모둠 번호를 고르면 입력한 내용이 자동으로 저장되어 다른 기기에서도 이어서 쓸 수 있고, 선생님도 볼 수 있어요. 학생 이름은 저장하지 않아요.</p>
-    <div class="sync-pick" id="syncPick">
-      <label>1학년 반<select id="sClass" class="in"></select></label>
-      <label>모둠 번호<select id="sGroup" class="in"></select></label>
-      <label>모둠 암호<input id="sPin" class="in pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="숫자 4자리" aria-describedby="pinHelp"></label>
-      <button class="big" id="sConnect" type="button">연결하기</button>
-      <button class="tbtn" id="sCancel" type="button" hidden>취소</button>
-    </div>
-    <div class="sync-on" id="syncOn" hidden>
-      <strong id="syncWho"></strong>
-      <button class="tbtn primary" id="sSave" type="button">지금 저장</button>
-      <button class="tbtn" id="sChange" type="button">반·모둠 바꾸기</button>
-    </div>
-    <p class="note" id="pinHelp">처음 연결하는 모둠은 기록자가 정한 숫자 4자리가 모둠 암호가 돼요. 모둠원에게 알려 주고, 다른 기기에서는 같은 암호를 넣으세요. 잊었으면 선생님께 말씀드리세요.</p>
-    <p class="sync-status" id="syncStatus" role="status"></p>
-    <p class="note">같은 반·모둠 번호를 고른 기기는 한 기록을 함께 써요. 여러 기기에서 동시에 고치면 마지막에 저장한 내용만 남으니, 입력은 기록자 한 명이 해 주세요.</p>
   </section>
 
   <section class="step" id="s1">
@@ -520,7 +537,7 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
   </section>
 
   <footer>
-    <p>입력한 내용은 이 기기의 브라우저에 저장되고, 반·모둠을 고르면 학교 수업용 서버에도 저장됩니다(학생 이름 제외). 다른 모둠이 같은 기기를 쓸 때는 아래 버튼으로 지워 주세요. 이 기기에서만 지워지고 서버에 저장된 모둠 기록은 남아 있어요.</p>
+    <p>입력한 내용은 이 기기의 브라우저와 학교 수업용 서버에 저장됩니다(학생 이름 제외). 다른 모둠이 같은 기기를 쓸 때는 아래 버튼으로 지워 주세요. 이 기기에서만 지워지고 서버에 저장된 모둠 기록은 남아 있어요.</p>
     <button class="tbtn" id="wipe">입력 내용 모두 지우기</button>
   </footer>
 </main>
@@ -797,8 +814,8 @@ function errText(e){
 }
 
 function setStatus(kind,extra){
-  const st=$('#syncStatus'), pill=$('#syncPill'); let msg='', p='☁ 저장 안 됨', pc='';
-  if(kind==='none'){ msg='아직 반과 모둠을 고르지 않아 이 기기에만 저장돼요.'; }
+  const pill=$('#syncPill'); let msg='', p='☁ 저장 안 됨', pc='';
+  if(kind==='none'){ msg=''; }
   else if(kind==='loading'){ msg='저장된 기록을 확인하는 중이에요…'; p='☁ 확인 중'; pc='busy'; }
   else if(kind==='wait'){ msg='고친 내용을 곧 저장해요…'; p='☁ 저장 대기'; pc='busy'; }
   else if(kind==='saving'){ msg='저장하는 중이에요…'; p='☁ 저장 중'; pc='busy'; }
@@ -807,7 +824,7 @@ function setStatus(kind,extra){
   else if(kind==='fail'){ msg=errText(extra); p='⚠ 저장 실패'; pc='err'; }
   else if(kind==='connfail'){ msg=extra&&extra.code?errText(extra):'서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.'+(extra&&!(extra instanceof TypeError)?' (서버 응답: '+extra.message+')':''); p='⚠ 연결 실패'; pc='err'; }
   else if(kind==='msg'){ msg=extra; pc='err'; p=Y.cls?'⚠ 다시 연결':'☁ 저장 안 됨'; }
-  st.textContent=msg; st.className='sync-status'+(pc==='err'?' err':pc==='ok'?' ok':'');
+  [$('#syncStatus'),$('#syncStatusOn')].forEach(st=>{ st.textContent=msg; st.className='sync-status'+(pc==='err'?' err':pc==='ok'?' ok':''); });
   pill.textContent=p; pill.className='syncpill'+(pc?' '+pc:'');
 }
 
@@ -898,15 +915,20 @@ async function pullIfNewer(){
     if(rec.exists && !Y.dirty && !busy && !sameT(rec.updated_at,Y.last)){ applyRec(rec,true); setStatus('pulled'); }
   }catch(e){ if(e.code==='wrong_pin') needRepick(e); }
 }
+function setGate(on){   // true: 모둠 고르는 첫 화면, false: 활동 페이지
+  if(document.body.classList.contains('gated')!==on) scrollTo(0,0);
+  document.body.classList.toggle('gated',on);
+  if(!on) requestAnimationFrame(growAll);   // 숨겨져 있던 입력 칸 높이 다시 맞춤
+}
 function showOn(){
   checkRoles();
-  $('#syncPick').hidden=true; $('#syncOn').hidden=false; $('#sCancel').hidden=true;
+  $('#sCancel').hidden=true; setGate(false);
   $('#syncWho').textContent=whoLabel(Y.cls,Y.grp);
 }
 function showPick(){
   if(Y.cls){ $('#sClass').value=Y.cls.split('-')[1]; $('#sGroup').value=String(Y.grp); }
   $('#sPin').value='';
-  $('#syncPick').hidden=false; $('#syncOn').hidden=true; $('#sCancel').hidden=!(Y.cls&&Y.pin);
+  $('#sCancel').hidden=!(Y.cls&&Y.pin); setGate(true);
 }
 const opts=(arr,fmt)=>'<option value="">고르기</option>'+arr.map(n=>`<option value="${n}">${fmt(n)}</option>`).join('');
 const range=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
@@ -915,7 +937,7 @@ $('#sGroup').innerHTML=opts(range(1,8),n=>n+'모둠');
 $('#sPin').addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,'').slice(0,4); });
 $('#sPin').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#sConnect').click(); });
 $('#sConnect').addEventListener('click',async()=>{
-  if(PREVIEW){ setStatus('msg','미리 보기에서는 연결·저장되지 않아요. 학생은 여기서 반, 모둠 번호, 암호를 넣고 ‘연결하기’를 눌러요.'); return; }
+  if(PREVIEW){ $('#syncWho').textContent='미리 보기'; $('#sSave').hidden=true; setGate(false); return; }   // 교사는 고르지 않아도 들어가 봄(저장 안 됨)
   const a='1', b=$('#sClass').value, g=+$('#sGroup').value, pin=$('#sPin').value;
   if(!a||!b||!g){ setStatus('msg','반과 모둠 번호를 골라 주세요.'); return; }
   if(!/^[0-9]{4}$/.test(pin)){ setStatus('msg','모둠 암호를 숫자 4자리로 넣어 주세요.'); $('#sPin').focus(); return; }
@@ -926,7 +948,7 @@ $('#sConnect').addEventListener('click',async()=>{
 $('#sCancel').addEventListener('click',()=>{ showOn(); setStatus(Y.dirty?'wait':'saved'); });
 $('#sChange').addEventListener('click',showPick);
 $('#sSave').addEventListener('click',push);
-$('#syncPill').addEventListener('click',()=>$('#sync').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}));
+$('#syncPill').addEventListener('click',()=>$('#syncOn').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}));
 addEventListener('online',()=>{ if(Y.cls&&Y.pin&&Y.dirty) push(); });
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){ if(Y.cls&&Y.pin&&Y.dirty) push(); }
@@ -959,7 +981,7 @@ function renderDesign(){
   $('#dPick').firstChild.textContent=DESIGN_URL?'다시 올리기':'사진 올리기';
   $('#dDel').hidden=!(on && DESIGN_URL);
   $('#dPaste').classList.toggle('off',!on);
-  if(!on && !dBusy){ const m=$('#dMsg'); m.className='sync-status'; m.textContent=PREVIEW?'미리 보기에서는 올릴 수 없어요. 학생은 여기서 사진을 골라 올려요.':'먼저 맨 위 ‘우리 모둠 기록 저장하기’에서 반·모둠을 연결하면 사진을 올릴 수 있어요.'; }
+  if(!on && !dBusy){ const m=$('#dMsg'); m.className='sync-status'; m.textContent=PREVIEW?'미리 보기에서는 올릴 수 없어요. 학생은 여기서 사진을 골라 올려요.':'반·모둠을 연결하면 사진을 올릴 수 있어요.'; }
 }
 async function loadDesign(){
   if(PREVIEW||!Y.cls||!Y.pin){ DESIGN_URL=null; renderDesign(); return; }
@@ -1129,8 +1151,8 @@ const TR_RAW={
 '몸이 불편한 사람이 쓰기 어려운 숟가락이나 컵':{en:'Spoons or cups that are hard to use for people with disabilities',zh:'行动不便的人难以使用的勺子或杯子',vi:'Thìa hoặc cốc khó dùng với người khuyết tật',ru:'Ложки или чашки, неудобные для людей с ограниченными возможностями'},
 '단계':{en:'Step',zh:'第',vi:'Bước',ru:'Шаг'},
 // 서버 저장
-'우리 모둠 기록 저장하기':{en:'Save our group’s work',zh:'保存我们小组的记录',vi:'Lưu bài làm của nhóm',ru:'Сохраняем работу группы'},
-'반과 모둠 번호를 고르면 입력한 내용이 자동으로 저장되어 다른 기기에서도 이어서 쓸 수 있고, 선생님도 볼 수 있어요. 학생 이름은 저장하지 않아요.':{en:'Choose your class and group number. Your work is saved automatically, so you can continue on another device and your teacher can see it. Student names are not saved.',zh:'选择班级和小组号后，输入的内容会自动保存，可以在其他设备上继续写，老师也能看到。不会保存学生姓名。',vi:'Chọn lớp và số nhóm, nội dung sẽ được lưu tự động để có thể viết tiếp trên thiết bị khác và giáo viên cũng xem được. Tên học sinh không được lưu.',ru:'Выберите класс и номер группы — записи сохраняются автоматически, их можно продолжить на другом устройстве, и учитель их увидит. Имена учеников не сохраняются.'},
+'우리 모둠 고르기':{en:'Choose your group',zh:'选择我们小组',vi:'Chọn nhóm của em',ru:'Выбираем свою группу'},
+'반과 모둠 번호를 고르고 암호를 넣으면 활동 페이지로 들어가요. 입력한 내용은 자동으로 저장되어 다른 기기에서도 이어서 쓸 수 있고, 선생님도 볼 수 있어요. 학생 이름은 저장하지 않아요.':{en:'Choose your class and group number and enter the password to open the activity page. Your work is saved automatically, so you can continue on another device and your teacher can see it. Student names are not saved.',zh:'选择班级和小组号并输入密码后，就能进入活动页面。输入的内容会自动保存，可以在其他设备上继续写，老师也能看到。不会保存学生姓名。',vi:'Chọn lớp, số nhóm và nhập mật khẩu để vào trang hoạt động. Nội dung sẽ được lưu tự động để có thể viết tiếp trên thiết bị khác và giáo viên cũng xem được. Tên học sinh không được lưu.',ru:'Выберите класс и номер группы и введите пароль, чтобы открыть страницу занятия. Записи сохраняются автоматически, их можно продолжить на другом устройстве, и учитель их увидит. Имена учеников не сохраняются.'},
 '같은 반·모둠 번호를 고른 기기는 한 기록을 함께 써요. 여러 기기에서 동시에 고치면 마지막에 저장한 내용만 남으니, 입력은 기록자 한 명이 해 주세요.':{en:'Devices that choose the same class and group share one record. If several devices edit at once, only the last save remains, so let one recorder type.',zh:'选择相同班级和小组号的设备共用一份记录。多台设备同时修改时只保留最后保存的内容，请由记录员一个人输入。',vi:'Các thiết bị chọn cùng lớp và số nhóm dùng chung một bản ghi. Nếu nhiều thiết bị sửa cùng lúc, chỉ lần lưu cuối được giữ lại, nên hãy để một thư ký nhập.',ru:'Устройства с одинаковым классом и номером группы пишут в одну запись. Если исправлять с нескольких устройств одновременно, останется только последнее сохранение, поэтому пусть печатает один секретарь.'},
 '처음 연결하는 모둠은 기록자가 정한 숫자 4자리가 모둠 암호가 돼요. 모둠원에게 알려 주고, 다른 기기에서는 같은 암호를 넣으세요. 잊었으면 선생님께 말씀드리세요.':{en:'For a group connecting for the first time, the 4-digit number the recorder chooses becomes the group password. Tell your group members and enter the same password on other devices. If you forget it, ask your teacher.',zh:'第一次连接的小组，记录员设定的4位数字就是小组密码。请告诉组员，在其他设备上输入相同的密码。忘记了请告诉老师。',vi:'Với nhóm kết nối lần đầu, 4 chữ số do thư ký đặt sẽ là mật khẩu của nhóm. Hãy báo cho các bạn trong nhóm và nhập cùng mật khẩu trên thiết bị khác. Nếu quên, hãy báo giáo viên.',ru:'Для группы, которая подключается впервые, 4 цифры, выбранные секретарём, станут паролем группы. Сообщите его участникам и вводите тот же пароль на других устройствах. Если забыли — обратитесь к учителю.'},
 '도화지나 패드에 그린 설계도를 캡처하거나 사진으로 찍어 올려요. 모둠당 1장이고, 다시 올리면 새 사진으로 바뀌어요.':{en:'Take a photo or screenshot of the design you drew on paper or a tablet and upload it. One per group; uploading again replaces it.',zh:'把在图画纸或平板上画的设计图截图或拍照上传。每组1张，再次上传会替换。',vi:'Chụp ảnh hoặc chụp màn hình bản thiết kế đã vẽ trên giấy hoặc máy tính bảng rồi tải lên. Mỗi nhóm 1 ảnh, tải lại sẽ thay ảnh cũ.',ru:'Сфотографируйте или сделайте скриншот проекта, нарисованного на бумаге или планшете, и загрузите. Одно фото на группу; новая загрузка заменяет старую.'},
@@ -1141,7 +1163,7 @@ const TR={}; for(const k in TR_RAW) TR[k.replace(/\s+/g,'')]=TR_RAW[k];
 
 /* 번역 */
 let LANG='ko'; try{ LANG=localStorage.getItem(KEY+'-lang')||'ko'; }catch(e){} if(!LANGS[LANG]) LANG='ko';
-const TSEL='#s0 h1, #s0 p, #s0 .goal-t, #s0 .std, .step-h h2, .lead, #s1 > h3, .fc h3, .fc .body > span[style], .fc dt, .fc dd, .role strong, .role small, .rf strong, label.fld, .bank summary, #bank button, .ex, .example h3, .example p, .sheet > h3, .checklist span, .legend, .self p, #s6 p.note, #sync h3, #sync > p:not(.sync-status), #rolesNote, #dNote';
+const TSEL='#s0 h1, #s0 p, #s0 .goal-t, #s0 .std, .step-h h2, .lead, #s1 > h3, .fc h3, .fc .body > span[style], .fc dt, .fc dd, .role strong, .role small, .rf strong, label.fld, .bank summary, #bank button, .ex, .example h3, .example p, .sheet > h3, .checklist span, .legend, .self p, #s6 p.note, #gate h1, #sync h3, #sync > p:not(.sync-status), #rolesNote, #dNote';
 function applyLang(){
   document.querySelectorAll('.tr').forEach(e=>e.remove());
   document.documentElement.dataset.lang=LANG;
@@ -1203,7 +1225,7 @@ async function helpCall(on){
 }
 $('#helpBtn').addEventListener('click',()=>{
   if(PREVIEW){ helpMsg('미리 보기에서는 도움 요청을 보낼 수 없어요.'); return; }
-  if(!Y.cls||!Y.pin){ helpMsg('먼저 아래 ‘우리 모둠 기록 저장하기’에서 반·모둠을 연결해 주세요.'); $('#sync').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}); return; }
+  if(!Y.cls||!Y.pin){ showPick(); return; }
   if(helpOn){ if(confirm('도움 요청을 취소할까요?')) helpCall(false); }
   else{ helpCall(true).then(()=>{ if(helpOn) helpMsg('선생님께 도움 요청을 보냈어요. 잠시만 기다려 주세요.'); }); }
 });
