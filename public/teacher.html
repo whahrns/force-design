@@ -11,16 +11,16 @@
 <style>
 :root{
   /* Claymorphism: 위 왼쪽에서 오는 빛, 부드럽게 부푼 모양, 진한 자두색 글자 */
-  --paper:#f1f2fa; --grid:transparent; --ink:#383139; --muted:#48404b; --line:#cdc5d4; --card:#fffdf7; --soft:#c0efdc;
-  --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#f9e7a8; --mint:#c0efdc; --lav:#ded0f9; --sky:#c5e5fb; --sel:#ded0f9; --cushion:#f6a3ca; --focus:#383139;
-  --on-accent:#383139;
-  --g:#4f36a6; --f:#6e4a00; --b:#0a5e43; --e:#a01a63;
-  --g-bg:#ded0f9; --f-bg:#f9e7a8; --b-bg:#c0efdc; --e-bg:#fbd3e6;
-  --clay-tray:18px 22px 44px rgba(84,66,98,.16),inset 5px 5px 10px rgba(255,255,255,.85),inset -6px -7px 14px rgba(120,90,130,.1);
-  --clay-surf:9px 11px 22px rgba(84,66,98,.16),inset 4px 4px 8px rgba(255,255,255,.65),inset -5px -6px 10px rgba(90,60,100,.12);
-  --clay-ctl:4px 6px 12px rgba(84,66,98,.24),inset 3px 3px 5px rgba(255,255,255,.7),inset -3px -4px 6px rgba(90,60,100,.18);
-  --clay-press:1px 2px 4px rgba(84,66,98,.2),inset 3px 4px 7px rgba(90,60,100,.25),inset -2px -2px 4px rgba(255,255,255,.5);
-  --clay-well:inset 3px 4px 8px rgba(90,60,100,.16),inset -2px -2px 5px rgba(255,255,255,.8);
+  --paper:#FFFDF5; --grid:transparent; --ink:#253044; --muted:#5B6275; --line:#B8B6C5; --card:#FFFFFF; --soft:#E9FFF5;
+  --outline:transparent; --accent:#6434DF; --pink:#FF78C5; --amber:#FFD05B; --mint:#9BF1CD; --lav:#F1EBFF; --sky:#FFE6F4; --sel:#F1EBFF; --cushion:#F1EBFF; --focus:#6434DF;
+  --on-accent:#FFFFFF;
+  --g:#6434DF; --f:#8A5A00; --b:#0B7A55; --e:#C21F7A;
+  --g-bg:#F1EBFF; --f-bg:#FFF3CC; --b-bg:#E9FFF5; --e-bg:#FFE6F4;
+  --clay-tray:18px 22px 44px rgba(37,43,58,.14),inset 5px 5px 10px rgba(255,255,255,.85),inset -6px -7px 14px rgba(37,43,58,.07);
+  --clay-surf:9px 11px 22px rgba(37,43,58,.14),inset 4px 4px 8px rgba(255,255,255,.65),inset -5px -6px 10px rgba(37,43,58,.08);
+  --clay-ctl:4px 6px 12px rgba(37,43,58,.22),inset 3px 3px 5px rgba(255,255,255,.3),inset -3px -4px 6px rgba(37,43,58,.14);
+  --clay-press:1px 2px 4px rgba(37,43,58,.2),inset 3px 4px 7px rgba(37,43,58,.25),inset -2px -2px 4px rgba(255,255,255,.3);
+  --clay-well:inset 3px 4px 8px rgba(37,43,58,.14),inset -2px -2px 5px rgba(255,255,255,.8);
   --r:24px; --r-sm:16px; --r-xs:12px; --tray:40px; --ow:0px; --dw:0px; --t:180ms;
   --display:"Instrument Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --body:"Instrument Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
@@ -28,27 +28,27 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#211d26; --grid:transparent; --ink:#f5eff6; --muted:#d6cdd9; --line:#5a5163; --card:#2e2935; --soft:#26483d;
-    --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#4b3f1d; --mint:#26483d; --lav:#3e3361; --sky:#24405a; --sel:#3e3361; --cushion:#5c2f49; --focus:#f5eff6;
-    --on-accent:#2b2230;
-    --g:#cfc0ff; --f:#f9e7a8; --b:#a8ecd2; --e:#ffb3d8;
-    --g-bg:#3e3361; --f-bg:#4b3f1d; --b-bg:#26483d; --e-bg:#5c2f49;
+    --paper:#171A24; --grid:transparent; --ink:#EEF0F7; --muted:#A6ABBE; --line:#454B60; --card:#21263A; --soft:#17302A;
+    --outline:transparent; --accent:#9B7BFF; --pink:#FF78C5; --amber:#FFD05B; --mint:#5FD9A9; --lav:#2C2550; --sky:#3F1A33; --sel:#2C2550; --cushion:#2C2550; --focus:#9B7BFF;
+    --on-accent:#14121F;
+    --g:#B39DFF; --f:#FFD05B; --b:#7BEBC2; --e:#FF8FD0;
+    --g-bg:#2C2550; --f-bg:#3A300F; --b-bg:#14352B; --e-bg:#3F1A33;
     --clay-tray:14px 18px 36px rgba(0,0,0,.4),inset 4px 4px 9px rgba(255,255,255,.07),inset -6px -7px 14px rgba(0,0,0,.25);
     --clay-surf:8px 10px 20px rgba(0,0,0,.35),inset 3px 3px 7px rgba(255,255,255,.08),inset -5px -6px 10px rgba(0,0,0,.25);
-    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.3),inset -3px -4px 6px rgba(90,40,70,.3);
+    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.25),inset -3px -4px 6px rgba(0,0,0,.25);
     --clay-press:1px 2px 4px rgba(0,0,0,.35),inset 3px 4px 7px rgba(0,0,0,.35),inset -2px -2px 4px rgba(255,255,255,.08);
     --clay-well:inset 3px 4px 8px rgba(0,0,0,.35),inset -2px -2px 5px rgba(255,255,255,.06);
   }
 }
 :root[data-theme="dark"]{
-    --paper:#211d26; --grid:transparent; --ink:#f5eff6; --muted:#d6cdd9; --line:#5a5163; --card:#2e2935; --soft:#26483d;
-    --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#4b3f1d; --mint:#26483d; --lav:#3e3361; --sky:#24405a; --sel:#3e3361; --cushion:#5c2f49; --focus:#f5eff6;
-    --on-accent:#2b2230;
-    --g:#cfc0ff; --f:#f9e7a8; --b:#a8ecd2; --e:#ffb3d8;
-    --g-bg:#3e3361; --f-bg:#4b3f1d; --b-bg:#26483d; --e-bg:#5c2f49;
+    --paper:#171A24; --grid:transparent; --ink:#EEF0F7; --muted:#A6ABBE; --line:#454B60; --card:#21263A; --soft:#17302A;
+    --outline:transparent; --accent:#9B7BFF; --pink:#FF78C5; --amber:#FFD05B; --mint:#5FD9A9; --lav:#2C2550; --sky:#3F1A33; --sel:#2C2550; --cushion:#2C2550; --focus:#9B7BFF;
+    --on-accent:#14121F;
+    --g:#B39DFF; --f:#FFD05B; --b:#7BEBC2; --e:#FF8FD0;
+    --g-bg:#2C2550; --f-bg:#3A300F; --b-bg:#14352B; --e-bg:#3F1A33;
     --clay-tray:14px 18px 36px rgba(0,0,0,.4),inset 4px 4px 9px rgba(255,255,255,.07),inset -6px -7px 14px rgba(0,0,0,.25);
     --clay-surf:8px 10px 20px rgba(0,0,0,.35),inset 3px 3px 7px rgba(255,255,255,.08),inset -5px -6px 10px rgba(0,0,0,.25);
-    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.3),inset -3px -4px 6px rgba(90,40,70,.3);
+    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.25),inset -3px -4px 6px rgba(0,0,0,.25);
     --clay-press:1px 2px 4px rgba(0,0,0,.35),inset 3px 4px 7px rgba(0,0,0,.35),inset -2px -2px 4px rgba(255,255,255,.08);
     --clay-well:inset 3px 4px 8px rgba(0,0,0,.35),inset -2px -2px 5px rgba(255,255,255,.06);
 }
@@ -199,7 +199,7 @@ summary{cursor:pointer;font-weight:700}
 footer{padding:20px 0 40px}
 
 /* ---------- Claymorphism 겉모양 (학생 화면과 같게) ---------- */
-.bar{background:var(--card);border-bottom:0;box-shadow:0 8px 22px rgba(84,66,98,.14)}
+.bar{background:var(--card);border-bottom:0;box-shadow:0 8px 22px rgba(37,43,58,.12)}
 .bar h1{font-weight:700}
 .btn,.tab{transition:transform var(--t),box-shadow var(--t)}
 .btn{border:0;background:var(--card);color:var(--ink);box-shadow:var(--clay-ctl);font-weight:600;padding:6px 16px}
@@ -233,9 +233,9 @@ option{background:var(--card);color:var(--ink)}
 @media (prefers-reduced-motion:reduce){select:hover,select:active{transform:none}}
 .login{border:0;border-radius:var(--r);background:var(--card);box-shadow:var(--clay-tray);padding:28px}
 .panel{border:0;border-radius:var(--r);background:var(--card);box-shadow:var(--clay-surf);padding:20px 24px}
-#timerPanel{background:var(--amber)}
+#timerPanel{background:var(--f-bg)}
 #qBox{background:var(--lav)}
-#drawPanel{background:var(--sky)}
+#drawPanel{background:var(--b-bg)}
 .qbox{box-shadow:var(--clay-surf)}
 .qi{border-top-color:var(--line)}
 .qi.on{background:var(--card);border-radius:var(--r-sm);box-shadow:var(--clay-well)}
@@ -256,7 +256,7 @@ th:last-child,td:last-child{padding-right:14px}
 td.total,.rk,.br b,.dr-last,.dr-bigtxt,.big .dr-big,.big .bq,.big .cnt,.hrow b{font-weight:700}
 .top1{background:var(--f-bg)}
 .rk{border:0;box-shadow:var(--clay-well)}
-.rk.r1{border:0;background:var(--amber);color:var(--ink);box-shadow:var(--clay-ctl)}
+.rk.r1{border:0;background:var(--amber);color:#252B3A;box-shadow:var(--clay-ctl)}
 .rk.r2,.rk.r3{border:0;background:var(--lav)}
 .br .lab{border:0;border-radius:var(--r-xs);background:var(--card);box-shadow:var(--clay-well)}
 .br .lab i{background:var(--lav)}
@@ -264,7 +264,7 @@ td.total,.rk,.br b,.dr-last,.dr-bigtxt,.big .dr-big,.big .bq,.big .cnt,.hrow b{f
 .br.ans .lab i{background:var(--b-bg)}
 .state{border:0;background:var(--card);box-shadow:var(--clay-well);padding:1px 12px}
 .meter i{border:0;height:10px;background:var(--lav);box-shadow:var(--clay-well);border-radius:999px}
-.meter i b{background:var(--e)}
+.meter i b{background:var(--accent)}
 .dr-order span{border:0;background:var(--card);box-shadow:var(--clay-well)}
 .dr-order span.now{background:var(--accent);color:var(--on-accent);box-shadow:var(--clay-ctl)}
 .dshot img{border:0;border-radius:var(--r-xs);box-shadow:var(--clay-well)}
@@ -272,7 +272,7 @@ td.total,.rk,.br b,.dr-last,.dr-bigtxt,.big .dr-big,.big .bq,.big .cnt,.hrow b{f
 .use{border:0;border-radius:var(--r-xs);padding:8px 14px}
 .chip{border:0;border-radius:999px;padding:0 10px}
 footer{color:var(--muted)}
-.hbadge{display:inline-block;min-width:1.5em;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--e);color:var(--card);font-weight:700;font-size:13px;line-height:1.5;text-align:center}
+.hbadge{display:inline-block;min-width:1.5em;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--pink);color:#252B3A;font-weight:700;font-size:13px;line-height:1.5;text-align:center}
 .helpp{box-shadow:var(--clay-surf)}
 .helpp.has{background:var(--e-bg)}
 .hrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:8px 0;border-top:1px dashed var(--line)}

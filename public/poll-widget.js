@@ -51,7 +51,7 @@
 .dw-wheel .dwh{max-width:min(280px,46vh)}
 .dw-res{font-family:var(--display);font-weight:700;font-size:clamp(32px,9vw,44px);line-height:1.15;margin:6px 0 2px}
 .dw-wait{font-size:17px;font-weight:700;margin:8px 0 2px}
-.dw-mine{display:inline-block;margin:2px 0 8px;font-weight:700;border:0;border-radius:999px;padding:2px 14px;background:var(--amber);color:var(--ink);box-shadow:var(--clay-ctl)}
+.dw-mine{display:inline-block;margin:2px 0 8px;font-weight:700;border:0;border-radius:999px;padding:2px 14px;background:var(--amber);color:#252B3A;box-shadow:var(--clay-ctl)}
 .dw-order{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;font-size:14px;margin-top:6px}
 .dw-order span{border:0;border-radius:999px;padding:0 10px;background:var(--paper);box-shadow:var(--clay-well)}
 .dw-order span.now{background:var(--accent);color:var(--on-accent);font-weight:700}`;

@@ -9,43 +9,43 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#f1f2fa; --grid:transparent; --ink:#383139; --muted:#48404b; --line:#cdc5d4; --card:#fffdf7; --soft:#c0efdc;
-  --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#f9e7a8; --mint:#c0efdc; --lav:#ded0f9; --sky:#c5e5fb; --sel:#ded0f9; --cushion:#f6a3ca; --focus:#383139;
-  --on-accent:#383139;
-  --g:#4f36a6; --f:#6e4a00; --b:#0a5e43; --e:#a01a63;
-  --g-bg:#ded0f9; --f-bg:#f9e7a8; --b-bg:#c0efdc; --e-bg:#fbd3e6;
-  --clay-tray:18px 22px 44px rgba(84,66,98,.16),inset 5px 5px 10px rgba(255,255,255,.85),inset -6px -7px 14px rgba(120,90,130,.1);
-  --clay-surf:9px 11px 22px rgba(84,66,98,.16),inset 4px 4px 8px rgba(255,255,255,.65),inset -5px -6px 10px rgba(90,60,100,.12);
-  --clay-ctl:4px 6px 12px rgba(84,66,98,.24),inset 3px 3px 5px rgba(255,255,255,.7),inset -3px -4px 6px rgba(90,60,100,.18);
-  --clay-press:1px 2px 4px rgba(84,66,98,.2),inset 3px 4px 7px rgba(90,60,100,.25),inset -2px -2px 4px rgba(255,255,255,.5);
-  --clay-well:inset 3px 4px 8px rgba(90,60,100,.16),inset -2px -2px 5px rgba(255,255,255,.8);
+  --paper:#FFFDF5; --grid:transparent; --ink:#253044; --muted:#5B6275; --line:#B8B6C5; --card:#FFFFFF; --soft:#E9FFF5;
+  --outline:transparent; --accent:#6434DF; --pink:#FF78C5; --amber:#FFD05B; --mint:#9BF1CD; --lav:#F1EBFF; --sky:#FFE6F4; --sel:#F1EBFF; --cushion:#F1EBFF; --focus:#6434DF;
+  --on-accent:#FFFFFF;
+  --g:#6434DF; --f:#8A5A00; --b:#0B7A55; --e:#C21F7A;
+  --g-bg:#F1EBFF; --f-bg:#FFF3CC; --b-bg:#E9FFF5; --e-bg:#FFE6F4;
+  --clay-tray:18px 22px 44px rgba(37,43,58,.14),inset 5px 5px 10px rgba(255,255,255,.85),inset -6px -7px 14px rgba(37,43,58,.07);
+  --clay-surf:9px 11px 22px rgba(37,43,58,.14),inset 4px 4px 8px rgba(255,255,255,.65),inset -5px -6px 10px rgba(37,43,58,.08);
+  --clay-ctl:4px 6px 12px rgba(37,43,58,.22),inset 3px 3px 5px rgba(255,255,255,.3),inset -3px -4px 6px rgba(37,43,58,.14);
+  --clay-press:1px 2px 4px rgba(37,43,58,.2),inset 3px 4px 7px rgba(37,43,58,.25),inset -2px -2px 4px rgba(255,255,255,.3);
+  --clay-well:inset 3px 4px 8px rgba(37,43,58,.14),inset -2px -2px 5px rgba(255,255,255,.8);
   --display:"Instrument Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --body:"Instrument Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   box-sizing:border-box;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#211d26; --grid:transparent; --ink:#f5eff6; --muted:#d6cdd9; --line:#5a5163; --card:#2e2935; --soft:#26483d;
-    --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#4b3f1d; --mint:#26483d; --lav:#3e3361; --sky:#24405a; --sel:#3e3361; --cushion:#5c2f49; --focus:#f5eff6;
-    --on-accent:#2b2230;
-    --g:#cfc0ff; --f:#f9e7a8; --b:#a8ecd2; --e:#ffb3d8;
-    --g-bg:#3e3361; --f-bg:#4b3f1d; --b-bg:#26483d; --e-bg:#5c2f49;
+    --paper:#171A24; --grid:transparent; --ink:#EEF0F7; --muted:#A6ABBE; --line:#454B60; --card:#21263A; --soft:#17302A;
+    --outline:transparent; --accent:#9B7BFF; --pink:#FF78C5; --amber:#FFD05B; --mint:#5FD9A9; --lav:#2C2550; --sky:#3F1A33; --sel:#2C2550; --cushion:#2C2550; --focus:#9B7BFF;
+    --on-accent:#14121F;
+    --g:#B39DFF; --f:#FFD05B; --b:#7BEBC2; --e:#FF8FD0;
+    --g-bg:#2C2550; --f-bg:#3A300F; --b-bg:#14352B; --e-bg:#3F1A33;
     --clay-tray:14px 18px 36px rgba(0,0,0,.4),inset 4px 4px 9px rgba(255,255,255,.07),inset -6px -7px 14px rgba(0,0,0,.25);
     --clay-surf:8px 10px 20px rgba(0,0,0,.35),inset 3px 3px 7px rgba(255,255,255,.08),inset -5px -6px 10px rgba(0,0,0,.25);
-    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.3),inset -3px -4px 6px rgba(90,40,70,.3);
+    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.25),inset -3px -4px 6px rgba(0,0,0,.25);
     --clay-press:1px 2px 4px rgba(0,0,0,.35),inset 3px 4px 7px rgba(0,0,0,.35),inset -2px -2px 4px rgba(255,255,255,.08);
     --clay-well:inset 3px 4px 8px rgba(0,0,0,.35),inset -2px -2px 5px rgba(255,255,255,.06);
   }
 }
 :root[data-theme="dark"]{
-    --paper:#211d26; --grid:transparent; --ink:#f5eff6; --muted:#d6cdd9; --line:#5a5163; --card:#2e2935; --soft:#26483d;
-    --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#4b3f1d; --mint:#26483d; --lav:#3e3361; --sky:#24405a; --sel:#3e3361; --cushion:#5c2f49; --focus:#f5eff6;
-    --on-accent:#2b2230;
-    --g:#cfc0ff; --f:#f9e7a8; --b:#a8ecd2; --e:#ffb3d8;
-    --g-bg:#3e3361; --f-bg:#4b3f1d; --b-bg:#26483d; --e-bg:#5c2f49;
+    --paper:#171A24; --grid:transparent; --ink:#EEF0F7; --muted:#A6ABBE; --line:#454B60; --card:#21263A; --soft:#17302A;
+    --outline:transparent; --accent:#9B7BFF; --pink:#FF78C5; --amber:#FFD05B; --mint:#5FD9A9; --lav:#2C2550; --sky:#3F1A33; --sel:#2C2550; --cushion:#2C2550; --focus:#9B7BFF;
+    --on-accent:#14121F;
+    --g:#B39DFF; --f:#FFD05B; --b:#7BEBC2; --e:#FF8FD0;
+    --g-bg:#2C2550; --f-bg:#3A300F; --b-bg:#14352B; --e-bg:#3F1A33;
     --clay-tray:14px 18px 36px rgba(0,0,0,.4),inset 4px 4px 9px rgba(255,255,255,.07),inset -6px -7px 14px rgba(0,0,0,.25);
     --clay-surf:8px 10px 20px rgba(0,0,0,.35),inset 3px 3px 7px rgba(255,255,255,.08),inset -5px -6px 10px rgba(0,0,0,.25);
-    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.3),inset -3px -4px 6px rgba(90,40,70,.3);
+    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.25),inset -3px -4px 6px rgba(0,0,0,.25);
     --clay-press:1px 2px 4px rgba(0,0,0,.35),inset 3px 4px 7px rgba(0,0,0,.35),inset -2px -2px 4px rgba(255,255,255,.08);
     --clay-well:inset 3px 4px 8px rgba(0,0,0,.35),inset -2px -2px 5px rgba(255,255,255,.06);
 }

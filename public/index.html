@@ -10,16 +10,16 @@
 <style>
 :root{
   /* Claymorphism: 위 왼쪽에서 오는 빛, 부드럽게 부푼 모양, 진한 자두색 글자 */
-  --paper:#f1f2fa; --grid:transparent; --ink:#383139; --muted:#48404b; --line:#cdc5d4; --card:#fffdf7; --soft:#c0efdc;
-  --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#f9e7a8; --mint:#c0efdc; --lav:#ded0f9; --sky:#c5e5fb; --sel:#ded0f9; --cushion:#f6a3ca; --focus:#383139;
-  --on-accent:#383139;
-  --g:#4f36a6; --f:#6e4a00; --b:#0a5e43; --e:#a01a63;
-  --g-bg:#ded0f9; --f-bg:#f9e7a8; --b-bg:#c0efdc; --e-bg:#fbd3e6;
-  --clay-tray:18px 22px 44px rgba(84,66,98,.16),inset 5px 5px 10px rgba(255,255,255,.85),inset -6px -7px 14px rgba(120,90,130,.1);
-  --clay-surf:9px 11px 22px rgba(84,66,98,.16),inset 4px 4px 8px rgba(255,255,255,.65),inset -5px -6px 10px rgba(90,60,100,.12);
-  --clay-ctl:4px 6px 12px rgba(84,66,98,.24),inset 3px 3px 5px rgba(255,255,255,.7),inset -3px -4px 6px rgba(90,60,100,.18);
-  --clay-press:1px 2px 4px rgba(84,66,98,.2),inset 3px 4px 7px rgba(90,60,100,.25),inset -2px -2px 4px rgba(255,255,255,.5);
-  --clay-well:inset 3px 4px 8px rgba(90,60,100,.16),inset -2px -2px 5px rgba(255,255,255,.8);
+  --paper:#FFFDF5; --grid:transparent; --ink:#253044; --muted:#5B6275; --line:#B8B6C5; --card:#FFFFFF; --soft:#E9FFF5;
+  --outline:transparent; --accent:#6434DF; --pink:#FF78C5; --amber:#FFD05B; --mint:#9BF1CD; --lav:#F1EBFF; --sky:#FFE6F4; --sel:#F1EBFF; --cushion:#F1EBFF; --focus:#6434DF;
+  --on-accent:#FFFFFF;
+  --g:#6434DF; --f:#8A5A00; --b:#0B7A55; --e:#C21F7A;
+  --g-bg:#F1EBFF; --f-bg:#FFF3CC; --b-bg:#E9FFF5; --e-bg:#FFE6F4;
+  --clay-tray:18px 22px 44px rgba(37,43,58,.14),inset 5px 5px 10px rgba(255,255,255,.85),inset -6px -7px 14px rgba(37,43,58,.07);
+  --clay-surf:9px 11px 22px rgba(37,43,58,.14),inset 4px 4px 8px rgba(255,255,255,.65),inset -5px -6px 10px rgba(37,43,58,.08);
+  --clay-ctl:4px 6px 12px rgba(37,43,58,.22),inset 3px 3px 5px rgba(255,255,255,.3),inset -3px -4px 6px rgba(37,43,58,.14);
+  --clay-press:1px 2px 4px rgba(37,43,58,.2),inset 3px 4px 7px rgba(37,43,58,.25),inset -2px -2px 4px rgba(255,255,255,.3);
+  --clay-well:inset 3px 4px 8px rgba(37,43,58,.14),inset -2px -2px 5px rgba(255,255,255,.8);
   --r:24px; --r-sm:16px; --r-xs:12px; --tray:40px; --ow:0px; --dw:0px; --t:180ms;
   --display:"Instrument Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --body:"Instrument Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
@@ -29,27 +29,27 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#211d26; --grid:transparent; --ink:#f5eff6; --muted:#d6cdd9; --line:#5a5163; --card:#2e2935; --soft:#26483d;
-    --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#4b3f1d; --mint:#26483d; --lav:#3e3361; --sky:#24405a; --sel:#3e3361; --cushion:#5c2f49; --focus:#f5eff6;
-    --on-accent:#2b2230;
-    --g:#cfc0ff; --f:#f9e7a8; --b:#a8ecd2; --e:#ffb3d8;
-    --g-bg:#3e3361; --f-bg:#4b3f1d; --b-bg:#26483d; --e-bg:#5c2f49;
+    --paper:#171A24; --grid:transparent; --ink:#EEF0F7; --muted:#A6ABBE; --line:#454B60; --card:#21263A; --soft:#17302A;
+    --outline:transparent; --accent:#9B7BFF; --pink:#FF78C5; --amber:#FFD05B; --mint:#5FD9A9; --lav:#2C2550; --sky:#3F1A33; --sel:#2C2550; --cushion:#2C2550; --focus:#9B7BFF;
+    --on-accent:#14121F;
+    --g:#B39DFF; --f:#FFD05B; --b:#7BEBC2; --e:#FF8FD0;
+    --g-bg:#2C2550; --f-bg:#3A300F; --b-bg:#14352B; --e-bg:#3F1A33;
     --clay-tray:14px 18px 36px rgba(0,0,0,.4),inset 4px 4px 9px rgba(255,255,255,.07),inset -6px -7px 14px rgba(0,0,0,.25);
     --clay-surf:8px 10px 20px rgba(0,0,0,.35),inset 3px 3px 7px rgba(255,255,255,.08),inset -5px -6px 10px rgba(0,0,0,.25);
-    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.3),inset -3px -4px 6px rgba(90,40,70,.3);
+    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.25),inset -3px -4px 6px rgba(0,0,0,.25);
     --clay-press:1px 2px 4px rgba(0,0,0,.35),inset 3px 4px 7px rgba(0,0,0,.35),inset -2px -2px 4px rgba(255,255,255,.08);
     --clay-well:inset 3px 4px 8px rgba(0,0,0,.35),inset -2px -2px 5px rgba(255,255,255,.06);
   }
 }
 :root[data-theme="dark"]{
-    --paper:#211d26; --grid:transparent; --ink:#f5eff6; --muted:#d6cdd9; --line:#5a5163; --card:#2e2935; --soft:#26483d;
-    --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#4b3f1d; --mint:#26483d; --lav:#3e3361; --sky:#24405a; --sel:#3e3361; --cushion:#5c2f49; --focus:#f5eff6;
-    --on-accent:#2b2230;
-    --g:#cfc0ff; --f:#f9e7a8; --b:#a8ecd2; --e:#ffb3d8;
-    --g-bg:#3e3361; --f-bg:#4b3f1d; --b-bg:#26483d; --e-bg:#5c2f49;
+    --paper:#171A24; --grid:transparent; --ink:#EEF0F7; --muted:#A6ABBE; --line:#454B60; --card:#21263A; --soft:#17302A;
+    --outline:transparent; --accent:#9B7BFF; --pink:#FF78C5; --amber:#FFD05B; --mint:#5FD9A9; --lav:#2C2550; --sky:#3F1A33; --sel:#2C2550; --cushion:#2C2550; --focus:#9B7BFF;
+    --on-accent:#14121F;
+    --g:#B39DFF; --f:#FFD05B; --b:#7BEBC2; --e:#FF8FD0;
+    --g-bg:#2C2550; --f-bg:#3A300F; --b-bg:#14352B; --e-bg:#3F1A33;
     --clay-tray:14px 18px 36px rgba(0,0,0,.4),inset 4px 4px 9px rgba(255,255,255,.07),inset -6px -7px 14px rgba(0,0,0,.25);
     --clay-surf:8px 10px 20px rgba(0,0,0,.35),inset 3px 3px 7px rgba(255,255,255,.08),inset -5px -6px 10px rgba(0,0,0,.25);
-    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.3),inset -3px -4px 6px rgba(90,40,70,.3);
+    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.25),inset -3px -4px 6px rgba(0,0,0,.25);
     --clay-press:1px 2px 4px rgba(0,0,0,.35),inset 3px 4px 7px rgba(0,0,0,.35),inset -2px -2px 4px rgba(255,255,255,.08);
     --clay-well:inset 3px 4px 8px rgba(0,0,0,.35),inset -2px -2px 5px rgba(255,255,255,.06);
 }
@@ -258,7 +258,7 @@ body.gated .langsel{margin-left:auto}
 .sync-on .sync-status{margin:0;flex:1 1 200px;text-align:right;font-size:15px}
 
 /* ---------- Claymorphism 겉모양 ---------- */
-.bar{background:var(--card);border-bottom:0;box-shadow:0 8px 22px rgba(84,66,98,.14)}
+.bar{background:var(--card);border-bottom:0;box-shadow:0 8px 22px rgba(37,43,58,.12)}
 .bar.alarm{animation:flash 1s 4}
 .time{font-weight:700;font-synthesis:none;letter-spacing:-.02em}
 .tbtn,.stage,.chip,.syncpill,.add,.big,.ghost,.fc{transition:transform var(--t),box-shadow var(--t)}
@@ -271,7 +271,7 @@ body.gated .langsel{margin-left:auto}
 .stage.on{background:var(--accent);color:var(--on-accent);box-shadow:var(--clay-press)}
 .stages{padding:2px 4px 8px}
 .progress{background:var(--lav)}
-.progress i{background:var(--e)}
+.progress i{background:var(--accent)}
 
 /* 첫 화면 */
 .gate{padding-top:24px}
@@ -280,27 +280,27 @@ body.gated .langsel{margin-left:auto}
 .hero .note{color:var(--ink)}
 .goal{background:var(--card);border:0;border-radius:var(--r);box-shadow:var(--clay-surf);padding:18px 26px;margin-top:26px}
 .goal .std{border-top:2px dashed var(--line);color:var(--muted)}
-.goal .std b{color:var(--e)}
+.goal .std b{color:var(--accent)}
 .gate .sheet{background:var(--card);border-radius:var(--tray);padding:clamp(24px,4vw,44px) clamp(22px,5vw,60px);margin-top:28px}
 .gate .sheet h3{font-size:26px}
 
 /* 활동 묶음: 크림색 쟁반 안에 파스텔 쿠션 */
 section.step{background:var(--card);border:0;border-radius:var(--tray);box-shadow:var(--clay-tray);padding:clamp(24px,4vw,44px) clamp(20px,4vw,48px);margin-top:28px}
 .step-h{align-items:center}
-.step-h .n{display:inline-grid;place-items:center;width:58px;height:58px;font-size:28px;font-weight:700;font-synthesis:none;color:var(--ink);background:var(--amber);border-radius:50%;box-shadow:var(--clay-ctl);flex:0 0 58px}
+.step-h .n{display:inline-grid;place-items:center;width:58px;height:58px;font-size:28px;font-weight:700;font-synthesis:none;color:#252B3A;background:var(--amber);border-radius:50%;box-shadow:var(--clay-ctl);flex:0 0 58px}
 #s2 .n{background:var(--mint)}
-#s3 .n{background:var(--lav)}
-#s4 .n{background:var(--amber)}
-#s5 .n{background:var(--sky)}
-#s6 .n{background:var(--mint)}
+#s3 .n{background:var(--pink)}
+#s4 .n{background:#D9CCFF}
+#s5 .n{background:var(--mint)}
+#s6 .n{background:var(--pink)}
 .step-h .min{border:0;background:var(--lav);box-shadow:var(--clay-ctl);font-weight:600;padding:2px 12px}
 
 .sheet{background:var(--lav);border:0;border-radius:var(--r);box-shadow:var(--clay-surf);padding:24px 28px;margin-top:20px}
-#s2 .sheet{background:var(--mint)}
-#s3 .sheet{background:var(--lav)}
-#s4 .sheet{background:var(--amber)}
-#s5 .sheet{background:var(--sky)}
-#s6 .sheet{background:var(--mint)}
+#s2 .sheet{background:var(--b-bg)}
+#s3 .sheet{background:var(--g-bg)}
+#s4 .sheet{background:var(--f-bg)}
+#s5 .sheet{background:var(--e-bg)}
+#s6 .sheet{background:var(--b-bg)}
 .ex,.note,.legend,.lead{color:var(--muted)}
 .sheet .in,.sheet textarea.in{background:var(--card)}
 
@@ -309,7 +309,7 @@ section.step{background:var(--card);border:0;border-radius:var(--tray);box-shado
 .fc:hover{transform:translateY(-2px)}
 .fc:active{transform:translateY(1px);box-shadow:var(--clay-press)}
 .fc .hint{color:var(--muted)}
-.role{border:0;border-radius:var(--r);background:var(--sky);box-shadow:var(--clay-surf);padding:16px 18px}
+.role{border:0;border-radius:var(--r);background:var(--b-bg);box-shadow:var(--clay-surf);padding:16px 18px}
 .role[style]{background:var(--lav)}
 .role small{color:var(--muted)}
 .role strong,.rf strong,.sf strong{font-weight:700}
@@ -343,10 +343,10 @@ option{background:var(--card);color:var(--ink)}
 .chip[aria-pressed="true"]{background:var(--cb,var(--soft));color:var(--c,var(--ink));font-weight:700;box-shadow:var(--clay-press)}
 .bank{background:var(--card);border:0;border-radius:var(--r-sm);box-shadow:var(--clay-surf)}
 .idea{border:0;border-radius:var(--r-sm);background:var(--card);box-shadow:var(--clay-surf);padding:14px 16px;margin-bottom:14px}
-.idea.chosen{background:var(--e-bg);box-shadow:var(--clay-press)}
-.idea-role{color:var(--e)}
+.idea.chosen{background:var(--sel);box-shadow:var(--clay-press)}
+.idea-role{color:var(--accent)}
 .idea-top .who{font-weight:700}
-.checklist input,.range input{accent-color:var(--e)}
+.checklist input,.range input{accent-color:var(--accent)}
 .use-box{border:0;border-left:0;border-radius:var(--r-sm);box-shadow:var(--clay-surf);padding:12px 16px}
 .tblwrap{border:0;border-radius:var(--r-xs);box-shadow:var(--clay-surf);background:var(--card)}
 .tblwrap table{border-style:hidden;background:transparent}
@@ -372,20 +372,20 @@ th:last-child,td:last-child{padding-right:14px}
 .sync-on strong{font-weight:700;font-size:22px}
 
 .helpbtn{margin-left:auto;display:inline-flex;align-items:center;gap:8px;position:relative;height:44px;padding:0 18px 0 46px;border:0;border-radius:999px;cursor:pointer;
-  background:var(--sky);color:var(--ink);font-family:var(--display);font-weight:700;font-synthesis:none;font-size:16px;box-shadow:var(--clay-ctl);transition:transform var(--t),box-shadow var(--t)}
-.helpbtn em{font-style:normal}
+  background:linear-gradient(180deg,#6FB4FF 0%,#3D86F2 55%,#2E6FDB 100%);color:#fff;text-shadow:0 1.5px 0 #1D4FAF,1px 0 0 #1D4FAF,-1px 0 0 #1D4FAF,0 -1px 0 #1D4FAF;font-family:var(--display);font-weight:700;font-synthesis:none;font-size:16px;box-shadow:var(--clay-ctl);transition:transform var(--t),box-shadow var(--t)}
+.helpbtn em{font-style:normal;color:#FFE45C}
 .helpbtn .hkid{position:absolute;left:4px;bottom:2px;width:42px;height:48px;pointer-events:none}   /* 학생 얼굴 */
 .helpbtn:hover{transform:translateY(-2px)}
 .helpbtn:active{transform:translateY(1px);box-shadow:var(--clay-press)}
-.helpbtn[aria-pressed="true"]{background:var(--e-bg);box-shadow:var(--clay-press)}   /* 기다리는 중 */
-.helpbtn .hnum{display:inline-grid;place-items:center;height:24px;padding:0 9px;border-radius:999px;background:var(--amber);color:var(--ink);font-size:13px}
+.helpbtn[aria-pressed="true"]{background:linear-gradient(180deg,#FF9BD2 0%,#FF6FB8 55%,#E9529E 100%);text-shadow:0 1.5px 0 #A3236A,1px 0 0 #A3236A,-1px 0 0 #A3236A,0 -1px 0 #A3236A;box-shadow:var(--clay-press)}   /* 기다리는 중 */
+.helpbtn .hnum{display:inline-grid;place-items:center;height:24px;padding:0 9px;border-radius:999px;background:#FFE45C;color:#252B3A;text-shadow:none;font-size:13px}
 @media (max-width:560px){.helpbtn .hlong{display:none}.helpbtn{font-size:15px;padding-right:14px}}
 .helpmsg{position:fixed;top:calc(var(--barh,72px) + 8px);right:16px;z-index:30;max-width:min(320px,calc(100vw - 32px));background:var(--card);border:0;border-radius:var(--r-sm);padding:10px 16px;font-size:14px;box-shadow:var(--clay-surf)}
-.pvbanner{border-bottom:0;background:var(--amber);color:var(--ink)}
+.pvbanner{border-bottom:0;background:var(--amber);color:#252B3A}
 
 footer{margin:28px 0 24px;padding:clamp(22px,4vw,40px) clamp(22px,5vw,56px);background:var(--card);color:var(--muted);border-radius:var(--tray);box-shadow:var(--clay-tray)}
 footer p{margin:0 0 14px;max-width:46em}
-footer .tbtn{background:var(--lav);color:var(--ink);padding:6px 16px}
+footer .tbtn{background:var(--sel);color:var(--ink);padding:6px 16px}
 
 @media (prefers-reduced-motion:reduce){
   .tbtn,.stage,.chip,.syncpill,.add,.big,.ghost,.fc,.helpbtn{transition:none}
