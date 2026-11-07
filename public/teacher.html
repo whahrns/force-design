@@ -285,10 +285,10 @@ footer{color:var(--muted)}
       <div class="ctl" id="tmStages"></div>
       <div class="ctl">
         <button class="btn primary" id="tmGo">시작</button>
+        <button class="btn" id="tmPause" hidden>멈춤</button>
         <button class="btn" id="tmReset">↺ 다시 맞추기</button>
-        <button class="btn" id="tmOff">학생 화면에서 끄기</button>
       </div>
-      <p class="note" style="margin:10px 0 0">단계를 고르고 ‘시작’을 누르면 접속한 모든 학생 화면에 같은 시간이 몇 초 안에 나타나요. 학생은 타이머를 조작할 수 없어요.</p>
+      <p class="note" style="margin:10px 0 0">단계를 고르고 ‘시작’을 누르면 접속한 모든 학생 화면에 같은 시간이 몇 초 안에 나타나요. 같은 버튼을 다시 누르면 학생 화면에서 타이머가 꺼져요. 학생은 타이머를 조작할 수 없어요.</p>
     </details>
     <div class="panel helpp" id="helpPanel" style="margin-bottom:14px"><h3 class="sec" style="margin-top:0">🙋 도움 요청</h3><div id="helpList" aria-live="polite"></div></div>
     <div class="pgrid">
@@ -713,18 +713,23 @@ function tmDraw(){
   if(TM.running&&tmPrev!==null&&tmPrev>0&&left<=0) tmBeep();
   tmPrev=left;
 }
+/* 아직 안 켰거나, 단계를 고르고 시간이 그대로일 때만 '시작'. 그 밖에는 같은 버튼이 '끄기' */
+const tmIsFull=t=>!!t&&!t.running&&t.left>=TSTAGES[t.stage][1]*60;
+const tmCanStart=()=>!TM||tmIsFull(TM);
 function tmRender(){
   const stage=TM?TM.stage:-1, run=!!(TM&&TM.running);
   $('#tmStages').innerHTML=TSTAGES.map(([n,m],i)=>`<button class="btn sm${i===stage?' primary':''}" data-tmstage="${i}" aria-pressed="${i===stage}">${i} ${n} ${m}분</button>`).join('');
-  $('#tmGo').textContent=run?'멈춤':'시작';
+  const canStart=tmCanStart();
+  $('#tmGo').textContent=canStart?'시작':'끄기';
+  $('#tmPause').hidden=canStart; $('#tmPause').textContent=run?'멈춤':'이어서';
   const st=$('#tmState'); st.hidden=!TM; if(TM){ st.textContent=run?'진행 중':'멈춤'; st.className='state '+(run?'open':'closed'); }
-  $('#tmReset').disabled=!TM; $('#tmOff').disabled=!TM;
+  $('#tmReset').disabled=!TM;
   tmDraw();
 }
 function applyTimer(d){
   const ok=d&&Number.isInteger(d.stage)&&Number.isFinite(d.left);
   const next=ok?{stage:d.stage,running:!!d.running,left:d.left,at:performance.now()}:null;
-  const same=(!TM&&!next)||(TM&&next&&TM.stage===next.stage&&TM.running===next.running);
+  const same=(!TM&&!next)||(TM&&next&&TM.stage===next.stage&&TM.running===next.running&&tmIsFull(TM)===tmIsFull(next));
   TM=next; if(!same||!$('#tmStages').firstChild) tmRender(); else tmDraw();
 }
 setInterval(tmDraw,1000);
@@ -737,9 +742,12 @@ async function tmAct(action,stage,msg){
 $('#tmStages').addEventListener('click',e=>{ const b=e.target.closest('[data-tmstage]'); if(!b) return; const i=+b.dataset.tmstage;
   if(TM&&TM.running&&TM.stage!==i&&!confirm(`지금 타이머가 돌고 있어요.\n${i}단계로 바꾸고 시간을 새로 맞출까요?`)) return;
   tmAct('stage',i,`${i}단계 ${TSTAGES[i][0]}: ‘시작’을 누르면 시간이 흘러요.`); });
-$('#tmGo').addEventListener('click',()=>{ if(TM&&TM.running) tmAct('pause',undefined,'타이머를 멈췄어요.'); else tmAct('start',TM?TM.stage:0,'타이머를 시작했어요.'); });
+$('#tmGo').addEventListener('click',()=>{
+  if(tmCanStart()) tmAct('start',TM?TM.stage:0,'타이머를 시작했어요.');
+  else if(confirm('학생 화면에서 타이머를 끌까요?')) tmAct('off',undefined,'학생 화면에서 타이머를 껐어요.');
+});
+$('#tmPause').addEventListener('click',()=>{ if(TM&&TM.running) tmAct('pause',undefined,'타이머를 멈췄어요.'); else tmAct('start',undefined,'타이머를 이어서 시작했어요.'); });
 $('#tmReset').addEventListener('click',()=>tmAct('reset',undefined,'이 단계 시간을 다시 맞췄어요.'));
-$('#tmOff').addEventListener('click',()=>{ if(confirm('학생 화면에서 타이머를 끌까요?')) tmAct('off',undefined,'학생 화면에서 타이머를 껐어요.'); });
 try{ if(localStorage.getItem('force-teacher-timer')==='closed') $('#timerPanel').open=false; }catch(e){}
 $('#timerPanel').addEventListener('toggle',()=>{ try{ localStorage.setItem('force-teacher-timer',$('#timerPanel').open?'open':'closed'); }catch(e){} });
 tmRender();
