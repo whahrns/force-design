@@ -905,7 +905,7 @@ let composing=false;   // 한글 조합 중에는 화면을 건드리면 글자�
 document.addEventListener('compositionstart',()=>{ composing=true; });
 document.addEventListener('compositionend',()=>{ composing=false; });
 document.addEventListener('focusout',()=>{ composing=false; });
-let Y={cls:'',grp:0,pin:'',dirty:false,last:null};   // 연결한 반·모둠·암호, 아직 안 보낸 변경, 마지막 서버 저장 시각
+let Y={cls:'',grp:0,pin:'',dirty:false,last:null,picking:false};   // 연결한 반·모둠·암호, 아직 안 보낸 변경, 마지막 서버 저장 시각
 if(!PREVIEW) try{ const r=localStorage.getItem(SYNC_KEY); if(r) Y=Object.assign(Y,JSON.parse(r)); }catch(e){}
 if(Y.cls && (!/^[0-9]{4}$/.test(Y.pin||'') || !/^1-([1-9]|10)$/.test(Y.cls) || !(Y.grp>=1&&Y.grp<=8))) Y.cls='';   // 암호가 없거나 범위를 벗어난 옛 연결은 다시 고르게
 let ver=0, pushT=null, retryT=null, busy=false;
@@ -1067,6 +1067,7 @@ function setGate(on){   // true: 모둠 고르는 첫 화면, false: 활동 페�
   if(!on) requestAnimationFrame(growAll);   // 숨겨져 있던 입력 칸 높이 다시 맞춤
 }
 function showOn(){
+  if(Y.picking){ Y.picking=false; storeY(); }   // 모둠을 다 골랐거나 취소함
   checkRoles();
   $('#sCancel').hidden=true; setGate(false);
   $('#syncWho').textContent=whoLabel(Y.cls,Y.grp);
@@ -1091,8 +1092,8 @@ $('#sConnect').addEventListener('click',async()=>{
   if(Y.cls && Y.pin && Y.dirty && !(Y.cls===cls&&Y.grp===g)) await push();   // 바꾸기 전에 이전 모둠 기록부터 보내기
   connect(cls,g,pin,false);
 });
-$('#sCancel').addEventListener('click',()=>{ showOn(); setStatus(Y.dirty?'wait':'saved'); });
-$('#sChange').addEventListener('click',showPick);
+$('#sCancel').addEventListener('click',()=>{ showOn(); setStatus(Y.dirty?'wait':'saved'); pullIfNewer(); });
+$('#sChange').addEventListener('click',()=>{ Y.picking=true; storeY(); showPick(); });   // 새로고침해도 고르는 화면에 머물도록 기억
 $('#sSave').addEventListener('click',push);
 $('#syncPill').addEventListener('click',()=>$('#syncOn').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}));
 addEventListener('online',()=>{ if(Y.cls&&Y.pin&&Y.dirty) push(); });
@@ -1205,6 +1206,7 @@ async function uploadDesign(f){
 }
 
 if(PREVIEW){ $('#pvBanner').hidden=false; showPick(); setStatus('none'); renderDesign(); }
+else if(Y.cls&&Y.pin&&Y.picking){ showPick(); setStatus('none'); renderDesign(); if(Y.dirty) push(); }   // 바꾸는 중에 새로고침: 이전 모둠으로 들어가지 않음. 못 보낸 내용만 마저 보냄
 else if(Y.cls){ showOn(); connect(Y.cls,Y.grp,Y.pin,true); } else { showPick(); setStatus('none'); renderDesign(); }
 
 /* 상단 바 높이 맞추기 */
