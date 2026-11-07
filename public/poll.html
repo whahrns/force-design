@@ -6,34 +6,56 @@
 <title>힘 설계 설문</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#F4F7F5; --grid:#E0E8E3; --ink:#17232C; --muted:#56666F; --line:#C7D3CD; --card:#FFFFFF; --soft:#EAF0EC;
-  --g:#3346A8; --b:#0A8683; --b-bg:#DDF2F1; --e:#C0306A;
-  --display:"Do Hyeon","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-  --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --paper:#f1f2fa; --grid:transparent; --ink:#383139; --muted:#48404b; --line:#cdc5d4; --card:#fffdf7; --soft:#c0efdc;
+  --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#f9e7a8; --mint:#c0efdc; --lav:#ded0f9; --sky:#c5e5fb; --sel:#ded0f9; --cushion:#f6a3ca; --focus:#383139;
+  --on-accent:#383139;
+  --g:#4f36a6; --f:#6e4a00; --b:#0a5e43; --e:#a01a63;
+  --g-bg:#ded0f9; --f-bg:#f9e7a8; --b-bg:#c0efdc; --e-bg:#fbd3e6;
+  --clay-tray:18px 22px 44px rgba(84,66,98,.16),inset 5px 5px 10px rgba(255,255,255,.85),inset -6px -7px 14px rgba(120,90,130,.1);
+  --clay-surf:9px 11px 22px rgba(84,66,98,.16),inset 4px 4px 8px rgba(255,255,255,.65),inset -5px -6px 10px rgba(90,60,100,.12);
+  --clay-ctl:4px 6px 12px rgba(84,66,98,.24),inset 3px 3px 5px rgba(255,255,255,.7),inset -3px -4px 6px rgba(90,60,100,.18);
+  --clay-press:1px 2px 4px rgba(84,66,98,.2),inset 3px 4px 7px rgba(90,60,100,.25),inset -2px -2px 4px rgba(255,255,255,.5);
+  --clay-well:inset 3px 4px 8px rgba(90,60,100,.16),inset -2px -2px 5px rgba(255,255,255,.8);
+  --display:"Instrument Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Instrument Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   box-sizing:border-box;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#10181D; --grid:#18232A; --ink:#E6EDEF; --muted:#9AAAB2; --line:#2C3A42; --card:#162127; --soft:#1B272E;
-    --g:#8C9CFF; --b:#3FCFCB; --b-bg:#0E3533; --e:#FF7EAD;
+    --paper:#211d26; --grid:transparent; --ink:#f5eff6; --muted:#d6cdd9; --line:#5a5163; --card:#2e2935; --soft:#26483d;
+    --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#4b3f1d; --mint:#26483d; --lav:#3e3361; --sky:#24405a; --sel:#3e3361; --cushion:#5c2f49; --focus:#f5eff6;
+    --on-accent:#2b2230;
+    --g:#cfc0ff; --f:#f9e7a8; --b:#a8ecd2; --e:#ffb3d8;
+    --g-bg:#3e3361; --f-bg:#4b3f1d; --b-bg:#26483d; --e-bg:#5c2f49;
+    --clay-tray:14px 18px 36px rgba(0,0,0,.4),inset 4px 4px 9px rgba(255,255,255,.07),inset -6px -7px 14px rgba(0,0,0,.25);
+    --clay-surf:8px 10px 20px rgba(0,0,0,.35),inset 3px 3px 7px rgba(255,255,255,.08),inset -5px -6px 10px rgba(0,0,0,.25);
+    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.3),inset -3px -4px 6px rgba(90,40,70,.3);
+    --clay-press:1px 2px 4px rgba(0,0,0,.35),inset 3px 4px 7px rgba(0,0,0,.35),inset -2px -2px 4px rgba(255,255,255,.08);
+    --clay-well:inset 3px 4px 8px rgba(0,0,0,.35),inset -2px -2px 5px rgba(255,255,255,.06);
   }
 }
 :root[data-theme="dark"]{
-  --paper:#10181D; --grid:#18232A; --ink:#E6EDEF; --muted:#9AAAB2; --line:#2C3A42; --card:#162127; --soft:#1B272E;
-  --g:#8C9CFF; --b:#3FCFCB; --b-bg:#0E3533; --e:#FF7EAD;
+    --paper:#211d26; --grid:transparent; --ink:#f5eff6; --muted:#d6cdd9; --line:#5a5163; --card:#2e2935; --soft:#26483d;
+    --outline:transparent; --accent:#f6a3ca; --pink:#f6a3ca; --amber:#4b3f1d; --mint:#26483d; --lav:#3e3361; --sky:#24405a; --sel:#3e3361; --cushion:#5c2f49; --focus:#f5eff6;
+    --on-accent:#2b2230;
+    --g:#cfc0ff; --f:#f9e7a8; --b:#a8ecd2; --e:#ffb3d8;
+    --g-bg:#3e3361; --f-bg:#4b3f1d; --b-bg:#26483d; --e-bg:#5c2f49;
+    --clay-tray:14px 18px 36px rgba(0,0,0,.4),inset 4px 4px 9px rgba(255,255,255,.07),inset -6px -7px 14px rgba(0,0,0,.25);
+    --clay-surf:8px 10px 20px rgba(0,0,0,.35),inset 3px 3px 7px rgba(255,255,255,.08),inset -5px -6px 10px rgba(0,0,0,.25);
+    --clay-ctl:3px 5px 10px rgba(0,0,0,.4),inset 2px 2px 4px rgba(255,255,255,.3),inset -3px -4px 6px rgba(90,40,70,.3);
+    --clay-press:1px 2px 4px rgba(0,0,0,.35),inset 3px 4px 7px rgba(0,0,0,.35),inset -2px -2px 4px rgba(255,255,255,.08);
+    --clay-well:inset 3px 4px 8px rgba(0,0,0,.35),inset -2px -2px 5px rgba(255,255,255,.06);
 }
 *,*::before,*::after{box-sizing:inherit}
 [hidden]{display:none !important}
 body{
-  margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.65;
+  margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
   word-break:keep-all;overflow-wrap:break-word;line-break:strict;
-  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:24px 24px;
 }
-h1{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 14px}
+h1{font-family:var(--display);font-weight:700;font-size:28px;margin:0 0 14px}
 .wrap{max-width:640px;margin:0 auto;padding:24px 16px 48px}
 .note{font-size:14px;color:var(--muted)}
 a{color:inherit}

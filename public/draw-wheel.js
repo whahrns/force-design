@@ -2,15 +2,15 @@
    const w = DrawWheel(상자);  w.set(D, {spin:true, done(){...}})
    D = {groups, drawn:[...], last}. spin이면 몇 바퀴 돈 뒤 last 칸이 위쪽 화살표에 멈춤. */
 (function(){
-  const FILL=['#C9B8FF','#FFB3DE','#FFE08F','#B8F5DA'];   // 보라·분홍·노랑·민트 (글자는 진한 색)
+  const FILL=['#ded0f9','#f6a3ca','#f9e7a8','#c0efdc'];   // 보라·분홍·노랑·민트 (글자는 진한 색)
   const css=`
 .dwh{display:block;width:100%;max-width:340px;margin:0 auto;overflow:visible}
 .dwh .rot{transform-origin:150px 170px;transform-box:view-box}
-.dwh path{stroke:#252B3A;stroke-width:3}
-.dwh text{font-family:"Host Grotesk","Do Hyeon",sans-serif;font-weight:800;fill:#252B3A;text-anchor:middle;dominant-baseline:central}
-.dwh .done path{fill:#E4E2EC}
-.dwh .done text{fill:#9A97A8}
-.dwh .win path{stroke-width:6}`;
+.dwh path{stroke:#fffdf7;stroke-width:4}
+.dwh text{font-family:"Instrument Sans","Noto Sans KR",sans-serif;font-weight:700;fill:#383139;text-anchor:middle;dominant-baseline:central}
+.dwh .done path{fill:#e4e2ec}
+.dwh .done text{fill:#6f6877}
+.dwh .win path{stroke:#383139;stroke-width:5}`;
   let styled=false;
   const rad=d=>d*Math.PI/180, P=(r,a)=>[150+r*Math.sin(rad(a)), 170-r*Math.cos(rad(a))];
 
@@ -25,8 +25,8 @@
         h+=`<g data-g="${i+1}"><path d="M150 170 L${x0.toFixed(1)} ${y0.toFixed(1)} A${R} ${R} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z" fill="${FILL[i%4]}"/>`+
            `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" font-size="${n>6?30:36}">${i+1}</text></g>`;
       }
-      h+='</g><circle cx="150" cy="170" r="18" fill="#FFFFFF" stroke="#252B3A" stroke-width="3"/>'+
-         '<polygon points="150,44 134,8 166,8" fill="#6434DF" stroke="#252B3A" stroke-width="3" stroke-linejoin="round"/></svg>';
+      h+='</g><circle cx="150" cy="170" r="18" fill="#fffdf7" stroke="#383139" stroke-width="3"/>'+
+         '<polygon points="150,44 134,8 166,8" fill="#a01a63" stroke="#fffdf7" stroke-width="3" stroke-linejoin="round"/></svg>';
       box.innerHTML=h; g=box.querySelector('.rot'); rot=0;
     }
     const goal=k=>{ const c=(k-.5)*360/n, d=(((-c-rot)%360)+360)%360; return rot+d; };   // k번 칸 가운데가 위로 오는 각도
