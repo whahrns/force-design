@@ -96,7 +96,7 @@
     try{
       const r=await rpc('poll_current',{}); if(my!==gen) return;
       if(!cur||r.session!==cur.session) note='';
-      cur=r; drawUpdate(r.draw);
+      cur=r; drawUpdate(r.draw); window.dispatchEvent(new CustomEvent('force-timer',{detail:r.timer||null}));
       // 새 설문이 시작되면 설문 창을 저절로 엶 (같은 설문은 한 번만)
       if(btn){
         btn.hidden=!cur.active;

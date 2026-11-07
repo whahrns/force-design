@@ -72,6 +72,10 @@ html{overflow-x:clip}
 .qbox summary .sec{margin:0}
 .qbox[open] .qhint{display:none}
 #drawPanel[open] .ctl{margin-top:10px}
+.tm-row{display:flex;align-items:center;gap:12px;margin-top:8px}
+.tm-time{font-family:var(--display);font-size:44px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.tm-time.over{color:var(--e)}
+#tmStages{margin-top:8px}
 .qbox[open] #qList{margin-top:10px;max-height:min(46vh,420px);overflow-y:auto;overscroll-behavior:contain;padding-right:6px}   /* 질문 목록만 따로 스크롤 → 위 진행 중 설문이 계속 보임 */
 .qi{border-top:1px dashed var(--line);padding:10px 0;display:flex;gap:10px;align-items:flex-start}
 .qi:first-child{border-top:none;padding-top:0}
@@ -171,7 +175,7 @@ summary{cursor:pointer;font-weight:700}
 .F-g{--c:var(--g);--cb:var(--g-bg)}.F-f{--c:var(--f);--cb:var(--f-bg)}.F-b{--c:var(--b);--cb:var(--b-bg)}.F-e{--c:var(--e);--cb:var(--e-bg)}
 .chip{display:inline-block;font-size:12px;border-radius:6px;padding:0 6px;background:var(--cb);color:var(--c);font-weight:700;margin-left:2px}
 .meter{display:flex;align-items:center;gap:8px;font-size:14px}
-.meter span:first-child{min-width:64px}
+.meter span:first-child{min-width:12.5em}
 .meter i{flex:1;height:8px;background:var(--soft);border-radius:4px;overflow:hidden;display:block}
 .meter i b{display:block;height:100%;background:var(--ink)}
 .empty{color:var(--muted)}
@@ -275,6 +279,17 @@ footer{color:var(--muted)}
 
   <section id="pollView" hidden>
     <div class="summary"><span class="note" id="pMsg" role="status"></span></div>
+    <details class="panel qbox" id="timerPanel" style="margin-bottom:14px" open>
+      <summary><h3 class="sec">⏱ 활동 타이머</h3><span class="note qhint">눌러서 펼치기</span></summary>
+      <div class="tm-row"><span class="tm-time" id="tmTime">--:--</span><span class="state" id="tmState" hidden></span></div>
+      <div class="ctl" id="tmStages"></div>
+      <div class="ctl">
+        <button class="btn primary" id="tmGo">시작</button>
+        <button class="btn" id="tmReset">↺ 다시 맞추기</button>
+        <button class="btn" id="tmOff">학생 화면에서 끄기</button>
+      </div>
+      <p class="note" style="margin:10px 0 0">단계를 고르고 ‘시작’을 누르면 접속한 모든 학생 화면에 같은 시간이 몇 초 안에 나타나요. 학생은 타이머를 조작할 수 없어요.</p>
+    </details>
     <div class="panel helpp" id="helpPanel" style="margin-bottom:14px"><h3 class="sec" style="margin-top:0">🙋 도움 요청</h3><div id="helpList" aria-live="polite"></div></div>
     <div class="pgrid">
       <div class="panel" id="live"></div>
@@ -336,6 +351,20 @@ async function rpc(name,body){
 }
 const authMsg=e=>e.code==='locked'?'비밀번호를 여러 번 틀려 15분 동안 잠겼어요. 잠시 뒤 다시 해 주세요.':e.code==='wrong_password'?'비밀번호가 맞지 않아요.':'';
 /* 형식이 어긋난 기록이 화면을 망가뜨리지 않도록 정리 */
+/* 자기 평가: 역할별 점수. 역할별 점수가 없는 예전 기록은 모둠 공통 점수를 보여 줌 */
+function selfPct(d,r,q){ const v=d.selfs[r+'-'+q]; return v===undefined?null:v; }
+function selfHtml(d){
+  const meter=(label,v)=>`<div class="meter"><span>${label}</span><i><b style="width:${v}%"></b></i><span>${v}%</span></div>`;
+  if(Object.keys(d.selfs).length) return ROLES.map(r=>{ const a=selfPct(d,r,0), b=selfPct(d,r,1); if(a===null&&b===null) return ''; const who=r+(d.roles[r]?` ${esc(d.roles[r])}`:''); return (a===null?'':meter(who+' 과정·기능',a))+(b===null?'':meter(who+' 가치·태도',b)); }).join('');
+  if(d.self0!==50||d.self1!==50) return meter('공통 과정·기능',d.self0)+meter('공통 가치·태도',d.self1);
+  return '<span class="empty">-</span>';
+}
+function selfLines(d){
+  const pct=v=>v===null?'-':v+'%';
+  if(Object.keys(d.selfs).length) return ROLES.map(r=>`- ${r}${d.roles[r]?` (${d.roles[r]})`:''}: 과정·기능 ${pct(selfPct(d,r,0))}, 가치·태도 ${pct(selfPct(d,r,1))}`);
+  if(d.self0!==50||d.self1!==50) return [`- 공통: 과정·기능 ${d.self0}%, 가치·태도 ${d.self1}%`];
+  return ['- 없음'];
+}
 function norm(d){
   d=(d&&typeof d==='object')?d:{};
   const a=x=>Array.isArray(x)?x:[], s=x=>typeof x==='string'?x.slice(0,5000):'';
@@ -347,7 +376,7 @@ function norm(d){
   return {device:s(d.device),improve:a(d.improve).slice(0,30).map(s),consider:a(d.consider).slice(0,30).map(s),ideas,
     pick:n(d.pick,-1,ideas.length-1,-1),designName:s(d.designName),use,useOn:[...new Set(a(d.useOn).filter(isF))],howto:s(d.howto),
     checks:[...new Set(a(d.checks).map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<CHECKS.length))],
-    groups:n(d.groups,3,8,8),evals,self0:n(d.self0,0,100,50),self1:n(d.self1,0,100,50),reflect:s(d.reflect),reflects:Object.fromEntries(ROLES.map(r=>[r,s(d.reflects&&d.reflects[r])])),groupName:s(d.groupName),
+    groups:n(d.groups,3,8,8),evals,self0:n(d.self0,0,100,50),self1:n(d.self1,0,100,50),selfs:Object.fromEntries(ROLES.flatMap(r=>['0','1'].flatMap(q=>{ const v=d.selfs&&d.selfs[r+'-'+q]; return v===undefined||v===null||!Number.isFinite(+v)?[]:[[r+'-'+q,n(v,0,100,50)]]; }))),reflect:s(d.reflect),reflects:Object.fromEntries(ROLES.map(r=>[r,s(d.reflects&&d.reflects[r])])),groupName:s(d.groupName),
     roles:Object.fromEntries(ROLES.map(r=>[r,d.roles&&typeof d.roles[r]==='string'&&SID.test(d.roles[r])?d.roles[r]:''])) };
 }
 
@@ -458,8 +487,7 @@ function card(r){
       <dt>사용 방법</dt><dd class="pre">${t(d.howto)?esc(d.howto):'<span class="empty">-</span>'}</dd>
       <dt>설계도 점검표 ${chk}/${CHECKS.length}</dt><dd>${chk<CHECKS.length?'<span class="note">빠진 항목: '+CHECKS.map((c,i)=>d.checks.includes(i)?'':esc(c)).filter(Boolean).join(' / ')+'</span>':'모두 확인'}</dd>
       <dt>자기 평가</dt><dd>
-        <div class="meter"><span>과정·기능</span><i><b style="width:${+d.self0||0}%"></b></i><span>${+d.self0||0}%</span></div>
-        <div class="meter"><span>가치·태도</span><i><b style="width:${+d.self1||0}%"></b></i><span>${+d.self1||0}%</span></div></dd>
+${selfHtml(d)}</dd>
       <dt>소감</dt><dd>${ROLES.map(r=>`<div class="pre"><b>${r}${d.roles[r]?' '+esc(d.roles[r]):''}</b> ${t(d.reflects[r])?esc(d.reflects[r]):'<span class="empty">-</span>'}</div>`).join('')}${t(d.reflect)?`<div class="pre"><b>공통</b> ${esc(d.reflect)}</div>`:''}</dd>
     </dl>
   </article>`;
@@ -504,7 +532,7 @@ function buildMd(){
       L.push('**이용한 힘**',''); FORCES.filter(f=>d.useOn.includes(f.id)).forEach(f=>L.push(`- ${f.name}: ${t(d.use[f.id])||'-'}`)); L.push('');
       L.push('**사용 방법**','',t(d.howto)||'-','');
       L.push(`**설계도 점검표** ${d.checks.filter(i=>CHECKS[i]).length}/${CHECKS.length}`,''); CHECKS.forEach((c2,i)=>L.push(`- [${d.checks.includes(i)?'x':' '}] ${c2}`)); L.push('');
-      L.push(`**자기 평가** 과정·기능 ${d.self0}%, 가치·태도 ${d.self1}%`,'','**소감**','',...ROLES.map(r=>`- ${r}${d.roles[r]?` (${d.roles[r]})`:''}: ${t(d.reflects[r])||'-'}`),...(t(d.reflect)?[`- 공통: ${t(d.reflect)}`]:[]),'');
+      L.push('**자기 평가**','',...selfLines(d),'','**소감**','',...ROLES.map(r=>`- ${r}${d.roles[r]?` (${d.roles[r]})`:''}: ${t(d.reflects[r])||'-'}`),...(t(d.reflect)?[`- 공통: ${t(d.reflect)}`]:[]),'');
     });
   });
   return L.join('\n');
@@ -604,7 +632,7 @@ async function pollTick(){
   if(TAB!=='poll'||!pass) return;
   try{ const r=await rpc('teacher_poll_results',{p_pass:pass,p_class:'all'}); if(my!==pGen) return; LIVE=r; $('#pMsg').textContent=''; }
   catch(e){ if(my!==pGen) return; if(authFail(e)) return; $('#pMsg').textContent='서버에 연결하지 못했어요. 잠시 뒤 다시 시도해요.'; }
-  renderPoll(); renderDraw();
+  renderPoll(); renderDraw(); applyTimer(LIVE&&LIVE.timer);
   if(TAB==='poll'&&pass) pollT=setTimeout(pollTick, document.visibilityState==='visible'?2000:5000);
 }
 function barsHtml(q,counts,showAns,big){
@@ -672,6 +700,49 @@ function renderBig(){
   const total=L.counts.reduce((a,b)=>a+b,0);
   $('#bigBody').innerHTML=`<div class="btag">${esc(q.tag)}</div><div class="bq">${esc(q.question)}</div>${barsHtml(q,L.counts,!L.open,true)}<div class="cnt">응답 ${total}명 ${L.open?'· 진행 중':'· 종료'}</div>`;
 }
+/* 활동 타이머: 서버가 시간을 맡고, 여기서는 초를 세어 보여 주기만 함 */
+const TSTAGES=[['힘 떠올리기',5],['기구 고르기',8],['방법 제안',10],['설계도',12],['발표·평가',8],['정리',2]];
+let TM=null, tmPrev=null, tmBusy=false;
+const tmFmt=s=>{ const neg=s<0; s=Math.abs(s); return (neg?'-':'')+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); };
+const tmLeft=()=>!TM?0:TM.running?Math.ceil(TM.left-(performance.now()-TM.at)/1000):TM.left;
+function tmBeep(){ try{ const a=new (window.AudioContext||window.webkitAudioContext)(); [0,.35,.7].forEach(t=>{ const o=a.createOscillator(), g=a.createGain(); o.frequency.value=880; o.connect(g); g.connect(a.destination); g.gain.setValueAtTime(.15,a.currentTime+t); g.gain.exponentialRampToValueAtTime(.001,a.currentTime+t+.25); o.start(a.currentTime+t); o.stop(a.currentTime+t+.3); }); }catch(e){} }
+function tmDraw(){
+  const el=$('#tmTime');
+  if(!TM){ el.textContent='--:--'; el.classList.remove('over'); tmPrev=null; return; }
+  const left=tmLeft(); el.textContent=tmFmt(left); el.classList.toggle('over',left<0);
+  if(TM.running&&tmPrev!==null&&tmPrev>0&&left<=0) tmBeep();
+  tmPrev=left;
+}
+function tmRender(){
+  const stage=TM?TM.stage:-1, run=!!(TM&&TM.running);
+  $('#tmStages').innerHTML=TSTAGES.map(([n,m],i)=>`<button class="btn sm${i===stage?' primary':''}" data-tmstage="${i}" aria-pressed="${i===stage}">${i} ${n} ${m}분</button>`).join('');
+  $('#tmGo').textContent=run?'멈춤':'시작';
+  const st=$('#tmState'); st.hidden=!TM; if(TM){ st.textContent=run?'진행 중':'멈춤'; st.className='state '+(run?'open':'closed'); }
+  $('#tmReset').disabled=!TM; $('#tmOff').disabled=!TM;
+  tmDraw();
+}
+function applyTimer(d){
+  const ok=d&&Number.isInteger(d.stage)&&Number.isFinite(d.left);
+  const next=ok?{stage:d.stage,running:!!d.running,left:d.left,at:performance.now()}:null;
+  const same=(!TM&&!next)||(TM&&next&&TM.stage===next.stage&&TM.running===next.running);
+  TM=next; if(!same||!$('#tmStages').firstChild) tmRender(); else tmDraw();
+}
+setInterval(tmDraw,1000);
+async function tmAct(action,stage,msg){
+  if(tmBusy) return; tmBusy=true;
+  try{ await rpc('teacher_timer',{p_pass:pass,p_action:action,p_stage:stage===undefined?null:stage}); if(msg) $('#pMsg').textContent=msg; }
+  catch(e){ if(!authFail(e)) $('#pMsg').textContent='처리하지 못했어요: '+e.message; }
+  finally{ tmBusy=false; pollTick(); }
+}
+$('#tmStages').addEventListener('click',e=>{ const b=e.target.closest('[data-tmstage]'); if(!b) return; const i=+b.dataset.tmstage;
+  if(TM&&TM.running&&TM.stage!==i&&!confirm(`지금 타이머가 돌고 있어요.\n${i}단계로 바꾸고 시간을 새로 맞출까요?`)) return;
+  tmAct('stage',i,`${i}단계 ${TSTAGES[i][0]}: ‘시작’을 누르면 시간이 흘러요.`); });
+$('#tmGo').addEventListener('click',()=>{ if(TM&&TM.running) tmAct('pause',undefined,'타이머를 멈췄어요.'); else tmAct('start',TM?TM.stage:0,'타이머를 시작했어요.'); });
+$('#tmReset').addEventListener('click',()=>tmAct('reset',undefined,'이 단계 시간을 다시 맞췄어요.'));
+$('#tmOff').addEventListener('click',()=>{ if(confirm('학생 화면에서 타이머를 끌까요?')) tmAct('off',undefined,'학생 화면에서 타이머를 껐어요.'); });
+try{ if(localStorage.getItem('force-teacher-timer')==='closed') $('#timerPanel').open=false; }catch(e){}
+$('#timerPanel').addEventListener('toggle',()=>{ try{ localStorage.setItem('force-teacher-timer',$('#timerPanel').open?'open':'closed'); }catch(e){} });
+tmRender();
 async function pollAct(fn,body,msg){
   if(pBusy) return; pBusy=true;
   try{ await rpc(fn,Object.assign({p_pass:pass,p_class:'all'},body)); if(msg) $('#pMsg').textContent=msg; }

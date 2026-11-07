@@ -143,6 +143,7 @@ textarea.in{min-height:70px;resize:none;overflow:hidden}   /* 높이는 내용�
 
 .idea{border:2px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:var(--paper)}
 .idea-top{display:flex;gap:8px;align-items:flex-start}
+.idea-role{font-family:var(--display);font-weight:800;font-synthesis:none;font-size:16px;margin-bottom:4px;color:var(--accent)}
 .idea-top .who{font-family:var(--display);font-size:18px;min-width:26px;padding-top:6px}
 .idea-top textarea{min-height:52px}
 .pick{display:flex;align-items:center;gap:6px;font-size:14px;margin-top:6px;cursor:pointer}
@@ -174,6 +175,13 @@ th{font-family:var(--display);font-weight:800;font-synthesis:none;font-size:18px
 .range{display:flex;align-items:center;gap:12px}
 .range input{flex:1;accent-color:var(--ink)}
 .range output{font-family:var(--display);font-size:22px;min-width:56px;text-align:right}
+.sf .range{margin-top:6px;flex-wrap:wrap;gap:2px 12px}
+.sf .who{min-width:7.5em;line-height:1.3}
+.sf strong{font-family:var(--display);font-weight:800;font-synthesis:none;font-size:17px}
+.sf .sid{margin-left:6px;font-size:13px;color:var(--muted)}
+.sf input{min-width:140px}
+.sf input.unset{opacity:.45}
+@media (max-width:560px){.sf .who{flex:0 0 100%}}
 
 .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .big{border:2px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:12px;padding:10px 18px;cursor:pointer;font-family:var(--display);font-size:20px}
@@ -348,10 +356,8 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
 
 <div class="bar" id="bar">
   <div class="bar-in">
-    <div class="clock">
+    <div class="clock" id="clock" hidden>
       <span class="time" id="time" aria-live="off">05:00</span>
-      <button class="tbtn primary" id="tStart">시작</button>
-      <button class="tbtn" id="tReset" aria-label="현재 단계 시간 다시 맞추기">↺</button>
     </div>
     <button class="syncpill" id="syncPill" type="button" aria-label="저장 상태 (눌러서 저장 설정 보기)">☁ 저장 안 됨</button>
     <label class="langsel">🌐 번역 <select id="lang" class="tbtn" style="padding:2px 6px" aria-label="번역 언어 Language"></select></label>
@@ -442,7 +448,8 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
     <div class="step-h"><span class="n">2</span><h2>힘으로 해결할 방법 제안하기</h2><span class="min">10분</span></div>
     <p class="lead">한 사람이 하나 이상씩 아이디어를 내고, 그 아이디어에 어떤 힘이 쓰였는지 표시하세요. 이 단계에서는 친구 아이디어를 비판하지 말고 최대한 많이 모읍니다.</p>
     <div class="sheet">
-      <p class="ex" style="margin-top:0">대화 예시: “손에 붕대를 감았을 때 손잡이에 손가락을 끼울 수 없어 불편했어.” → “손바닥으로 누를 수 있게 만들면 어때?” → “누른 뒤에 손잡이가 저절로 벌어지도록 탄성력을 이용하자.”</p>
+      <p class="ex" id="ideaNote" style="margin-top:0">자기 역할 칸에 쓰세요. 더 떠오르면 ‘+ 아이디어 추가’를 눌러 새 칸에 써요. 같은 칸을 동시에 고치면 한 사람의 글이 지워져요.</p>
+      <p class="ex">대화 예시: “손에 붕대를 감았을 때 손잡이에 손가락을 끼울 수 없어 불편했어.” → “손바닥으로 누를 수 있게 만들면 어때?” → “누른 뒤에 손잡이가 저절로 벌어지도록 탄성력을 이용하자.”</p>
       <div id="ideas"></div>
       <button class="add" id="addIdea">+ 아이디어 추가</button>
     </div>
@@ -492,6 +499,7 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
           <select id="gcount" class="in" style="width:auto;padding:4px 8px"></select>
         </label>
       </div>
+      <p class="note" id="evalNote" style="margin:10px 0 0;font-weight:700;color:var(--ink)">평가표는 모둠에 하나예요. 모둠이 함께 의논해 정하고, 기록자 한 명만 눌러 주세요.</p>
       <div class="tblwrap"><table id="evalTbl"></table></div>
     </div>
   </section>
@@ -499,13 +507,14 @@ footer .tbtn{background:#FFFFFF;color:#252B3A;border-color:#FFFFFF;box-shadow:3p
   <section class="step" id="s6">
     <div class="step-h"><span class="n">5</span><h2>나의 활동 확인하기</h2><span class="min">2분</span></div>
     <div class="sheet">
+      <p class="ex" id="selfNote" style="margin-top:0">자기 평가는 한 사람씩 합니다. 자기 역할 줄의 막대만 움직이세요.</p>
       <div class="self">
         <p><b>과정·기능</b> 힘의 특징을 알맞게 이용하여 일상생활에 적용할 수 있는 기구나 장치를 설계했는가?</p>
-        <div class="range"><input type="range" min="0" max="100" step="10" id="self0" data-k="self0" aria-label="과정·기능 자기 평가"><output id="o0"></output></div>
+        <div class="sf" data-q="0"></div>
       </div>
       <div class="self">
         <p><b>가치·태도</b> 힘의 특징을 이용한 기구나 장치를 설계하며 과학적 원리로 문제를 해결하는 것에 열린 태도를 지니게 되었는가?</p>
-        <div class="range"><input type="range" min="0" max="100" step="10" id="self1" data-k="self1" aria-label="가치·태도 자기 평가"><output id="o1"></output></div>
+        <div class="sf" data-q="1"></div>
       </div>
       <label class="fld" id="reflectH">오늘 활동에서 새롭게 알게 된 점이나 더 해 보고 싶은 것</label>
       <div class="rf" id="reflects" role="group" aria-labelledby="reflectH"></div>
@@ -571,14 +580,15 @@ const CHECKS = [
 ];
 const KEY = 'force-design-activity-v1';
 const rid = () => Math.random().toString(36).slice(2,10)||'x';   // 줄마다 붙이는 고유 번호: 여러 기기에서 동시에 추가해도 겹치지 않게
-const def = () => ({device:'',improve:['',''],improveIds:['o0','o1'],consider:['',''],considerIds:['o0','o1'],ideas:[0,1,2,3].map(i=>({id:'o'+i,text:'',forces:[]})),pick:-1,designName:'',use:{g:'',f:'',b:'',e:''},useOn:[],howto:'',checks:[],groups:8,groupsSet:false,evals:{},self0:50,self1:50,reflect:'',reflects:{},roles:{},groupName:''});
+const IDEA_ROLE={o0:'사회자',o1:'기록자',o2:'설계자',o3:'발표자'};   // 처음 네 칸은 역할별 칸 → 같은 칸에 몰려 글이 지워지지 않게
+const def = () => ({device:'',improve:['',''],improveIds:['o0','o1'],consider:['',''],considerIds:['o0','o1'],ideas:[0,1,2,3].map(i=>({id:'o'+i,text:'',forces:[]})),pick:-1,designName:'',use:{g:'',f:'',b:'',e:''},useOn:[],howto:'',checks:[],groups:8,groupsSet:false,evals:{},selfs:{},designAt:'',self0:50,self1:50,reflect:'',reflects:{},roles:{},groupName:''});
 /* 저장된 기록 정리: 형식이 어긋난 값(서버·기기)이 화면을 망가뜨리지 않도록 */
 function clean(d){
   const o=def(); d=(d&&typeof d==='object')?d:{};
   const A=x=>Array.isArray(x)?x:[], Sx=x=>typeof x==='string'?x.slice(0,5000):'';
   const N=(x,a,b,dv)=>Number.isFinite(+x)&&x!==null&&x!==''?Math.min(b,Math.max(a,Math.round(+x))):dv;
   const isF=f=>FORCES.some(x=>x.id===f);
-  ['device','designName','howto','reflect','groupName'].forEach(k=>o[k]=Sx(d[k]));
+  ['device','designName','howto','reflect','groupName','designAt'].forEach(k=>o[k]=Sx(d[k]));
   ROLES.forEach(([r])=>o.reflects[r]=Sx(d.reflects&&d.reflects[r]));   // 역할별 소감 (reflect는 예전 공통 칸)
   const ids=(raw,n)=>{ const seen=new Set(), r=A(raw); return Array.from({length:n},(_,i)=>{ let v=r[i]; if(typeof v!=='string'||!/^[a-z0-9]{1,12}$/.test(v)||seen.has(v)) v='o'+i; while(seen.has(v)) v=rid(); seen.add(v); return v; }); };
   ['improve','consider'].forEach(k=>{ const a=A(d[k]).slice(0,30).map(Sx); if(a.length){ o[k]=a; o[k+'Ids']=ids(d[k+'Ids'],a.length); } });
@@ -591,7 +601,8 @@ function clean(d){
   o.checks=[...new Set(A(d.checks).map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<CHECKS.length))];
   o.groups=N(d.groups,3,8,8); o.groupsSet=d.groupsSet===true;
   if(d.evals&&typeof d.evals==='object') for(const k of Object.keys(d.evals).sort()){ const v=N(d.evals[k],0,3,0); if(/^[01]-[1-8]$/.test(k)&&v) o.evals[k]=v; }
-  o.self0=N(d.self0,0,100,50); o.self1=N(d.self1,0,100,50);
+  o.self0=N(d.self0,0,100,50); o.self1=N(d.self1,0,100,50);   // 예전 모둠 공통 점수 (교사 화면에서만 보임)
+  if(d.selfs&&typeof d.selfs==='object') Object.keys(d.selfs).sort().forEach(k=>{ const [r,q]=k.split('-'); if(ROLES.some(([x])=>x===r)&&(q==='0'||q==='1')&&Number.isFinite(+d.selfs[k])&&d.selfs[k]!==null) o.selfs[k]=N(d.selfs[k],0,100,50); });
   if(d.roles&&typeof d.roles==='object') ROLES.forEach(([r])=>{ if(typeof d.roles[r]==='string') o.roles[r]=d.roles[r].replace(/\D/g,'').slice(0,5); });
   return o;
 }
@@ -663,8 +674,14 @@ new MutationObserver(()=>requestAnimationFrame(growAll)).observe(document.queryS
 addEventListener('resize',()=>requestAnimationFrame(growAll));
 if(document.fonts) document.fonts.ready.then(growAll);
 requestAnimationFrame(growAll);
-function outs(){ $('#o0').textContent=S.self0+'%'; $('#o1').textContent=S.self1+'%'; }
-outs();
+document.querySelectorAll('.sf').forEach(box=>{ const q=box.dataset.q, nm=q==='0'?'과정·기능':'가치·태도';
+  box.innerHTML=ROLES.map(([r])=>`<div class="range"><span class="who"><strong>${r}</strong><span class="sid" data-sid="${r}"></span></span><input type="range" min="0" max="100" step="10" data-self="${r}-${q}" aria-label="${r} ${nm} 자기 평가"><output></output></div>`).join('');
+});
+function outs(){ document.querySelectorAll('[data-self]').forEach(el=>{ const v=S.selfs[el.dataset.self], set=v!==undefined;
+  el.value=set?v:50; el.classList.toggle('unset',!set); el.nextElementSibling.textContent=set?v+'%':'아직'; }); }
+outs(); sids();
+function setSelf(el){ S.selfs[el.dataset.self]=+el.value; el.classList.remove('unset'); el.nextElementSibling.textContent=el.value+'%'; save(); }
+document.querySelectorAll('[data-self]').forEach(el=>{ el.addEventListener('input',()=>setSelf(el)); el.addEventListener('click',()=>{ if(S.selfs[el.dataset.self]===undefined) setSelf(el); }); });   // 50%에 그대로 두려고 눌러도 입력으로 침
 
 /* 칸을 통째로 새로 그리면 입력 중인 칸의 커서와 태블릿 키보드가 사라짐 → 바뀐 곳만 고침. 줄은 data-rid로 구분 */
 function syncEl(a,b){
@@ -702,9 +719,10 @@ document.addEventListener('click',e=>{
 function renderIdeas(){
   morph($('#ideas'), S.ideas.map((idea,i)=>`
     <div class="idea ${S.pick===i?'chosen':''}" data-rid="${idea.id}">
+      ${IDEA_ROLE[idea.id]?`<div class="idea-role">${IDEA_ROLE[idea.id]} 칸</div>`:'<div class="idea-role">더 떠오른 아이디어</div>'}
       <div class="idea-top">
         <span class="who">${i+1}</span>
-        <textarea class="in" data-idea="${i}" placeholder="어떻게 바꾸면 좋을까요? 어느 부분에 어떤 힘을 이용할까요?" aria-label="아이디어 ${i+1}">${esc(idea.text)}</textarea>
+        <textarea class="in" data-idea="${i}" placeholder="어떻게 바꾸면 좋을까요? 어느 부분에 어떤 힘을 이용할까요?" aria-label="${IDEA_ROLE[idea.id]||'아이디어'} ${i+1}">${esc(idea.text)}</textarea>
         <button class="x" data-rmidea="${i}" aria-label="아이디어 ${i+1} 지우기">×</button>
       </div>
       <div class="chips">${FORCES.map(f=>`<button type="button" class="chip F-${f.id}" data-ideaforce="${i}" data-f="${f.id}" aria-pressed="${idea.forces.includes(f.id)}">${f.name}</button>`).join('')}</div>
@@ -800,8 +818,8 @@ function rowMerge(b,m,t,one){   // 줄 목록: 지운 줄은 지우고, 새 줄�
 }
 function merge3(b,m,t){
   const o=Object.assign({},t);
-  ['device','designName','howto','reflect','groupName','self0','self1','groups','groupsSet'].forEach(k=>{ o[k]=pick3(b[k],m[k],t[k]); });
-  ['use','reflects','roles','evals'].forEach(k=>{ o[k]=mapMerge(b[k],m[k],t[k]); });
+  ['device','designName','howto','reflect','groupName','designAt','self0','self1','groups','groupsSet'].forEach(k=>{ o[k]=pick3(b[k],m[k],t[k]); });
+  ['use','reflects','roles','evals','selfs'].forEach(k=>{ o[k]=mapMerge(b[k],m[k],t[k]); });
   ['useOn','checks'].forEach(k=>{ o[k]=setMerge(b[k],m[k],t[k]); });
   ['improve','consider'].forEach(k=>{
     const rows=s=>s[k].map((text,i)=>({id:s[k+'Ids'][i],text}));
@@ -902,14 +920,15 @@ function hasContent(o){
   const t=x=>String(x||'').trim();
   return !!(Object.values(o.roles||{}).some(t)||t(o.device)||t(o.designName)||t(o.howto)||t(o.reflect)||Object.values(o.reflects||{}).some(t)||t(o.groupName)||o.improve.some(t)||o.consider.some(t)||
     o.ideas.some(i=>t(i.text)||i.forces.length)||Object.values(o.use).some(t)||o.useOn.length||o.checks.length||
-    Object.values(o.evals).some(v=>v)||o.pick>=0||o.self0!==50||o.self1!==50);
+    Object.values(o.evals).some(v=>v)||Object.keys(o.selfs).length||o.pick>=0||o.self0!==50||o.self1!==50);
 }
 /* 서버 기록을 내 입력과 합쳐 화면에 반영. 합친 결과가 서버와 다르면 보낼 것이 남은 것 */
 function mergeIn(data,at){
-  const theirs=clean(data);
+  const theirs=clean(data), photoWas=S.designAt;
   S=merge3(BASE||def(),S,theirs); BASE=theirs; Y.last=at;
   Y.dirty=!sameV(Object.assign({},S,{roles:validRoles()}),theirs);
   storeB(); storeY(); storeS(); renderAll();
+  if(S.designAt!==photoWas) loadDesign();   // 다른 기기가 사진을 올리거나 지움
 }
 function renderAll(){
   $('#groupName').value=S.groupName||'';
@@ -1040,6 +1059,8 @@ function renderDesign(){
   $('#dPaste').classList.toggle('off',!on);
   if(!on && !dBusy){ const m=$('#dMsg'); m.className='sync-status'; m.textContent=PREVIEW?'미리 보기에서는 올릴 수 없어요. 학생은 여기서 사진을 골라 올려요.':'반·모둠을 연결하면 사진을 올릴 수 있어요.'; }
 }
+/* 사진을 바꾸면 기록에 시각을 남겨, 같은 모둠의 다른 기기가 알아채고 새 사진을 받게 함 */
+function markDesign(){ S.designAt=new Date().toISOString(); save(); }
 async function loadDesign(){
   if(PREVIEW||!Y.cls||!Y.pin){ DESIGN_URL=null; renderDesign(); return; }
   try{ const r=await dcall('view'); DESIGN_URL=r.url; if(!dBusy){ $('#dMsg').textContent=r.url&&r.updated_at?`올린 사진 · ${hhmm(r.updated_at)}`:'아직 올린 사진이 없어요.'; $('#dMsg').className='sync-status'; } }
@@ -1080,7 +1101,7 @@ $('#dDel').addEventListener('click',async()=>{
   if(dBusy||!DESIGN_URL||!confirm('우리 모둠 설계도 사진을 지울까요?\n같은 모둠의 다른 기기와 교사 화면에서도 사라져요.')) return;
   const m=$('#dMsg'); dBusy=true; m.className='sync-status'; m.textContent='지우는 중이에요…';
   try{
-    await dcall('delete'); DESIGN_URL=null; dBusy=false; renderDesign();
+    await dcall('delete'); DESIGN_URL=null; dBusy=false; renderDesign(); markDesign();
     m.textContent='사진을 지웠어요.'; m.className='sync-status ok';
   }catch(err){
     dBusy=false;
@@ -1094,6 +1115,7 @@ async function uploadDesign(f){
   const m=$('#dMsg'); m.className='sync-status';
   if(PREVIEW||!Y.cls||!Y.pin){ renderDesign(); return; }
   if(!/^image\//.test(f.type||'image/')){ m.textContent='사진 파일만 올릴 수 있어요.'; m.className='sync-status err'; return; }
+  if(DESIGN_URL&&!confirm('우리 모둠이 이미 올린 사진이 있어요.\n새 사진으로 바꾸면 이전 사진은 사라져요. 바꿀까요?')) return;
   dBusy=true;
   try{
     m.textContent='사진 크기를 줄이는 중이에요…';
@@ -1102,7 +1124,7 @@ async function uploadDesign(f){
     const {url}=await dcall('upload');
     const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'image/jpeg','x-upsert':'true'},body:blob});
     if(!r.ok) throw new Error('HTTP '+r.status);
-    dBusy=false; await loadDesign();
+    dBusy=false; markDesign(); await loadDesign();
     m.textContent='올렸어요 · '+hhmm(new Date()); m.className='sync-status ok';
   }catch(err){
     dBusy=false;
@@ -1206,6 +1228,10 @@ const TR_RAW={
 '잘 벌어지지 않는 빨래집게, 병뚜껑 따기':{en:'Clothespins that are hard to open, opening bottle caps',zh:'不好捏开的晾衣夹、拧瓶盖',vi:'Kẹp phơi đồ khó mở, mở nắp chai',ru:'Тугие прищепки, открывание крышек бутылок'},
 '몸이 불편한 사람이 쓰기 어려운 숟가락이나 컵':{en:'Spoons or cups that are hard to use for people with disabilities',zh:'行动不便的人难以使用的勺子或杯子',vi:'Thìa hoặc cốc khó dùng với người khuyết tật',ru:'Ложки или чашки, неудобные для людей с ограниченными возможностями'},
 '단계':{en:'Step',zh:'第',vi:'Bước',ru:'Шаг'},
+// 역할별 칸 안내
+'자기 평가는 한 사람씩 합니다. 자기 역할 줄의 막대만 움직이세요.':{en:'Everyone rates themselves. Move only the slider on your own role’s row.',zh:'自我评价每人单独进行。只移动自己角色那一行的滑块。',vi:'Mỗi người tự đánh giá riêng. Chỉ kéo thanh ở dòng vai trò của mình.',ru:'Каждый оценивает себя сам. Двигайте ползунок только в строке своей роли.'},
+'자기 역할 칸에 쓰세요. 더 떠오르면 ‘+ 아이디어 추가’를 눌러 새 칸에 써요. 같은 칸을 동시에 고치면 한 사람의 글이 지워져요.':{en:'Write in the box for your role. If you have more ideas, press “+ 아이디어 추가” and use a new box. If two people edit the same box at once, one person’s text is erased.',zh:'请写在自己角色的栏里。还有想法时，按“+ 아이디어 추가”在新栏里写。两人同时修改同一栏时，其中一人的内容会被删除。',vi:'Hãy viết vào ô của vai trò mình. Nếu có thêm ý tưởng, bấm “+ 아이디어 추가” và viết ở ô mới. Nếu hai người cùng sửa một ô, nội dung của một người sẽ bị xóa.',ru:'Пишите в поле своей роли. Если есть ещё идеи, нажмите «+ 아이디어 추가» и пишите в новом поле. Если двое одновременно исправляют одно поле, текст одного из них сотрётся.'},
+'평가표는 모둠에 하나예요. 모둠이 함께 의논해 정하고, 기록자 한 명만 눌러 주세요.':{en:'Your group has one evaluation table. Decide together, and only the recorder taps the boxes.',zh:'每组只有一张评价表。请小组一起商量决定，只由记录员点击。',vi:'Mỗi nhóm chỉ có một bảng đánh giá. Hãy cùng bàn bạc và chỉ thư ký bấm.',ru:'У группы одна таблица оценки. Решайте вместе, а нажимает только секретарь.'},
 // 서버 저장
 '우리 모둠 고르기':{en:'Choose your group',zh:'选择我们小组',vi:'Chọn nhóm của em',ru:'Выбираем свою группу'},
 '같은 반·모둠 번호를 고른 기기는 한 기록을 함께 써요. 입력한 내용은 몇 초 안에 서로의 화면에 나타나요. 같은 칸을 동시에 고치면 마지막에 저장한 내용만 남으니, 입력은 기록자 한 명이 하거나 역할을 나누어 각자 맡은 칸에 해 주세요.':{en:'Devices that choose the same class and group share one record. What you type appears on the other screens within a few seconds. If two people edit the same box at once, only the last save remains, so let one recorder type, or divide the roles and each fill in your own boxes.',zh:'选择相同班级和小组号的设备共用一份记录。输入的内容几秒内会显示在彼此的屏幕上。同时修改同一栏时只保留最后保存的内容，请由记录员一个人输入，或分工后各自填写负责的栏。',vi:'Các thiết bị chọn cùng lớp và số nhóm dùng chung một bản ghi. Nội dung đã nhập sẽ hiện trên màn hình của nhau sau vài giây. Nếu cùng sửa một ô cùng lúc, chỉ lần lưu cuối được giữ lại, nên hãy để một thư ký nhập, hoặc chia vai và mỗi người điền vào ô của mình.',ru:'Устройства с одинаковым классом и номером группы пишут в одну запись. Введённое появляется на других экранах через несколько секунд. Если одновременно исправлять одно и то же поле, останется только последнее сохранение, поэтому пусть печатает один секретарь или распределите роли и заполняйте каждый свои поля.'},
@@ -1218,7 +1244,7 @@ const TR={}; for(const k in TR_RAW) TR[k.replace(/\s+/g,'')]=TR_RAW[k];
 
 /* 번역 */
 let LANG='ko'; try{ LANG=localStorage.getItem(KEY+'-lang')||'ko'; }catch(e){} if(!LANGS[LANG]) LANG='ko';
-const TSEL='#s0 h1, #s0 p, #s0 .goal-t, #s0 .std, .step-h h2, .lead, #s1 > h3, .fc h3, .fc .body > span[style], .fc dt, .fc dd, .role strong, .role small, .rf strong, label.fld, .bank summary, #bank button, .ex, .example h3, .example p, .sheet > h3, .checklist span, .legend, .self p, #s6 p.note, #sync h3, #sync > p:not(.sync-status), #rolesNote, #dNote';
+const TSEL='#s0 h1, #s0 p, #s0 .goal-t, #s0 .std, .step-h h2, .lead, #s1 > h3, .fc h3, .fc .body > span[style], .fc dt, .fc dd, .role strong, .role small, .rf strong, label.fld, .bank summary, #bank button, .ex, .example h3, .example p, .sheet > h3, .checklist span, .legend, .self p, .sf strong, #s6 p.note, #evalNote, #sync h3, #sync > p:not(.sync-status), #rolesNote, #dNote';
 function applyLang(){
   document.querySelectorAll('.tr').forEach(e=>e.remove());
   document.documentElement.dataset.lang=LANG;
@@ -1230,31 +1256,31 @@ $('#lang').addEventListener('change',e=>{ LANG=e.target.value; try{localStorage.
 applyLang();
 
 
-/* 타이머 */
-let cur=0, left=STAGES[0].min*60, run=false, tick=null, done=new Set();
-function fmt(s){ const neg=s<0; s=Math.abs(s); return (neg?'-':'')+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+/* 타이머: 선생님이 교사 화면 '실시간' 탭에서 움직이고, 학생 화면은 보여 주기만 함. poll-widget.js가 받아서 알려 줌 */
+let cur=-1, T=null, prevLeft=null;
+const fmt=s=>{ const neg=s<0; s=Math.abs(s); return (neg?'-':'')+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); };
+const tLeft=()=>!T?0:T.running?Math.ceil(T.left-(performance.now()-T.at)/1000):T.left;
 function drawStages(){
-  $('#stages').innerHTML = STAGES.map((s,i)=>`<button class="stage ${i===cur?'on':''} ${done.has(i)&&i!==cur?'done':''}" data-st="${i}"><b>${i}</b>${s.label} ${s.min}분</button>`).join('');
+  $('#stages').innerHTML = STAGES.map((s,i)=>`<button class="stage ${i===cur?'on':''} ${i<cur?'done':''}" data-st="${i}" ${i===cur?'aria-current="step"':''}><b>${i}</b>${s.label} ${s.min}분</button>`).join('');
 }
 function drawTime(){
+  $('#clock').hidden=!T;
+  if(!T){ $('#prog').style.width='0'; prevLeft=null; return; }
+  const left=tLeft(), tot=STAGES[T.stage].min*60;
   $('#time').textContent=fmt(left); $('#time').classList.toggle('over',left<0);
-  const tot=STAGES[cur].min*60; $('#prog').style.width=Math.min(100,(tot-left)/tot*100)+'%';
-  $('#tStart').textContent = run?'멈춤':'시작';
+  $('#prog').style.width=Math.max(0,Math.min(100,(tot-left)/tot*100))+'%';
+  if(prevLeft!==null&&prevLeft>0&&left<=0&&T.running){ const b=$('#bar'); b.classList.remove('alarm'); void b.offsetWidth; b.classList.add('alarm'); }
+  prevLeft=left;
 }
-function setStage(i,scroll){
-  if(i!==cur) done.add(cur);
-  cur=i; left=STAGES[i].min*60; stop(); drawStages(); drawTime();
-  if(scroll) document.getElementById(STAGES[i].sec).scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
-}
-function beep(){ try{ const a=new (window.AudioContext||window.webkitAudioContext)(); [0,.35,.7].forEach(t=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=880;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.15,a.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+t+.25);o.start(a.currentTime+t);o.stop(a.currentTime+t+.3);}); }catch(e){} }
-function stop(){ run=false; clearInterval(tick); }
-$('#tStart').addEventListener('click',()=>{
-  if(run){ stop(); drawTime(); return; }
-  run=true; drawTime();
-  tick=setInterval(()=>{ left--; if(left===0){ beep(); const b=$('#bar'); b.classList.remove('alarm'); void b.offsetWidth; b.classList.add('alarm'); } drawTime(); },1000);
+addEventListener('force-timer',e=>{
+  const d=e.detail, ok=d&&Number.isInteger(d.stage)&&d.stage>=0&&d.stage<STAGES.length&&Number.isFinite(d.left);
+  T=ok?{stage:d.stage,running:!!d.running,left:d.left,at:performance.now()}:null;
+  const c=T?T.stage:-1; if(c!==cur){ cur=c; drawStages(); }
+  drawTime();
 });
-$('#tReset').addEventListener('click',()=>{ left=STAGES[cur].min*60; stop(); drawTime(); });
-$('#stages').addEventListener('click',e=>{ const b=e.target.closest('[data-st]'); if(b) setStage(+b.dataset.st,true); });
+setInterval(drawTime,1000);
+/* 단계 버튼은 그 활동으로 이동만 함 (타이머는 건드리지 않음) */
+$('#stages').addEventListener('click',e=>{ const b=e.target.closest('[data-st]'); if(b) document.getElementById(STAGES[+b.dataset.st].sec).scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); });
 drawStages(); drawTime();
 
 /* ---------- 도움 요청: 연결한 모둠만, 누르면 교사 화면 '실시간' 탭에 몇 반 몇 모둠인지 뜸 ---------- */
