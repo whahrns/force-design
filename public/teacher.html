@@ -296,6 +296,7 @@ footer{color:var(--muted)}
       <select id="clsSel" class="in rec-only" aria-label="반 고르기"></select>
       <button class="btn primary rec-only" id="refresh">새로고침</button>
       <button class="btn rec-only" id="dlMd">md 내려받기</button>
+      <button class="btn rec-only" id="dlPdf">PDF로 받기</button>
       <button class="btn" id="logout">나가기</button>
     </span>
   </div>
@@ -628,6 +629,65 @@ $('#out').addEventListener('click',async e=>{
   }
 });
 $('#dlMd').addEventListener('click',()=>download(`힘설계_${fileTag()}_${today()}.md`,buildMd(),'text/markdown;charset=utf-8'));
+/* PDF로 받기: 반 하나의 기록 + 설계도 사진을 인쇄용 창에 모아, 인쇄 창에서 "PDF로 저장" */
+function pdfHtml(c,urls){
+  const rows=ROWS.filter(r=>r.cls===c), {maxG,agg}=evalAgg(rows);
+  const ul=a=>{ const x=a.filter(t); return x.length?`<ul>${x.map(v=>`<li>${esc(v)}</li>`).join('')}</ul>`:'-'; };
+  let h=`<h1>${clsLabel(c)} · 힘의 특징을 이용한 기구나 장치 설계하기</h1><p class="sub">모둠 기록 ${rows.length}개 · 내려받은 날 ${today()}</p>`;
+  if(maxG){
+    const {score,rank}=totals(agg,maxG);
+    h+=`<h2>동료 평가 집계</h2><p class="sub">받은 평가, 자기 모둠 제외, ☆3·○2·△1점</p><table><thead><tr><th>모둠</th><th>힘 이용 ☆/○/△</th><th>평균</th><th>목적 달성 ☆/○/△</th><th>평균</th><th>총점</th><th>순위</th><th>평가한 모둠 수</th></tr></thead><tbody>`;
+    for(let g=1;g<=maxG;g++){ const a=agg[g].rows; h+=`<tr><td>${g}모둠</td><td>${a[0].c.slice(1).join('/')}</td><td>${avg(a[0])}</td><td>${a[1].c.slice(1).join('/')}</td><td>${avg(a[1])}</td><td>${rank[g]?score[g]:'-'}</td><td>${rank[g]||'-'}</td><td>${agg[g].raters.size}</td></tr>`; }
+    h+='</tbody></table>';
+  }
+  rows.forEach(r=>{
+    const d=r.d, u=urls[r.grp], chk=d.checks.filter(i=>CHECKS[i]).length;
+    const ideas=d.ideas.map((i,n)=>({i,n})).filter(o=>t(o.i.text));
+    h+=`<section class="grp"><h2>${r.grp}모둠${t(d.groupName)?' · '+esc(d.groupName):''}</h2>
+      <p class="sub">저장 ${when(r.at)} · 역할(학번) ${esc(roleText(d))||'-'}</p>
+      <dl><dt>기구나 장치</dt><dd>${esc(t(d.device))||'-'}</dd><dt>설계 이름</dt><dd><b>${esc(t(d.designName))||'-'}</b></dd></dl>
+      <h3>설계도 사진</h3>${u?`<img src="${esc(u)}" alt="${r.grp}모둠 설계도">`:'<p class="empty">올린 사진이 없어요</p>'}
+      <h3>불편한 점</h3>${ul(d.improve)}
+      <h3>고려할 점</h3>${ul(d.consider)}
+      <h3>아이디어</h3>${ideas.length?`<ol>${ideas.map(({i,n})=>`<li value="${n+1}">${esc(i.text)}${i.forces.length?` (${i.forces.map(f=>esc(FN(f))).join(', ')})`:''}${d.pick===n?' <b>← 선택</b>':''}</li>`).join('')}</ol>`:'-'}
+      <h3>이용한 힘</h3>${ul(FORCES.filter(f=>d.useOn.includes(f.id)).map(f=>`${f.name}: ${t(d.use[f.id])||'-'}`))}
+      <h3>사용 방법</h3><p class="pre">${esc(t(d.howto))||'-'}</p>
+      <h3>설계도 점검표 ${chk}/${CHECKS.length}</h3><ul class="chk">${CHECKS.map((c2,i)=>`<li>${d.checks.includes(i)?'☑':'☐'} ${esc(c2)}</li>`).join('')}</ul>
+      <h3>자기 평가</h3>${ul(selfLines(d).map(x=>x.replace(/^- /,'')))}
+      <h3>소감</h3>${ul([...ROLES.map(ro=>`${ro}${d.roles[ro]?` (${d.roles[ro]})`:''}: ${t(d.reflects[ro])||'-'}`),...(t(d.reflect)?[`공통: ${t(d.reflect)}`]:[])])}
+    </section>`;
+  });
+  return h;
+}
+$('#dlPdf').addEventListener('click',async()=>{
+  const c=$('#clsSel').value;
+  if(!c){ alert('PDF는 반별로 받아요. 위에서 반을 먼저 골라 주세요.'); return; }
+  if(!ROWS.some(r=>r.cls===c)){ alert('이 반에는 아직 저장된 기록이 없어요.'); return; }
+  const w=window.open('','_blank');   // 팝업 차단을 피하려고 누르자마자 창부터 엶
+  if(!w){ alert('새 창이 막혔어요. 브라우저에서 이 사이트의 팝업을 허용해 주세요.'); return; }
+  const title=`힘설계_${clsLabel(c).replace(/\s/g,'')}_${today()}`;
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>${esc(title)}</title><p style="font-family:sans-serif;padding:24px">설계도 사진을 불러오는 중이에요…</p>`);
+  const urls={};
+  try{
+    const r=await dfn({ticket:await teacherTicket(),action:'list',class:c});
+    (r.files||[]).forEach(f=>{ if(f.url) urls[f.group]=f.url; });
+  }catch(e){ if(e.code==='expired') tdTk=null; else if(authFail(e)){ w.close(); return; } }
+  const css=`body{font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#111;margin:0;padding:24px;font-size:11pt;line-height:1.55;word-break:keep-all;overflow-wrap:anywhere}
+h1{font-size:18pt;margin:0 0 4px}h2{font-size:14pt;margin:18px 0 4px;padding-bottom:4px;border-bottom:2px solid #111}h3{font-size:11pt;margin:12px 0 4px}
+.sub{color:#555;margin:0 0 8px;font-size:10pt}.empty{color:#888}.pre{white-space:pre-wrap;margin:0}
+ul,ol{margin:0;padding-left:22px}.chk{list-style:none;padding-left:4px}
+dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:8px 0}dt{color:#555}dd{margin:0}
+table{border-collapse:collapse;width:100%;font-size:10pt;margin-top:4px}th,td{border:1px solid #999;padding:4px 6px;text-align:center}th{background:#eee}
+img{display:block;max-width:100%;max-height:160mm;object-fit:contain;border:1px solid #ccc;margin:4px 0;break-inside:avoid}
+.grp{break-before:page}h2,h3{break-after:avoid}li{break-inside:avoid}
+@page{size:A4;margin:14mm}@media print{body{padding:0}}`;
+  w.document.open();
+  w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${esc(title)}</title><style>${css}</style></head><body>${pdfHtml(c,urls)}</body></html>`);
+  w.document.close();
+  const imgs=[...w.document.images];
+  await Promise.race([Promise.all(imgs.map(i=>i.complete?0:new Promise(ok=>{ i.onload=i.onerror=ok; }))),new Promise(ok=>setTimeout(ok,15000))]);
+  w.focus(); w.print();
+});
 /* ---------- 설계도 사진: 교사 출입증으로 반별 사진 목록 ---------- */
 const DFN=API.replace('/rest/v1/rpc/','/functions/v1/design-file');
 async function dfn(body){
