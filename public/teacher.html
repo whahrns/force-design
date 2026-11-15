@@ -128,6 +128,10 @@ html{overflow-x:clip}
 .wl-card{position:relative;background:var(--paper);border-radius:14px;padding:10px 32px 10px 12px;box-shadow:var(--clay-well);white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
 .wl-card small{display:block;color:var(--muted);font-size:13px;font-weight:700;margin-bottom:2px}
 .wl-card .wl-x{position:absolute;top:4px;right:4px;border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 6px}
+.big .wl-list{display:grid;gap:12px;margin-bottom:24px}
+.big .wl-row{display:flex;gap:24px;align-items:baseline;background:var(--card);border-radius:16px;padding:14px 22px;box-shadow:var(--clay-well);font-size:clamp(22px,2.4vw,34px);line-height:1.4}
+.big .wl-row small{flex:0 0 auto;min-width:6.4em;font-size:.6em;font-weight:700;color:var(--muted);white-space:nowrap}
+.big .wl-row span{flex:1 1 auto;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;word-break:keep-all}
 .big .wl-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
 .big .wl-card{font-size:clamp(20px,2.2vw,28px);padding:16px 18px;background:var(--card)}
 .big .wl-card small{font-size:.65em}
@@ -828,8 +832,12 @@ function renderBig(){
   if($('#bigView').hidden) return;
   $('#bigBody').hidden=BIG==='draw'; $('#bigDraw').hidden=BIG!=='draw';
   if(BIG==='draw'){ drawTextOut(); return; }
-  if(BIG==='wall'){ const W=LIVE&&LIVE.wall;
-    $('#bigBody').innerHTML=W?`<div class="btag">✍️ 실시간 글 남기기</div><div class="bq">${esc(W.question)}</div><div class="wl-grid">${wallCards(W,false)}</div><div class="cnt">글 ${W.posts.length}개 ${W.open?'· 받는 중':'· 멈춤'}</div>`:'<p class="bq">글 남기기를 기다리는 중이에요</p>';
+  if(BIG==='wall'){ const W=LIVE&&LIVE.wall, sig=JSON.stringify(W||null);   // 학생 화면과 같게: 한 줄에 하나, 왼쪽 모둠·오른쪽 글, 새 글은 아래
+    if(sig===bigWallSig&&$('#bigBody').firstChild) return; bigWallSig=sig;
+    const v=$('#bigView'), atEnd=v.scrollHeight-v.scrollTop-v.clientHeight<80;
+    $('#bigBody').innerHTML=W?`<div class="btag">✍️ 실시간 글 남기기 · 글 ${W.posts.length}개 ${W.open?'· 받는 중':'· 멈춤'}</div><div class="bq">${esc(W.question)}</div>`+
+      (W.posts.length?`<div class="wl-list">${W.posts.map(x=>`<div class="wl-row"><small>${wallWho(x)}</small><span>${esc(x.body)}</span></div>`).join('')}</div>`:'<p class="cnt">아직 올라온 글이 없어요.</p>'):'<p class="bq">글 남기기를 기다리는 중이에요</p>';
+    if(atEnd||bigWallJump){ v.scrollTop=v.scrollHeight; bigWallJump=false; }
     return; }
   const L=LIVE&&LIVE.active?LIVE:null, q=L&&Q(L.qid);
   if(!q){ $('#bigBody').innerHTML='<p class="bq">설문을 기다리는 중이에요</p>'; return; }
@@ -839,7 +847,7 @@ function renderBig(){
 /* ---------- 실시간 글 남기기 ---------- */
 const wallWho=x=>x.cls?`${esc(String(x.cls).split('-')[1])}반 ${esc(x.grp)}모둠`:'익명';
 const wallCards=(W,del)=>W.posts.length?W.posts.slice().reverse().map(x=>`<div class="wl-card"><small>${wallWho(x)}</small>${esc(x.body)}${del?`<button class="wl-x" type="button" data-wdel="${+x.id}" aria-label="이 글 지우기">×</button>`:''}</div>`).join(''):'<p class="note" style="margin:0">아직 들어온 글이 없어요.</p>';
-let wallSig='';
+let wallSig='', bigWallSig='', bigWallJump=true;
 function renderWall(){
   const W=LIVE&&LIVE.wall, sig=JSON.stringify(W||null); if(sig===wallSig) return; wallSig=sig;
   $('#wallHint').textContent=W?(W.open?'받는 중':'멈춤')+` · 글 ${W.posts.length}개`:'눌러서 펼치기';
@@ -862,7 +870,7 @@ $('#wallPanel').addEventListener('click',e=>{
   if(k==='stop') wallAct('teacher_wall_set',{p_open:false},'글 받기를 멈췄어요. 받은 글은 그대로 보여요.');
   else if(k==='go') wallAct('teacher_wall_set',{p_open:true},'다시 글을 받아요.');
   else if(k==='end'){ if(confirm('글 남기기를 내리고 받은 글을 모두 지울까요?')) wallAct('teacher_wall_end',{},'글 남기기를 내렸어요.'); }
-  else if(k==='big'){ BIG='wall'; $('#bigView').hidden=false; renderBig(); $('#bigClose').focus(); }
+  else if(k==='big'){ BIG='wall'; bigWallSig=''; bigWallJump=true; $('#bigView').hidden=false; renderBig(); $('#bigClose').focus({preventScroll:true}); }   // 초점 이동이 맨 위로 끌어올리지 않게
 });
 try{ if(localStorage.getItem('force-teacher-wall')==='closed') $('#wallPanel').open=false; }catch(e){}
 $('#wallPanel').addEventListener('toggle',()=>{ try{ localStorage.setItem('force-teacher-wall',$('#wallPanel').open?'open':'closed'); }catch(e){} });

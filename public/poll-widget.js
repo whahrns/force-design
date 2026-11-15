@@ -55,6 +55,8 @@
 .pv-post small{flex:0 0 auto;min-width:6.2em;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
 .pv-txt{flex:1 1 auto;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .pv-posts .pv-none{grid-column:1/-1}   /* '아직 올라온 글이 없어요'는 칸 하나가 아니라 한 줄 전체 */
+html.pv-lock,html.pv-lock body{overflow:hidden;overscroll-behavior:none}
+.pv-posts{overscroll-behavior:contain}
 .pv-wmsg:empty{display:none}
 .pv-wmsg{margin:0 0 8px}
 /* 글 남기기가 열려 있으면 창을 크게: 위 질문, 가운데 친구들 글(스크롤), 아래 글쓰기 */
@@ -98,8 +100,8 @@
     btn.setAttribute('aria-expanded','false');
     panel.hidden=true; btn.hidden=true;   // 설문이 열려 있을 때만 보임
     document.body.appendChild(btn); document.body.appendChild(panel);
-    btn.addEventListener('click',()=>{ panel.hidden=!panel.hidden; btn.setAttribute('aria-expanded',!panel.hidden); if(!panel.hidden) tick(); });
-    panel.querySelector('.pv-x').addEventListener('click',()=>{ panel.hidden=true; btn.setAttribute('aria-expanded','false'); btn.focus(); });
+    btn.addEventListener('click',()=>{ panel.hidden=!panel.hidden; btn.setAttribute('aria-expanded',!panel.hidden); lock(); if(!panel.hidden) tick(); });
+    panel.querySelector('.pv-x').addEventListener('click',()=>{ panel.hidden=true; btn.setAttribute('aria-expanded','false'); lock(); btn.focus(); });
   }
 
   async function rpc(name,b){
@@ -143,9 +145,11 @@
       if(c==='limit'){ P.wn={[s]:5}; store(); } }
     finally{ wSending=false; tick(); }
   });
+  /* 큰 글 남기기 창이 떠 있는 동안 뒤 페이지가 스크롤되지 않게 잠금 */
+  function lock(){ const on=!page&&!!W&&!panel.hidden&&!document.body.classList.contains('gated'); document.documentElement.classList.toggle('pv-lock',on); }
   function render(){
     if(btn) btn.classList.toggle('live',!!(cur&&cur.active&&cur.open)||!!(W&&W.open));
-    renderWall();
+    renderWall(); lock();
     if(!cur||!cur.active){ if(W){ body.innerHTML=''; return; } body.innerHTML='<p class="pv-none">지금 진행 중인 설문이 없어요. 선생님이 설문을 시작하면 '+(page?'여기에 바로 질문이 나타나요.':'이 버튼에 빨간 점이 생겨요.')+'</p>'; return; }
     const mine=P.mine[cur.session], c=cur.counts||[], total=c.reduce((a,b)=>a+b,0), ox=cur.kind==='ox';
     const showAns=cur.revealed&&typeof cur.answer==='number';
