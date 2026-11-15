@@ -143,7 +143,7 @@
     try{
       const r=await rpc('poll_current',{}); if(my!==gen) return;
       if(!cur||r.session!==cur.session) note='';
-      if(!W||!r.wall||r.wall.session!==W.session) wNote='';
+      if(!W||!r.wall||r.wall.session!==W.session||(W.open&&!r.wall.open)) wNote='';   // 새 질문이거나 선생님이 멈추면 '보냈어요!' 지움
       W=r.wall&&r.wall.session?r.wall:null;
       cur=r; drawUpdate(r.draw); window.dispatchEvent(new CustomEvent('force-timer',{detail:r.timer||null}));
       // 새 설문이 시작되면 설문 창을 저절로 엶 (같은 설문은 한 번만)
