@@ -286,6 +286,10 @@ body.gated .langsel{margin-left:auto}
 .gate{padding-top:24px}
 .gate .hero{background:var(--cushion);border-radius:var(--tray);box-shadow:var(--clay-tray);padding:clamp(28px,5vw,56px) clamp(24px,5vw,64px)}
 .hero h1{font-size:clamp(38px,7vw,94px);line-height:1.04;letter-spacing:-.03em}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px 24px}   /* 제목 + 학생용 홈페이지 QR */
+.hero-qr{flex:0 0 auto;margin:0;text-align:center}
+.hero-qr svg{display:block;width:clamp(96px,13vw,170px);height:auto;background:#fff;border-radius:14px;padding:6px;box-sizing:border-box}
+.hero-qr figcaption{margin-top:6px;font-size:14px;font-weight:700;color:var(--ink)}
 .hero .note{color:var(--ink)}
 .goal{background:var(--card);border:0;border-radius:var(--r);box-shadow:var(--clay-surf);padding:18px 26px;margin-top:26px}
 .goal .std{border-top:2px dashed var(--line);color:var(--muted)}
@@ -390,6 +394,8 @@ th:last-child,td:last-child{padding-right:14px}
 .helpbtn .hnum{display:inline-grid;place-items:center;height:24px;padding:0 9px;border-radius:999px;background:#FFE45C;color:#252B3A;text-shadow:none;font-size:13px}
 @media (max-width:560px){.helpbtn .hlong{display:none}.helpbtn{font-size:15px;padding-right:14px}}
 .bar-row2{display:flex;align-items:center;gap:10px;flex:1 0 100%;min-width:0}   /* 상단 바 둘째 줄: 단계 버튼 + 오른쪽 끝(도움 요청 아래)에 지금 저장 → 바 높이 그대로 */
+.step.fc-hide{display:none}
+.stage:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
 .bar-row2 .stages{flex:1 1 auto;scrollbar-width:none}   /* 스크롤 막대를 숨겨 바 높이가 늘지 않게 (밀어서 넘김) */
 .bar-row2 .stages::-webkit-scrollbar{display:none}
 .savebtn{flex:0 0 auto;font-weight:700;padding:3px 14px;font-size:14px;white-space:nowrap;box-shadow:var(--clay-ctl);margin-bottom:6px}
@@ -460,7 +466,10 @@ footer .tbtn{background:var(--sel);color:var(--ink);padding:6px 16px}
   <!-- 도입 -->
   <section class="hero" id="s0">
     <div>
-      <h1>힘의 특징을 이용한<br>기구나 장치 설계하기</h1>
+      <div class="hero-top">
+        <h1>힘의 특징을 이용한<br>기구나 장치 설계하기</h1>
+        <figure class="hero-qr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" role="img" aria-label="학생용 홈페이지 QR 코드: force-design.whahrns.workers.dev" shape-rendering="crispEdges"><path fill="#fff" d="M0 0h33v33h-33z"/><path class="qrline" stroke="#000" d="M2 2.5h7m7 0h1m1 0h1m1 0h1m3 0h7m-29 1h1m5 0h1m1 0h2m3 0h2m1 0h1m1 0h1m1 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m9 0h3m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m2 0h1m3 0h1m4 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h1m4 0h1m1 0h3m1 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m5 0h1m1 0h1m3 0h1m3 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h2m1 0h1m3 0h1m3 0h2m-21 1h1m5 0h1m1 0h2m3 0h5m1 0h1m1 0h2m2 0h3m-27 1h2m2 0h1m1 0h2m5 0h2m1 0h4m2 0h2m1 0h2m-27 1h1m3 0h2m1 0h1m5 0h3m1 0h1m4 0h1m-24 1h1m3 0h1m2 0h1m2 0h2m2 0h1m1 0h1m1 0h4m2 0h2m-26 1h2m1 0h1m1 0h2m1 0h1m1 0h2m3 0h2m3 0h4m4 0h1m-28 1h4m2 0h2m1 0h3m1 0h3m2 0h2m1 0h3m2 0h2m-29 1h2m1 0h2m1 0h2m3 0h8m1 0h1m1 0h1m2 0h2m-27 1h1m1 0h1m4 0h1m2 0h3m1 0h3m1 0h2m1 0h2m1 0h1m1 0h1m1 0h1m-26 1h4m4 0h1m1 0h1m3 0h1m5 0h1m1 0h2m-27 1h3m1 0h2m3 0h1m1 0h3m1 0h6m1 0h3m1 0h3m-29 1h3m1 0h4m2 0h3m2 0h2m2 0h1m2 0h1m2 0h1m2 0h1m-29 1h1m2 0h3m2 0h2m2 0h1m1 0h2m2 0h1m4 0h1m-24 1h1m1 0h1m1 0h1m1 0h4m1 0h2m2 0h3m1 0h6m1 0h3m-21 1h3m3 0h2m4 0h1m3 0h2m-26 1h7m8 0h6m1 0h1m1 0h3m-27 1h1m5 0h1m3 0h2m3 0h2m2 0h2m3 0h1m2 0h1m-28 1h1m1 0h3m1 0h1m5 0h3m1 0h1m1 0h8m1 0h1m-28 1h1m1 0h3m1 0h1m2 0h1m2 0h1m2 0h7m3 0h2m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h2m2 0h1m1 0h3m3 0h7m-28 1h1m5 0h1m3 0h1m1 0h1m2 0h1m2 0h2m1 0h2m2 0h2m1 0h1m-29 1h7m1 0h2m4 0h4m1 0h1m3 0h2m1 0h1"/></svg><figcaption>QR로 들어오기</figcaption></figure>
+      </div>
       <div class="goal">
         <div class="goal-t">오늘의 목표: 일상생활에서 힘의 특징을 이용한 기구나 장치를 설계할 수 있다.</div>
         <div class="std"><b>성취기준 [9과05-04]</b> 다양한 사례에서 작용하는 힘과 힘의 평형 관계를 설명하고, 일상생활에서 힘의 특징을 이용한 기구나 장치를 설계할 수 있다.</div>
@@ -1333,11 +1342,11 @@ applyLang();
 
 
 /* 타이머: 선생님이 교사 화면 '실시간' 탭에서 움직이고, 학생 화면은 보여 주기만 함. poll-widget.js가 받아서 알려 줌 */
-let cur=-1, T=null, prevLeft=null;
+let cur=-1, T=null, prevLeft=null, FOC=-1;   // FOC: 선생님이 고른 단계(-1이면 전체)
 const fmt=s=>{ const neg=s<0; s=Math.abs(s); return (neg?'-':'')+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); };
 const tLeft=()=>!T?0:T.running?Math.ceil(T.left-(performance.now()-T.at)/1000):T.left;
 function drawStages(){
-  $('#stages').innerHTML = STAGES.map((s,i)=>`<button class="stage ${i===cur?'on':''} ${i<cur?'done':''}" data-st="${i}" ${i===cur?'aria-current="step"':''}><b>${i}</b>${s.label} ${s.min}분</button>`).join('');
+  $('#stages').innerHTML = STAGES.map((s,i)=>`<button class="stage ${i===cur?'on':''} ${i<cur?'done':''}" data-st="${i}" ${i===cur?'aria-current="step"':''} ${FOC>=0&&i!==FOC?'disabled title="선생님이 지금 단계만 보이게 했어요"':''}><b>${i}</b>${s.label} ${s.min}분</button>`).join('');
 }
 function drawTime(){
   $('#clock').hidden=!T;
@@ -1355,6 +1364,14 @@ addEventListener('force-timer',e=>{
   drawTime();
 });
 setInterval(drawTime,1000);
+/* 선생님이 '이 단계만 보이기'를 켜면 그 단계만 보이고 다른 단계는 숨김 (교사 미리 보기에서는 위젯이 없어 늘 전체) */
+addEventListener('force-focus',e=>{
+  const d=e.detail, f=d&&Number.isInteger(d.stage)&&d.stage>=0&&d.stage<STAGES.length?d.stage:-1;
+  if(f===FOC) return; FOC=f;
+  STAGES.forEach((st,i)=>document.getElementById(st.sec).classList.toggle('fc-hide',f>=0&&i!==f));
+  document.body.classList.toggle('focus-on',f>=0); drawStages();
+  if(f>=0&&!document.body.classList.contains('gated')) scrollTo(0,0);   // 한 단계만 보이니 페이지 맨 위로
+});
 /* 단계 버튼은 그 활동으로 이동만 함 (타이머는 건드리지 않음) */
 $('#stages').addEventListener('click',e=>{ const b=e.target.closest('[data-st]'); if(b) document.getElementById(STAGES[+b.dataset.st].sec).scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); });
 drawStages(); drawTime();
@@ -1390,6 +1407,6 @@ helpShow(null);
 helpCall(null);   // 새로 열었을 때 이미 보낸 요청이 있는지 확인
 </script>
 <script src="./draw-wheel.js"></script>
-<script src="./poll-widget.js?v=20261115c"></script>
+<script src="./poll-widget.js?v=20261115g"></script>
 </body>
 </html>

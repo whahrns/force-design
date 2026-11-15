@@ -347,6 +347,11 @@ footer{color:var(--muted)}
         <button class="btn" id="tmPause" hidden>멈춤</button>
         <button class="btn" id="tmReset">↺ 다시 맞추기</button>
       </div>
+      <div class="ctl" style="align-items:center">
+        <button class="btn" id="fcBtn" type="button" aria-pressed="false">학생 화면: 이 단계만 보이기</button>
+        <span class="state" id="fcState">학생 화면: 전체 단계</span>
+      </div>
+      <p class="note" style="margin:10px 0 0">‘이 단계만 보이기’를 켜면 학생 활동 페이지에 지금 고른 단계만 보이고, 위 단계 버튼을 누를 때마다 학생 화면도 그 단계로 바뀌어요. ‘전체 단계 보이기’를 누르면 다시 모든 단계가 보여요. 타이머를 켜지 않아도 쓸 수 있어요.</p>
       <p class="note" style="margin:10px 0 0">단계를 고르고 ‘시작’을 누르면 접속한 모든 학생 화면에 같은 시간이 몇 초 안에 나타나요. 같은 버튼을 다시 누르면 학생 화면에서 타이머가 꺼져요. 학생은 타이머를 조작할 수 없어요.</p>
     </details>
     <div class="panel helpp" id="helpPanel" style="margin-bottom:14px"><h3 class="sec" style="margin-top:0">🙋 도움 요청</h3><div id="helpList" aria-live="polite"></div></div>
@@ -760,7 +765,7 @@ async function pollTick(){
   if(TAB!=='poll'||!pass) return;
   try{ const r=await rpc('teacher_poll_results',{p_pass:pass,p_class:'all'}); if(my!==pGen) return; LIVE=r; $('#pMsg').textContent=''; }
   catch(e){ if(my!==pGen) return; if(authFail(e)) return; $('#pMsg').textContent='서버에 연결하지 못했어요. 잠시 뒤 다시 시도해요.'; }
-  renderPoll(); renderDraw(); renderWall(); if(BIG==='wall') renderBig(); applyTimer(LIVE&&LIVE.timer);
+  renderPoll(); renderDraw(); renderWall(); if(LIVE&&'focus' in LIVE&&!fcBusy) renderFocus(LIVE.focus); if(BIG==='wall') renderBig(); applyTimer(LIVE&&LIVE.timer);
   if(TAB==='poll'&&pass) pollT=setTimeout(pollTick, document.visibilityState==='visible'?2000:5000);
 }
 function barsHtml(q,counts,showAns,big){
@@ -902,7 +907,24 @@ async function tmAct(action,stage,msg){
 }
 $('#tmStages').addEventListener('click',e=>{ const b=e.target.closest('[data-tmstage]'); if(!b) return; const i=+b.dataset.tmstage;
   if(TM&&TM.running&&TM.stage!==i&&!confirm(`지금 타이머가 돌고 있어요.\n${i}단계로 바꾸고 시간을 새로 맞출까요?`)) return;
-  tmAct('stage',i,`${i}단계 ${TSTAGES[i][0]}: ‘시작’을 누르면 시간이 흘러요.`); });
+  tmAct('stage',i,`${i}단계 ${TSTAGES[i][0]}: ‘시작’을 누르면 시간이 흘러요.`).then(()=>{ if(FC) fcAct(i); }); });   // '이 단계만'이 켜져 있으면 학생 화면도 따라감
+/* 학생 화면 단계 고정: FC={stage} 또는 null(전체 단계) */
+let FC=null, fcBusy=false;
+function renderFocus(f){
+  FC=f&&Number.isInteger(f.stage)?f:null;
+  $('#fcBtn').textContent=FC?'전체 단계 보이기':'학생 화면: 이 단계만 보이기';
+  $('#fcBtn').classList.toggle('primary',!FC); $('#fcBtn').setAttribute('aria-pressed',!!FC);
+  $('#fcState').textContent=FC?`학생 화면: ${FC.stage}단계 ${TSTAGES[FC.stage][0]}만`:'학생 화면: 전체 단계';
+  $('#fcState').className='state '+(FC?'open':'closed');
+}
+async function fcAct(stage){
+  if(fcBusy) return; fcBusy=true;
+  try{ const r=await rpc('teacher_focus',{p_pass:pass,p_stage:stage}); renderFocus(r.focus); $('#pMsg').textContent=stage===null?'학생 화면에 모든 단계가 다시 보여요.':`학생 화면에 ${stage}단계 ${TSTAGES[stage][0]}만 보여요.`; }
+  catch(e){ if(!authFail(e)) $('#pMsg').textContent='처리하지 못했어요: '+e.message; }
+  finally{ fcBusy=false; }
+}
+$('#fcBtn').addEventListener('click',()=>fcAct(FC?null:(TM?TM.stage:0)));
+renderFocus(null);
 $('#tmGo').addEventListener('click',()=>{
   if(tmCanStart()) tmAct('start',TM?TM.stage:0,'타이머를 시작했어요.');
   else if(confirm('학생 화면에서 타이머를 끌까요?')) tmAct('off',undefined,'학생 화면에서 타이머를 껐어요.');

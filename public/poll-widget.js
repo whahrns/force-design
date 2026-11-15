@@ -51,17 +51,19 @@
 .pv-send{border:0;border-radius:999px;padding:6px 18px;font:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:var(--on-accent);box-shadow:var(--clay-ctl)}
 .pv-send:disabled{opacity:.5;cursor:default}
 .pv-posts{display:grid;gap:8px;margin:4px 0 10px;align-content:start}
-.pv-post{background:var(--paper);border-radius:12px;padding:8px 12px;box-shadow:var(--clay-well);white-space:pre-wrap;overflow-wrap:anywhere}
-.pv-post small{display:block;font-size:12px;font-weight:700;color:var(--muted)}
+.pv-post{display:flex;gap:12px;align-items:baseline;background:var(--paper);border-radius:12px;padding:8px 12px;box-shadow:var(--clay-well)}   /* 한 줄에 하나: 왼쪽 모둠, 오른쪽 글 */
+.pv-post small{flex:0 0 auto;min-width:6.2em;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.pv-txt{flex:1 1 auto;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.pv-posts .pv-none{grid-column:1/-1}   /* '아직 올라온 글이 없어요'는 칸 하나가 아니라 한 줄 전체 */
 .pv-wmsg:empty{display:none}
 .pv-wmsg{margin:0 0 8px}
 /* 글 남기기가 열려 있으면 창을 크게: 위 질문, 가운데 친구들 글(스크롤), 아래 글쓰기 */
-.pv-panel.pv-wide{box-sizing:border-box;width:min(820px,calc(100vw - 32px));height:calc(100vh - 96px - var(--barh,0px));max-height:none;display:flex;flex-direction:column;overflow:hidden}
+.pv-panel.pv-wide{box-sizing:border-box;top:calc(var(--barh,0px) + 12px);left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:auto;height:auto;max-height:none;display:flex;flex-direction:column;overflow:hidden}   /* 헤더 아래 화면을 거의 다 덮음 */
 .pv-page.pv-wide{width:auto;height:calc(100vh - 140px);min-height:420px}
 .pv-wide .pv-body{flex:0 1 auto;max-height:40%;overflow:auto}
 .pv-wide .pv-wall{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
 .pv-wide .pv-wq{font-size:clamp(22px,3vw,30px)}
-.pv-wide .pv-posts{flex:1 1 auto;min-height:0;overflow:auto;padding:4px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.pv-wide .pv-posts{flex:1 1 auto;min-height:0;overflow:auto;padding:4px;grid-template-columns:1fr}
 .pv-wide .pv-post{font-size:18px;padding:10px 14px}
 .pv-wide .pv-post small{font-size:13px}
 .pv-wide .pv-wf textarea{min-height:56px}
@@ -119,7 +121,7 @@
       wBox.querySelector('.pv-wtag').textContent='✍️ 글 남기기 · 글 '+W.posts.length+'개';
       wBox.querySelector('.pv-wq').textContent=W.question;
       const box=wBox.querySelector('.pv-posts'), atEnd=box.scrollHeight-box.scrollTop-box.clientHeight<60;   // 채팅처럼: 오래된 글 위, 새 글 아래
-      box.innerHTML=W.posts.length?W.posts.map(x=>`<div class="pv-post"><small>${wWho(x)}</small>${esc(x.body)}</div>`).join(''):'<p class="pv-none">아직 올라온 글이 없어요. 첫 글을 보내 보세요!</p>';
+      box.innerHTML=W.posts.length?W.posts.map(x=>`<div class="pv-post"><small>${wWho(x)}</small><span class="pv-txt">${esc(x.body)}</span></div>`).join(''):'<p class="pv-none">아직 올라온 글이 없어요. 첫 글을 보내 보세요!</p>';
       if(atEnd) wJump=true;
     }
     const left=5-wMine();
@@ -159,7 +161,7 @@
       if(!cur||r.session!==cur.session) note='';
       if(!W||!r.wall||r.wall.session!==W.session||(W.open&&!r.wall.open)) wNote='';   // 새 질문이거나 선생님이 멈추면 '보냈어요!' 지움
       W=r.wall&&r.wall.session?r.wall:null;
-      cur=r; drawUpdate(r.draw); window.dispatchEvent(new CustomEvent('force-timer',{detail:r.timer||null}));
+      cur=r; drawUpdate(r.draw); window.dispatchEvent(new CustomEvent('force-timer',{detail:r.timer||null})); window.dispatchEvent(new CustomEvent('force-focus',{detail:r.focus||null}));   // 교사가 고른 단계만 보이기
       // 새 설문이 시작되면 설문 창을 저절로 엶 (같은 설문은 한 번만)
       if(btn){
         btn.hidden=!cur.active&&!W;
