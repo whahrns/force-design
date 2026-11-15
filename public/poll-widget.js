@@ -42,6 +42,18 @@
 .pv-opt.right i{background:var(--b-bg)}
 .pv-msg{margin:10px 0 0;font-size:15px;font-weight:700}
 .pv-none{margin:0;color:var(--muted)}
+.pv-wall{word-break:keep-all}
+.pv-body:not(:empty)+.pv-wall{margin-top:16px;padding-top:14px;border-top:2px dashed var(--line)}
+.pv-wf{display:flex;flex-direction:column;gap:8px}
+.pv-wf textarea{width:100%;box-sizing:border-box;min-height:64px;resize:vertical;border:0;border-radius:12px;padding:10px 12px;font:inherit;font-size:16px;background:var(--paper);color:var(--ink);box-shadow:var(--clay-well)}
+.pv-wf .pv-row{display:flex;align-items:center;gap:8px}
+.pv-wf .pv-cnt{font-size:13px;color:var(--muted);margin-right:auto}
+.pv-send{border:0;border-radius:999px;padding:6px 18px;font:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:var(--on-accent);box-shadow:var(--clay-ctl)}
+.pv-send:disabled{opacity:.5;cursor:default}
+.pv-posts{display:grid;gap:8px;margin-top:12px}
+.pv-page .pv-posts{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.pv-post{background:var(--paper);border-radius:12px;padding:8px 12px;box-shadow:var(--clay-well);white-space:pre-wrap;overflow-wrap:anywhere}
+.pv-post small{display:block;font-size:12px;font-weight:700;color:var(--muted)}
 .dw-btn{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;border:0;background:var(--card);color:var(--ink);
   border-radius:999px;padding:8px 18px;font:inherit;font-size:16px;font-weight:600;cursor:pointer;box-shadow:var(--clay-ctl)}
 .dw-card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:45;width:min(420px,calc(100vw - 32px));text-align:center;
@@ -60,8 +72,13 @@
   let btn=null;
   const panel=document.createElement('div');
   panel.className='pv-panel'+(page?' pv-page':''); panel.setAttribute('role','region'); panel.setAttribute('aria-label','실시간 설문');
-  panel.innerHTML=(page?'':'<button class="pv-x" type="button" aria-label="설문 닫기">×</button>')+'<div class="pv-body" aria-live="polite"></div>';
+  panel.innerHTML=(page?'':'<button class="pv-x" type="button" aria-label="설문 닫기">×</button>')+'<div class="pv-body" aria-live="polite"></div>'+
+    '<div class="pv-wall" hidden><div class="pv-tag pv-wtag"></div><div class="pv-q pv-wq"></div>'+
+    '<form class="pv-wf"><textarea maxlength="200" placeholder="생각을 적어 보내요 (200자까지)" aria-label="글 쓰기"></textarea>'+
+    '<div class="pv-row"><span class="pv-cnt"></span><button class="pv-send" type="submit">보내기</button></div></form>'+
+    '<p class="pv-msg pv-wmsg" role="status"></p><div class="pv-posts"></div></div>';
   const body=panel.querySelector('.pv-body');
+  const wBox=panel.querySelector('.pv-wall'), wTa=wBox.querySelector('textarea'), wSend=wBox.querySelector('.pv-send');
   if(page){ (document.getElementById('pollMount')||document.body).appendChild(panel); }
   else{
     btn=document.createElement('button'); btn.type='button'; btn.className='pv-btn'; btn.innerHTML='📊 설문<span class="dot" aria-hidden="true"></span>';
@@ -80,10 +97,40 @@
     return j;
   }
 
-  let cur=null, timer=null, gen=0, sending=false, note='';
+  let cur=null, timer=null, gen=0, sending=false, note='', W=null, wNote='', wSig='', wSending=false;
+  /* 실시간 글 남기기: 글 상자는 한 번만 만들고(쓰던 글 유지), 질문·글 목록만 바꿈 */
+  const wWho=x=>x.cls?`${esc(String(x.cls).split('-')[1])}반 ${esc(x.grp)}모둠`:'익명';
+  const wMine=()=>W&&P.wn&&P.wn[W.session]||0;
+  function renderWall(){
+    wBox.hidden=!W; if(!W) return;
+    const sig=JSON.stringify(W);
+    if(sig!==wSig){ wSig=sig;
+      wBox.querySelector('.pv-wtag').textContent='✍️ 글 남기기 · 글 '+W.posts.length+'개';
+      wBox.querySelector('.pv-wq').textContent=W.question;
+      wBox.querySelector('.pv-posts').innerHTML=W.posts.slice().reverse().map(x=>`<div class="pv-post"><small>${wWho(x)}</small>${esc(x.body)}</div>`).join('');
+    }
+    const left=5-wMine();
+    wTa.disabled=!W.open||left<=0; wSend.disabled=!W.open||left<=0||wSending;
+    wBox.querySelector('.pv-cnt').textContent=W.open?(left>0?`${wTa.value.length}/200 · ${left}개 더 보낼 수 있어요`:'5개를 모두 보냈어요'):'';
+    wBox.querySelector('.pv-wmsg').textContent=wNote||(W.open?'':'선생님이 글 받기를 멈췄어요.');
+  }
+  wTa.addEventListener('input',()=>{ wNote=''; renderWall(); });
+  wBox.querySelector('form').addEventListener('submit',async e=>{
+    e.preventDefault(); const text=wTa.value.trim(); if(!W||!W.open||wSending) return;
+    if(!text){ wNote='글을 적어 주세요.'; renderWall(); wTa.focus(); return; }
+    const s=W.session, y=(()=>{ try{ return JSON.parse(localStorage.getItem('force-design-activity-v1-sync')||'{}'); }catch(e){ return {}; } })();
+    const b={p_session:s,p_voter:P.voter,p_body:text};
+    if(y.cls&&y.pin&&y.grp){ b.p_class=y.cls; b.p_group=+y.grp; b.p_pin=y.pin; }   // 모둠에 연결한 기기는 모둠 번호가 함께 보임
+    wSending=true; wNote=''; renderWall();
+    try{ await rpc('wall_post',b); P.wn={[s]:(P.wn&&P.wn[s]||0)+1}; store(); wTa.value=''; wNote='보냈어요!'; }
+    catch(err){ const c=err.code; wNote=c==='closed'?'선생님이 글 받기를 멈췄어요.':c==='changed'?'질문이 바뀌었어요.':c==='limit'?'이 질문에는 5개까지 보낼 수 있어요.':c==='too_long'?'200자까지 쓸 수 있어요.':c==='wrong_pin'||c==='bad_pin_format'?'모둠 암호가 맞지 않아요. 활동 페이지에서 모둠을 다시 연결해 주세요.':c==='locked'||c==='too_many'?'잠시 뒤 다시 보내 주세요.':'보내지 못했어요. 다시 눌러 주세요.';
+      if(c==='limit'){ P.wn={[s]:5}; store(); } }
+    finally{ wSending=false; tick(); }
+  });
   function render(){
-    if(btn) btn.classList.toggle('live',!!(cur&&cur.active&&cur.open));
-    if(!cur||!cur.active){ body.innerHTML='<p class="pv-none">지금 진행 중인 설문이 없어요. 선생님이 설문을 시작하면 '+(page?'여기에 바로 질문이 나타나요.':'이 버튼에 빨간 점이 생겨요.')+'</p>'; return; }
+    if(btn) btn.classList.toggle('live',!!(cur&&cur.active&&cur.open)||!!(W&&W.open));
+    renderWall();
+    if(!cur||!cur.active){ if(W){ body.innerHTML=''; return; } body.innerHTML='<p class="pv-none">지금 진행 중인 설문이 없어요. 선생님이 설문을 시작하면 '+(page?'여기에 바로 질문이 나타나요.':'이 버튼에 빨간 점이 생겨요.')+'</p>'; return; }
     const mine=P.mine[cur.session], c=cur.counts||[], total=c.reduce((a,b)=>a+b,0), ox=cur.kind==='ox';
     const showAns=cur.revealed&&typeof cur.answer==='number';
     body.innerHTML=`<div class="pv-tag">${esc(cur.tag)} · 응답 ${total}명</div><div class="pv-q">${esc(cur.question)}</div><div class="pv-opts">`+
@@ -96,12 +143,15 @@
     try{
       const r=await rpc('poll_current',{}); if(my!==gen) return;
       if(!cur||r.session!==cur.session) note='';
+      if(!W||!r.wall||r.wall.session!==W.session) wNote='';
+      W=r.wall&&r.wall.session?r.wall:null;
       cur=r; drawUpdate(r.draw); window.dispatchEvent(new CustomEvent('force-timer',{detail:r.timer||null}));
       // 새 설문이 시작되면 설문 창을 저절로 엶 (같은 설문은 한 번만)
       if(btn){
-        btn.hidden=!cur.active;
-        if(!cur.active){ panel.hidden=true; btn.setAttribute('aria-expanded','false'); }    // 교사가 '설문 내리기'를 누르면 사라짐
-        else if(P.seen!==cur.session){ P.seen=cur.session; store(); panel.hidden=false; btn.setAttribute('aria-expanded','true'); }   // 시작하면 자동으로 열림 ('종료' 뒤에도 결과와 정답을 보여 줌)
+        btn.hidden=!cur.active&&!W;
+        if(!cur.active&&!W){ panel.hidden=true; btn.setAttribute('aria-expanded','false'); }    // 교사가 '설문 내리기'를 누르면 사라짐
+        else if(cur.active&&P.seen!==cur.session){ P.seen=cur.session; store(); panel.hidden=false; btn.setAttribute('aria-expanded','true'); }
+        else if(W&&P.wseen!==W.session){ P.wseen=W.session; store(); panel.hidden=false; btn.setAttribute('aria-expanded','true'); }   // 글 남기기를 시작해도 저절로 열림   // 시작하면 자동으로 열림 ('종료' 뒤에도 결과와 정답을 보여 줌)
       }
     }
     catch(e){ if(my!==gen) return; }

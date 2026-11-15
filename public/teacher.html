@@ -122,6 +122,15 @@ html{overflow-x:clip}
 .big .br{grid-template-columns:minmax(0,1fr) 3.5em;font-size:clamp(20px,2.6vw,32px)}
 .big .br .lab{padding:12px 18px;border-width:3px}
 .big .br b{font-size:1.3em}
+.wl-new{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.wl-new .in{flex:1 1 280px;min-width:0}
+.wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px}
+.wl-card{position:relative;background:var(--paper);border-radius:14px;padding:10px 32px 10px 12px;box-shadow:var(--clay-well);white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+.wl-card small{display:block;color:var(--muted);font-size:13px;font-weight:700;margin-bottom:2px}
+.wl-card .wl-x{position:absolute;top:4px;right:4px;border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 6px}
+.big .wl-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.big .wl-card{font-size:clamp(20px,2.2vw,28px);padding:16px 18px;background:var(--card)}
+.big .wl-card small{font-size:.65em}
 .big .cnt{font-family:var(--display);font-size:clamp(24px,3vw,40px);margin-top:24px}
 .btn{border:2px solid var(--ink);background:var(--card);border-radius:999px;padding:4px 14px;cursor:pointer;font-size:15px;white-space:nowrap}
 .btn.primary{background:var(--ink);color:var(--paper)}
@@ -345,6 +354,15 @@ footer{color:var(--muted)}
       <div class="panel" id="live"></div>
       <details class="panel qbox" id="qBox" open><summary><h3 class="sec">질문 목록</h3><span class="note qhint"></span></summary><div id="qList"></div></details>
     </div>
+    <details class="panel qbox" id="wallPanel" style="margin-top:14px" open>
+      <summary><h3 class="sec">✍️ 실시간 글 남기기</h3><span class="note qhint" id="wallHint">눌러서 펼치기</span></summary>
+      <form class="wl-new" id="wallForm">
+        <input class="in" id="wallQ" maxlength="300" placeholder="학생에게 물어볼 질문 (예: 오늘 배운 힘 중 생활에서 가장 많이 본 힘은?)" aria-label="글 남기기 질문">
+        <button class="btn primary" type="submit">글 받기 시작</button>
+      </form>
+      <div id="wallLive" aria-live="polite"></div>
+      <p class="note" style="margin:10px 0 0">시작하면 학생 화면 오른쪽 아래 📊 버튼 창에 질문과 글 상자가 나타나고, 들어온 글이 모두의 화면에 실시간으로 보여요. 모둠에 연결한 기기는 ‘N반 N모둠’이 함께 표시돼요. 한 기기에서 질문마다 5개까지, 200자까지 보낼 수 있어요. 알맞지 않은 글은 × 로 지우세요. 새로 시작하거나 내리면 이전 글은 지워져요.</p>
+    </details>
     <details class="panel qbox" id="drawPanel" style="margin-top:14px" open>
       <summary><h3 class="sec">🎲 모둠 뽑기</h3><span class="note qhint">눌러서 펼치기</span></summary>
       <div class="ctl" style="margin-top:6px;align-items:center">
@@ -741,7 +759,7 @@ async function pollTick(){
   if(TAB!=='poll'||!pass) return;
   try{ const r=await rpc('teacher_poll_results',{p_pass:pass,p_class:'all'}); if(my!==pGen) return; LIVE=r; $('#pMsg').textContent=''; }
   catch(e){ if(my!==pGen) return; if(authFail(e)) return; $('#pMsg').textContent='서버에 연결하지 못했어요. 잠시 뒤 다시 시도해요.'; }
-  renderPoll(); renderDraw(); applyTimer(LIVE&&LIVE.timer);
+  renderPoll(); renderDraw(); renderWall(); if(BIG==='wall') renderBig(); applyTimer(LIVE&&LIVE.timer);
   if(TAB==='poll'&&pass) pollT=setTimeout(pollTick, document.visibilityState==='visible'?2000:5000);
 }
 function barsHtml(q,counts,showAns,big){
@@ -804,11 +822,40 @@ function renderBig(){
   if($('#bigView').hidden) return;
   $('#bigBody').hidden=BIG==='draw'; $('#bigDraw').hidden=BIG!=='draw';
   if(BIG==='draw'){ drawTextOut(); return; }
+  if(BIG==='wall'){ const W=LIVE&&LIVE.wall;
+    $('#bigBody').innerHTML=W?`<div class="btag">✍️ 실시간 글 남기기</div><div class="bq">${esc(W.question)}</div><div class="wl-grid">${wallCards(W,false)}</div><div class="cnt">글 ${W.posts.length}개 ${W.open?'· 받는 중':'· 멈춤'}</div>`:'<p class="bq">글 남기기를 기다리는 중이에요</p>';
+    return; }
   const L=LIVE&&LIVE.active?LIVE:null, q=L&&Q(L.qid);
   if(!q){ $('#bigBody').innerHTML='<p class="bq">설문을 기다리는 중이에요</p>'; return; }
   const total=L.counts.reduce((a,b)=>a+b,0);
   $('#bigBody').innerHTML=`<div class="btag">${esc(q.tag)}</div><div class="bq">${esc(q.question)}</div>${barsHtml(q,L.counts,!L.open,true)}<div class="cnt">응답 ${total}명 ${L.open?'· 진행 중':'· 종료'}</div>`;
 }
+/* ---------- 실시간 글 남기기 ---------- */
+const wallWho=x=>x.cls?`${esc(String(x.cls).split('-')[1])}반 ${esc(x.grp)}모둠`:'익명';
+const wallCards=(W,del)=>W.posts.length?W.posts.slice().reverse().map(x=>`<div class="wl-card"><small>${wallWho(x)}</small>${esc(x.body)}${del?`<button class="wl-x" type="button" data-wdel="${+x.id}" aria-label="이 글 지우기">×</button>`:''}</div>`).join(''):'<p class="note" style="margin:0">아직 들어온 글이 없어요.</p>';
+let wallSig='';
+function renderWall(){
+  const W=LIVE&&LIVE.wall, sig=JSON.stringify(W||null); if(sig===wallSig) return; wallSig=sig;
+  $('#wallHint').textContent=W?(W.open?'받는 중':'멈춤')+` · 글 ${W.posts.length}개`:'눌러서 펼치기';
+  $('#wallLive').innerHTML=W?`<div style="margin-top:12px"><span class="state ${W.open?'open':'closed'}">${W.open?'받는 중':'멈춤'}</span> <span class="note">글 ${W.posts.length}개</span></div>
+    <div class="lq">${esc(W.question)}</div>
+    <div class="ctl" style="margin-top:0"><button class="btn" data-wact="${W.open?'stop':'go'}">${W.open?'받기 멈추기':'다시 받기'}</button><button class="btn" data-wact="big">크게 보기 (TV)</button><button class="btn" data-wact="end">내리기 (글 지움)</button></div>
+    <div class="wl-grid">${wallCards(W,true)}</div>`:'';
+}
+$('#wallForm').addEventListener('submit',e=>{ e.preventDefault(); const q=$('#wallQ').value.trim(); if(!q){ $('#wallQ').focus(); return; }
+  if(LIVE&&LIVE.wall&&!confirm('지금 받은 글은 지워지고 이 질문으로 새로 시작해요. 시작할까요?')) return;
+  pollAct('teacher_wall_open',{p_question:q},'글 받기를 시작했어요.').then(ok=>{ if(ok) $('#wallQ').value=''; }); });
+$('#wallPanel').addEventListener('click',e=>{
+  const a=e.target.closest('[data-wact]'), d=e.target.closest('[data-wdel]');
+  if(d){ if(confirm('이 글을 지울까요? 모든 화면에서 사라져요.')) pollAct('teacher_wall_del',{p_id:+d.dataset.wdel},'글을 지웠어요.'); return; }
+  if(!a) return; const k=a.dataset.wact;
+  if(k==='stop') pollAct('teacher_wall_set',{p_open:false},'글 받기를 멈췄어요. 받은 글은 그대로 보여요.');
+  else if(k==='go') pollAct('teacher_wall_set',{p_open:true},'다시 글을 받아요.');
+  else if(k==='end'){ if(confirm('글 남기기를 내리고 받은 글을 모두 지울까요?')) pollAct('teacher_wall_end',{},'글 남기기를 내렸어요.'); }
+  else if(k==='big'){ BIG='wall'; $('#bigView').hidden=false; renderBig(); $('#bigClose').focus(); }
+});
+try{ if(localStorage.getItem('force-teacher-wall')==='closed') $('#wallPanel').open=false; }catch(e){}
+$('#wallPanel').addEventListener('toggle',()=>{ try{ localStorage.setItem('force-teacher-wall',$('#wallPanel').open?'open':'closed'); }catch(e){} });
 /* 활동 타이머: 서버가 시간을 맡고, 여기서는 초를 세어 보여 주기만 함 */
 const TSTAGES=[['힘 떠올리기',5],['기구 고르기',8],['방법 제안',10],['설계도',12],['발표·평가',8],['정리',2]];
 let TM=null, tmPrev=null, tmBusy=false;
@@ -861,8 +908,8 @@ try{ if(localStorage.getItem('force-teacher-timer')==='closed') $('#timerPanel')
 $('#timerPanel').addEventListener('toggle',()=>{ try{ localStorage.setItem('force-teacher-timer',$('#timerPanel').open?'open':'closed'); }catch(e){} });
 tmRender();
 async function pollAct(fn,body,msg){
-  if(pBusy) return; pBusy=true;
-  try{ await rpc(fn,Object.assign({p_pass:pass,p_class:'all'},body)); if(msg) $('#pMsg').textContent=msg; }
+  if(pBusy) return false; pBusy=true;
+  try{ await rpc(fn,Object.assign({p_pass:pass,p_class:'all'},body)); if(msg) $('#pMsg').textContent=msg; return true; }
   catch(e){ if(!authFail(e)) $('#pMsg').textContent='처리하지 못했어요: '+e.message; }
   finally{ pBusy=false; pollTick(); }
 }
