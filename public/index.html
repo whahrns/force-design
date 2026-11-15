@@ -256,7 +256,7 @@ footer{padding:30px 0 50px;color:var(--muted);font-size:14px}
 
 /* 첫 화면: 반·모둠을 골라야 활동 페이지(main)로 들어감 */
 body:not(.gated) .gate{display:none}
-body.gated main,body.gated .clock,body.gated #syncPill,body.gated #helpBtn,body.gated #sSave,body.gated #stages,body.gated .progress{display:none}
+body.gated main,body.gated .clock,body.gated #syncPill,body.gated #helpBtn,body.gated #sSave,body.gated #stages,body.gated .bar-row2,body.gated .progress{display:none}
 body.gated .pv-btn,body.gated .pv-panel,body.gated .dw-btn,body.gated .dw-card{display:none}   /* 설문·모둠 뽑기 창은 활동 페이지에서만 */
 body.gated .langsel{margin-left:auto}
 .gate{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut) 48px}
@@ -389,9 +389,10 @@ th:last-child,td:last-child{padding-right:14px}
 .helpbtn[aria-pressed="true"]{background:linear-gradient(180deg,#FF9BD2 0%,#FF6FB8 55%,#E9529E 100%);text-shadow:0 1.5px 0 #A3236A,1px 0 0 #A3236A,-1px 0 0 #A3236A,0 -1px 0 #A3236A;box-shadow:var(--clay-press)}   /* 기다리는 중 */
 .helpbtn .hnum{display:inline-grid;place-items:center;height:24px;padding:0 9px;border-radius:999px;background:#FFE45C;color:#252B3A;text-shadow:none;font-size:13px}
 @media (max-width:560px){.helpbtn .hlong{display:none}.helpbtn{font-size:15px;padding-right:14px}}
-.bar-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px}   /* 상단 바 오른쪽: 도움 요청 아래에 지금 저장 */
-.bar-right .helpbtn{margin-left:0}
-.savebtn{font-weight:700;padding:4px 16px;box-shadow:var(--clay-ctl)}
+.bar-row2{display:flex;align-items:center;gap:10px;flex:1 0 100%;min-width:0}   /* 상단 바 둘째 줄: 단계 버튼 + 오른쪽 끝(도움 요청 아래)에 지금 저장 → 바 높이 그대로 */
+.bar-row2 .stages{flex:1 1 auto;scrollbar-width:none}   /* 스크롤 막대를 숨겨 바 높이가 늘지 않게 (밀어서 넘김) */
+.bar-row2 .stages::-webkit-scrollbar{display:none}
+.savebtn{flex:0 0 auto;font-weight:700;padding:3px 14px;font-size:14px;white-space:nowrap;box-shadow:var(--clay-ctl);margin-bottom:6px}
 .savebtn[hidden]{display:none}
 .helpmsg{position:fixed;top:calc(var(--barh,72px) + 8px);right:16px;z-index:30;max-width:min(320px,calc(100vw - 32px));background:var(--card);border:0;border-radius:var(--r-sm);padding:10px 16px;font-size:14px;box-shadow:var(--clay-surf)}
 .pvbanner{border-bottom:0;background:var(--amber);color:#252B3A}
@@ -444,11 +445,11 @@ footer .tbtn{background:var(--sel);color:var(--ink);padding:6px 16px}
     </div>
     <button class="syncpill" id="syncPill" type="button" aria-label="저장 상태 (눌러서 저장 설정 보기)">☁ 저장 안 됨</button>
     <label class="langsel">🌐 번역 <select id="lang" class="tbtn" aria-label="번역 언어 Language"></select></label>
-    <div class="bar-right">
-      <button class="helpbtn" id="helpBtn" type="button" aria-pressed="false" aria-label="선생님께 도움 요청하기"></button>
+    <button class="helpbtn" id="helpBtn" type="button" aria-pressed="false" aria-label="선생님께 도움 요청하기"></button>
+    <div class="bar-row2">
+      <nav class="stages" id="stages" aria-label="활동 단계"></nav>
       <button class="tbtn primary savebtn" id="sSave" type="button">💾 지금 저장</button>
     </div>
-    <nav class="stages" id="stages" aria-label="활동 단계"></nav>
   </div>
   <div class="progress"><i id="prog"></i></div>
 </div>
@@ -1389,6 +1390,6 @@ helpShow(null);
 helpCall(null);   // 새로 열었을 때 이미 보낸 요청이 있는지 확인
 </script>
 <script src="./draw-wheel.js"></script>
-<script src="./poll-widget.js?v=20261115b"></script>
+<script src="./poll-widget.js?v=20261115c"></script>
 </body>
 </html>
