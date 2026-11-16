@@ -80,6 +80,20 @@ html{overflow-x:clip}
 .tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
 .pgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}   /* 설문 → 질문 목록 위아래로 */
 @media (max-width:820px){.pgrid{grid-template-columns:1fr}}
+.lgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}   /* 실시간 탭: 타이머·글 남기기 / 질문 목록·모둠 뽑기 2×2, 같은 줄 두 칸은 높이를 맞춤 */
+.lgrid>*{margin:0;min-width:0}
+.lgrid>.pgrid{display:flex;flex-direction:column;align-items:stretch;gap:14px}
+.lgrid>.pgrid>#qBox{flex:1}
+#live:empty{display:none}   /* 진행 중 설문 칸은 내용이 있을 때만 */
+@media (max-width:900px){.lgrid{grid-template-columns:1fr}}
+@media (min-width:901px){   /* 넓은 화면: 윗줄 타이머·글 남기기 / 아랫줄 질문 목록·모둠 뽑기. 아랫줄 높이는 모둠 뽑기 칸(최소 400px)에 맞추고, 질문 목록은 그 안에서 따로 스크롤 */
+  #drawPanel{min-height:400px}
+  .lgrid>.pgrid{height:0;min-height:100%}
+  .lgrid>.pgrid>#live{flex:none}
+  .lgrid>.pgrid>#qBox[open]{display:flex;flex-direction:column;min-height:0}
+  .lgrid>.pgrid>#qBox[open]::details-content{display:contents}
+  .lgrid .qbox[open] #qList{flex:1;min-height:120px;max-height:none}
+}
 .qbox{margin-top:0}
 .qbox summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
 .qbox summary::-webkit-details-marker{display:none}
@@ -342,7 +356,9 @@ footer{color:var(--muted)}
 
   <section id="pollView" hidden>
     <div class="summary"><span class="note" id="pMsg" role="status"></span></div>
-    <details class="panel qbox" id="timerPanel" style="margin-bottom:14px" open>
+    <div class="panel helpp" id="helpPanel" style="margin-bottom:14px"><h3 class="sec" style="margin-top:0">🙋 도움 요청</h3><div id="helpList" aria-live="polite"></div></div>
+    <div class="lgrid">
+    <details class="panel qbox" id="timerPanel" open>
       <summary><h3 class="sec">⏱ 활동 타이머</h3><span class="note qhint">눌러서 펼치기</span></summary>
       <div class="tm-row"><span class="tm-time" id="tmTime">--:--</span><span class="state" id="tmState" hidden></span></div>
       <div class="ctl" id="tmStages"></div>
@@ -355,15 +371,8 @@ footer{color:var(--muted)}
         <button class="btn" id="fcBtn" type="button" aria-pressed="false">학생 화면: 이 단계만 보이기</button>
         <span class="state" id="fcState">학생 화면: 전체 단계</span>
       </div>
-      <p class="note" style="margin:10px 0 0">‘이 단계만 보이기’를 켜면 학생 활동 페이지에 지금 고른 단계만 보이고, 위 단계 버튼을 누를 때마다 학생 화면도 그 단계로 바뀌어요. ‘전체 단계 보이기’를 누르면 다시 모든 단계가 보여요. 타이머를 켜지 않아도 쓸 수 있어요.</p>
-      <p class="note" style="margin:10px 0 0">단계를 고르고 ‘시작’을 누르면 접속한 모든 학생 화면에 같은 시간이 몇 초 안에 나타나요. 같은 버튼을 다시 누르면 학생 화면에서 타이머가 꺼져요. 학생은 타이머를 조작할 수 없어요.</p>
     </details>
-    <div class="panel helpp" id="helpPanel" style="margin-bottom:14px"><h3 class="sec" style="margin-top:0">🙋 도움 요청</h3><div id="helpList" aria-live="polite"></div></div>
-    <div class="pgrid">
-      <div class="panel" id="live"></div>
-      <details class="panel qbox" id="qBox" open><summary><h3 class="sec">질문 목록</h3><span class="note qhint"></span></summary><div id="qList"></div></details>
-    </div>
-    <details class="panel qbox" id="wallPanel" style="margin-top:14px" open>
+    <details class="panel qbox" id="wallPanel" open>
       <summary><h3 class="sec">✍️ 실시간 글 남기기</h3><span class="note qhint" id="wallHint">눌러서 펼치기</span></summary>
       <form class="wl-new" id="wallForm">
         <input class="in" id="wallQ" maxlength="300" placeholder="학생에게 물어볼 질문 (예: 오늘 배운 힘 중 생활에서 가장 많이 본 힘은?)" aria-label="글 남기기 질문">
@@ -371,9 +380,12 @@ footer{color:var(--muted)}
       </form>
       <p class="note" id="wallMsg" role="status" style="margin:6px 0 0;font-weight:700"></p>
       <div id="wallLive" aria-live="polite"></div>
-      <p class="note" style="margin:10px 0 0">시작하면 학생 화면 오른쪽 아래 📊 버튼 창에 질문과 글 상자가 나타나고, 들어온 글이 모두의 화면에 실시간으로 보여요. 모둠에 연결한 기기는 ‘N반 N모둠’이 함께 표시돼요. 한 기기에서 질문마다 5개까지, 200자까지 보낼 수 있어요. 알맞지 않은 글은 × 로 지우세요. 새로 시작하거나 내리면 이전 글은 지워져요.</p>
     </details>
-    <details class="panel qbox" id="drawPanel" style="margin-top:14px" open>
+    <div class="pgrid">
+      <div class="panel" id="live"></div>
+      <details class="panel qbox" id="qBox" open><summary><h3 class="sec">질문 목록</h3><span class="note qhint"></span></summary><div id="qList"></div></details>
+    </div>
+    <details class="panel qbox" id="drawPanel" open>
       <summary><h3 class="sec">🎲 모둠 뽑기</h3><span class="note qhint">눌러서 펼치기</span></summary>
       <div class="ctl" style="margin-top:6px;align-items:center">
         <label>모둠 수 <select id="drawN"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option></select></label>
@@ -385,10 +397,9 @@ footer{color:var(--muted)}
       </div>
       <div class="dr-wrap"><div class="dr-wheel" id="drawWheel"></div><div class="dr-txt" id="drawTxt"></div></div>
     </details>
-    <p class="note">학생은 모둠 활동 페이지 오른쪽 아래의 <b>📊 설문</b> 버튼(또는 <b>force-design.whahrns.workers.dev/poll</b>)으로 참여해요. 반 구분 없이 접속한 모두가 같은 질문을 보고, 응답 결과가 모두에게 실시간으로 보여요. 익명이고, 새로 시작하거나 내리면 이전 응답은 지워져요.</p>
+    </div>
   </section>
 
-  <footer class="note">학생 이름은 서버에 저장되지 않아요. 무료 서버는 1주일 동안 접속이 없으면 잠시 멈추니, 수업 전에 Supabase 대시보드에서 Restore를 눌러 주세요.</footer>
 </main>
 
 <div class="big" id="bigView" hidden role="dialog" aria-modal="true" aria-label="설문 크게 보기">
